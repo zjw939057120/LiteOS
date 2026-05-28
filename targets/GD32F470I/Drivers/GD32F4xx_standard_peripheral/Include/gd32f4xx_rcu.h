@@ -1,12 +1,35 @@
 /*!
-    \file  gd32f4xx_rcu.h
-    \brief definitions for the RCU
+    \file    gd32f4xx_rcu.h
+    \brief   definitions for the RCU
+    
+    \version 2026-02-05, V3.3.3, firmware for GD32F4xx
 */
 
 /*
-    Copyright (C) 2016 GigaDevice
+    Copyright (c) 2026, GigaDevice Semiconductor Inc.
 
-    2016-08-15, V1.0.2, firmware for GD32F4xx
+    Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation 
+       and/or other materials provided with the distribution.
+    3. Neither the name of the copyright holder nor the names of its contributors 
+       may be used to endorse or promote products derived from this software without 
+       specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+OF SUCH DAMAGE.
 */
 
 #ifndef GD32F4XX_RCU_H
@@ -372,13 +395,11 @@
 
 /* RCU_PLLI2S */
 #define RCU_PLLI2S_PLLI2SN              BITS(6,14)                /*!< the PLLI2S VCO clock multi factor */
-#define RCU_PLLI2S_PLLI2SQ              BITS(24,27)               /*!< the PLLI2S Q output frequency division factor from PLLI2S VCO clock */
 #define RCU_PLLI2S_PLLI2SR              BITS(28,30)               /*!< the PLLI2S R output frequency division factor from PLLI2S VCO clock */
 
 /* RCU_PLLSAI */
 #define RCU_PLLSAI_PLLSAIN              BITS(6,14)                /*!< the PLLSAI VCO clock multi factor */
 #define RCU_PLLSAI_PLLSAIP              BITS(16,17)               /*!< the PLLSAI P output frequency division factor from PLLSAI VCO clock */
-#define RCU_PLLSAI_PLLSAIQ              BITS(24,27)               /*!< the PLLSAI Q output frequency division factor from PLLSAI VCO clock */
 #define RCU_PLLSAI_PLLSAIR              BITS(28,30)               /*!< the PLLSAI R output frequency division factor from PLLSAI VCO clock */
 
 /* RCU_CFG1 */
@@ -540,7 +561,7 @@ typedef enum
     RCU_SPI4      = RCU_REGIDX_BIT(APB2EN_REG_OFFSET, 20U),                 /*!< SPI4 clock */
     RCU_SPI5      = RCU_REGIDX_BIT(APB2EN_REG_OFFSET, 21U),                 /*!< SPI5 clock */
     RCU_TLI       = RCU_REGIDX_BIT(APB2EN_REG_OFFSET, 26U),                 /*!< TLI clock */
-    /* APB2 additional peripherals */
+    /* APB1 additional peripherals */
     RCU_CTC       = RCU_REGIDX_BIT(ADD_APB1EN_REG_OFFSET, 27U),             /*!< CTC clock */
     RCU_IREF      = RCU_REGIDX_BIT(ADD_APB1EN_REG_OFFSET, 31U),             /*!< IREF clock */
 }rcu_periph_enum;
@@ -695,7 +716,7 @@ typedef enum
     RCU_SPI4RST      = RCU_REGIDX_BIT(APB2RST_REG_OFFSET, 20U),             /*!< SPI4 clock reset */
     RCU_SPI5RST      = RCU_REGIDX_BIT(APB2RST_REG_OFFSET, 21U),             /*!< SPI5 clock reset */
     RCU_TLIRST       = RCU_REGIDX_BIT(APB2RST_REG_OFFSET, 26U),             /*!< TLI clock reset */
-    /* APB2 additional peripherals */
+    /* APB1 additional peripherals */
     RCU_CTCRST       = RCU_REGIDX_BIT(ADD_APB1RST_REG_OFFSET, 27U),         /*!< CTC clock reset */
     RCU_IREFRST      = RCU_REGIDX_BIT(ADD_APB1RST_REG_OFFSET, 31U)          /*!< IREF clock reset */
 }rcu_periph_reset_enum;
@@ -890,7 +911,7 @@ typedef enum
 /* CKOUT1 Clock source selection */
 #define CFG0_CKOUT1SEL(regval)          (BITS(30,31) & ((uint32_t)(regval) << 30))
 #define RCU_CKOUT1SRC_SYSTEMCLOCK       CFG0_CKOUT1SEL(0)                  /*!< system clock selected */
-#define RCU_CKOUT1SRC_PLLI2SR           CFG0_CKOUT1SEL(1)                  /*!< low speed crystal oscillator clock (LXTAL) selected */
+#define RCU_CKOUT1SRC_PLLI2SR           CFG0_CKOUT1SEL(1)                  /*!< CK_PLLI2SR clock selected */
 #define RCU_CKOUT1SRC_HXTAL             CFG0_CKOUT1SEL(2)                  /*!< high speed crystal oscillator clock (HXTAL) selected */
 #define RCU_CKOUT1SRC_PLLP              CFG0_CKOUT1SEL(3)                  /*!< CK_PLLP clock selected */
 
@@ -1043,13 +1064,14 @@ typedef enum
 
 /* Deep-sleep mode voltage */
 #define DSV_DSLPVS(regval)              (BITS(0,2) & ((uint32_t)(regval) << 0))
-#define RCU_DEEPSLEEP_V_1_2             DSV_DSLPVS(0)                      /*!< core voltage is 1.2V in deep-sleep mode */
-#define RCU_DEEPSLEEP_V_1_1             DSV_DSLPVS(1)                      /*!< core voltage is 1.1V in deep-sleep mode */
-#define RCU_DEEPSLEEP_V_1_0             DSV_DSLPVS(2)                      /*!< core voltage is 1.0V in deep-sleep mode */
-#define RCU_DEEPSLEEP_V_0_9             DSV_DSLPVS(3)                      /*!< core voltage is 0.9V in deep-sleep mode */
+#define RCU_DEEPSLEEP_V_0               DSV_DSLPVS(0)                      /*!< core voltage is default value in deep-sleep mode */
+#define RCU_DEEPSLEEP_V_1               DSV_DSLPVS(1)                      /*!< core voltage is (default value-0.1)V in deep-sleep mode(customers are not recommended to use it)*/
+#define RCU_DEEPSLEEP_V_2               DSV_DSLPVS(2)                      /*!< core voltage is (default value-0.2)V in deep-sleep mode(customers are not recommended to use it)*/
+#define RCU_DEEPSLEEP_V_3               DSV_DSLPVS(3)                      /*!< core voltage is (default value-0.3)V in deep-sleep mode(customers are not recommended to use it)*/
 
 
 /* function declarations */
+/* peripherals clock configure functions */
 /* deinitialize the RCU */
 void rcu_deinit(void);
 /* enable the peripherals clock */
@@ -1069,6 +1091,7 @@ void rcu_bkp_reset_enable(void);
 /* disable the BKP reset */
 void rcu_bkp_reset_disable(void);
 
+/* system and peripherals clock source, system reset configure functions */
 /* configure the system clock source */
 void rcu_system_clock_source_config(uint32_t ck_sys);
 /* get the system clock source */
@@ -1086,11 +1109,13 @@ void rcu_ckout1_config(uint32_t ckout1_src, uint32_t ckout1_div);
 /* configure the PLL clock source selection and PLL multiply factor */
 ErrStatus rcu_pll_config(uint32_t pll_src, uint32_t pll_psc, uint32_t pll_n, uint32_t pll_p, uint32_t pll_q);
 /* configure the PLLI2S clock */
-ErrStatus rcu_plli2s_config(uint32_t plli2s_n, uint32_t plli2s_q, uint32_t plli2s_r);
+ErrStatus rcu_plli2s_config(uint32_t plli2s_n, uint32_t plli2s_r);
 /* configure the PLLSAI clock */
-ErrStatus rcu_pllsai_config(uint32_t pllsai_n, uint32_t pllsai_p, uint32_t pllsai_q, uint32_t pllsai_r);
+ErrStatus rcu_pllsai_config(uint32_t pllsai_n, uint32_t pllsai_p, uint32_t pllsai_r);
 /* configure the RTC clock source selection */
 void rcu_rtc_clock_config(uint32_t rtc_clock_source);
+/* cconfigure the frequency division of RTC clock when HXTAL was selected as its clock source */
+void rcu_rtc_div_config(uint32_t rtc_div);
 /* configure the I2S clock source selection */
 void rcu_i2s_clock_config(uint32_t i2s_clock_source);
 /* configure the CK48M clock selection */
@@ -1102,20 +1127,7 @@ void rcu_timer_clock_prescaler_config(uint32_t timer_clock_prescaler);
 /* configure the TLI clock division selection */
 void rcu_tli_clock_div_config(uint32_t pllsai_r_div);
 
-
-/* get the clock stabilization and periphral reset flags */
-FlagStatus rcu_flag_get(rcu_flag_enum flag);
-/* clear the reset flag */
-void rcu_all_reset_flag_clear(void);
-/* get the clock stabilization interrupt and ckm flags */
-FlagStatus rcu_interrupt_flag_get(rcu_int_flag_enum int_flag);
-/* clear the interrupt flags */
-void rcu_interrupt_flag_clear(rcu_int_flag_clear_enum int_flag_clear);
-/* enable the stabilization interrupt */
-void rcu_interrupt_enable(rcu_int_enum stab_int);
-/* disable the stabilization interrupt */
-void rcu_interrupt_disable(rcu_int_enum stab_int);
-
+/* LXTAL, IRC8M, PLL and other oscillator configure functions */
 /* configure the LXTAL drive capability */
 void rcu_lxtal_drive_capability_config(uint32_t lxtal_dricap);
 /* wait for oscillator stabilization flags is SET or oscillator startup is timeout */
@@ -1128,11 +1140,6 @@ void rcu_osci_off(rcu_osci_type_enum osci);
 void rcu_osci_bypass_mode_enable(rcu_osci_type_enum osci);
 /* disable the oscillator bypass mode, HXTALEN or LXTALEN must be reset before it */
 void rcu_osci_bypass_mode_disable(rcu_osci_type_enum osci);
-/* enable the HXTAL clock monitor */
-void rcu_hxtal_clock_monitor_enable(void);
-/* disable the HXTAL clock monitor */
-void rcu_hxtal_clock_monitor_disable(void);
-
 /* set the IRC16M adjust value */
 void rcu_irc16m_adjust_value_set(uint32_t irc16m_adjval);
 /* configure the spread spectrum modulation for the main PLL clock */
@@ -1140,13 +1147,34 @@ void rcu_spread_spectrum_config(uint32_t spread_spectrum_type, uint32_t modstep,
 /* enable the spread spectrum modulation for the main PLL clock */
 void rcu_spread_spectrum_enable(void);
 /* disable the spread spectrum modulation for the main PLL clock */
-void rcu_spread_spectrum_disable(void);          
+void rcu_spread_spectrum_disable(void);
+
+/* clock monitor configure functions */
+/* enable the HXTAL clock monitor */
+void rcu_hxtal_clock_monitor_enable(void);
+/* disable the HXTAL clock monitor */
+void rcu_hxtal_clock_monitor_disable(void);
+
+/* voltage configure and clock frequency get functions */
 /* unlock the voltage key */
 void rcu_voltage_key_unlock(void);
 /* set the deep sleep mode voltage */
 void rcu_deepsleep_voltage_set(uint32_t dsvol);
-
 /* get the system clock, bus and peripheral clock frequency */
 uint32_t rcu_clock_freq_get(rcu_clock_freq_enum clock);
+
+/* flag & interrupt functions */
+/* get the clock stabilization and periphral reset flags */
+FlagStatus rcu_flag_get(rcu_flag_enum flag);
+/* clear the reset flag */
+void rcu_all_reset_flag_clear(void);
+/* get the clock stabilization interrupt and ckm flags */
+FlagStatus rcu_interrupt_flag_get(rcu_int_flag_enum int_flag);
+/* clear the interrupt flags */
+void rcu_interrupt_flag_clear(rcu_int_flag_clear_enum int_flag);
+/* enable the stabilization interrupt */
+void rcu_interrupt_enable(rcu_int_enum interrupt);
+/* disable the stabilization interrupt */
+void rcu_interrupt_disable(rcu_int_enum interrupt);
 
 #endif /* GD32F4XX_RCU_H */
