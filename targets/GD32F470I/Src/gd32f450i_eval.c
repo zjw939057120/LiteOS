@@ -1,24 +1,48 @@
 /*!
-    \file  gd32f450i_eval.c
-    \brief firmware functions to manage leds, keys, COM ports
+    \file    gd32f450i_eval.c
+    \brief   firmware functions to manage leds, keys, COM ports
+    
+    \version 2026-02-05, V3.3.3, firmware for GD32F4xx
 */
 
 /*
-    Copyright (C) 2016 GigaDevice
+    Copyright (c) 2026, GigaDevice Semiconductor Inc.
 
-    2016-10-19, V1.0.0, firmware for GD32F450I
+    Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation 
+       and/or other materials provided with the distribution.
+    3. Neither the name of the copyright holder nor the names of its contributors 
+       may be used to endorse or promote products derived from this software without 
+       specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+OF SUCH DAMAGE.
 */
 
 #include "gd32f450i_eval.h"
+#include <stdio.h>
 
 /* private variables */
 static uint32_t GPIO_PORT[LEDn] = {LED1_GPIO_PORT, LED2_GPIO_PORT,
                                    LED3_GPIO_PORT};
 static uint32_t GPIO_PIN[LEDn] = {LED1_PIN, LED2_PIN, LED3_PIN};
 
-static rcu_periph_enum COM_CLK[COMn] = {EVAL_COM1_CLK};
-static uint32_t COM_TX_PIN[COMn] = {EVAL_COM1_TX_PIN};
-static uint32_t COM_RX_PIN[COMn] = {EVAL_COM1_RX_PIN};
+static rcu_periph_enum COM_CLK[COMn] = {EVAL_COM0_CLK};
+static uint32_t COM_TX_PIN[COMn] = {EVAL_COM0_TX_PIN};
+static uint32_t COM_RX_PIN[COMn] = {EVAL_COM0_RX_PIN};
 
 static rcu_periph_enum GPIO_CLK[LEDn] = {LED1_GPIO_CLK, LED2_GPIO_CLK, 
                                          LED3_GPIO_CLK};
@@ -39,12 +63,12 @@ static uint8_t KEY_PORT_SOURCE[KEYn] = {WAKEUP_KEY_EXTI_PORT_SOURCE,
 static uint8_t KEY_PIN_SOURCE[KEYn] = {WAKEUP_KEY_EXTI_PIN_SOURCE,
                                        TAMPER_KEY_EXTI_PIN_SOURCE,
                                        USER_KEY_EXTI_PIN_SOURCE};
-static uint8_t KEY_IRQn[KEYn] = {WAKEUP_KEY_EXTI_IRQn, 
+static IRQn_Type KEY_IRQn[KEYn] = {WAKEUP_KEY_EXTI_IRQn, 
                                  TAMPER_KEY_EXTI_IRQn,
                                  USER_KEY_EXTI_IRQn};
 
 /*!
-    \brief      configure led GPIO
+    \brief    configure led GPIO
     \param[in]  lednum: specify the Led to be configured
       \arg        LED1
       \arg        LED2
@@ -64,7 +88,7 @@ void  gd_eval_led_init (led_typedef_enum lednum)
 }
 
 /*!
-    \brief      turn on selected led
+    \brief    turn on selected led
     \param[in]  lednum: specify the Led to be turned on
       \arg        LED1
       \arg        LED2
@@ -78,7 +102,7 @@ void gd_eval_led_on(led_typedef_enum lednum)
 }
 
 /*!
-    \brief      turn off selected led
+    \brief    turn off selected led
     \param[in]  lednum: specify the Led to be turned off
       \arg        LED1
       \arg        LED2
@@ -92,7 +116,7 @@ void gd_eval_led_off(led_typedef_enum lednum)
 }
 
 /*!
-    \brief      toggle selected led
+    \brief    toggle selected led
     \param[in]  lednum: specify the Led to be toggled
       \arg        LED1
       \arg        LED2
@@ -106,7 +130,7 @@ void gd_eval_led_toggle(led_typedef_enum lednum)
 }
 
 /*!
-    \brief      configure key
+    \brief    configure key
     \param[in]  key_num: specify the key to be configured
       \arg        KEY_TAMPER: tamper key
       \arg        KEY_WAKEUP: wakeup key
@@ -140,7 +164,7 @@ void gd_eval_key_init(key_typedef_enum key_num, keymode_typedef_enum key_mode)
 }
 
 /*!
-    \brief      return the selected button state
+    \brief    return the selected button state
     \param[in]  button: specify the button to be checked
       \arg        KEY_TAMPER: tamper key
       \arg        KEY_WAKEUP: wakeup key
@@ -154,39 +178,39 @@ uint8_t gd_eval_key_state_get(key_typedef_enum button)
 }
 
 /*!
-    \brief      configure COM port
+    \brief    configure COM port
     \param[in]  COM: COM on the board
-      \arg        EVAL_COM1: COM1 on the board
+      \arg        EVAL_COM0: COM on the board
     \param[out] none
     \retval     none
 */
 void gd_eval_com_init(uint32_t com)
 {
     /* enable GPIO clock */
-    uint32_t COM_ID;
-    if(EVAL_COM1 == com)
+    uint32_t COM_ID = 0;
+    if(EVAL_COM0 == com)
     {
         COM_ID = 0U;
     }
 
-    rcu_periph_clock_enable( EVAL_COM_GPIO_CLK);
+    rcu_periph_clock_enable( EVAL_COM0_GPIO_CLK);
 
     /* enable USART clock */
     rcu_periph_clock_enable(COM_CLK[COM_ID]);
 
     /* connect port to USARTx_Tx */
-    gpio_af_set(EVAL_COM_GPIO_PORT, EVAL_COM_AF, COM_TX_PIN[COM_ID]);
+    gpio_af_set(EVAL_COM0_GPIO_PORT, EVAL_COM0_AF, COM_TX_PIN[COM_ID]);
 
     /* connect port to USARTx_Rx */
-    gpio_af_set(EVAL_COM_GPIO_PORT, EVAL_COM_AF, COM_RX_PIN[COM_ID]);
+    gpio_af_set(EVAL_COM0_GPIO_PORT, EVAL_COM0_AF, COM_RX_PIN[COM_ID]);
 
     /* configure USART Tx as alternate function push-pull */
-    gpio_mode_set(EVAL_COM_GPIO_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP,COM_TX_PIN[COM_ID]);
-    gpio_output_options_set(EVAL_COM_GPIO_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,COM_TX_PIN[COM_ID]);
+    gpio_mode_set(EVAL_COM0_GPIO_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP,COM_TX_PIN[COM_ID]);
+    gpio_output_options_set(EVAL_COM0_GPIO_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,COM_TX_PIN[COM_ID]);
 
     /* configure USART Rx as alternate function push-pull */
-    gpio_mode_set(EVAL_COM_GPIO_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP,COM_RX_PIN[COM_ID]);
-    gpio_output_options_set(EVAL_COM_GPIO_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,COM_RX_PIN[COM_ID]);
+    gpio_mode_set(EVAL_COM0_GPIO_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP,COM_RX_PIN[COM_ID]);
+    gpio_output_options_set(EVAL_COM0_GPIO_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,COM_RX_PIN[COM_ID]);
 
     /* USART configure */
     usart_deinit(com);
@@ -195,4 +219,3 @@ void gd_eval_com_init(uint32_t com)
     usart_transmit_config(com, USART_TRANSMIT_ENABLE);
     usart_enable(com);
 }
-
