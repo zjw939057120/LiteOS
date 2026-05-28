@@ -40,6 +40,7 @@
 #include "los_nb_api.h"
 #endif
 #endif
+#include "SEGGER_RTT.h"
 UINT32 g_TskHandle;
 
 VOID HardWare_Init(VOID)
@@ -55,6 +56,7 @@ VOID liteos_task(VOID)
     gd_eval_led_init(LED3);
     while(1)
     {
+        SEGGER_RTT_WriteString(0, "liteos_task\r\n");
         /* turn on led1, turn off led4*/
         gd_eval_led_on(LED1);
         delay10ms(100);
@@ -91,6 +93,9 @@ UINT32 creat_main_task()
 
 int main(void)
 {
+    SEGGER_RTT_ConfigUpBuffer(0, NULL, NULL, 0, SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL);
+    SEGGER_RTT_WriteString(0, __TIME__);
+    SEGGER_RTT_WriteString(0, "\r\nSEGGER Real-Time-Terminal Sample\r\n");
     UINT32 uwRet = LOS_OK;
     HardWare_Init();
 
