@@ -1,12 +1,13 @@
 ENTRY(Reset_Handler)
 
-_estack = 0x20018000;
+_sstack = 0x20000000;
+_estack = 0x20010000;
 __los_stack_size__ = 0x400;
 
 MEMORY
 {
-FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 1024K
-RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 96K
+FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 512K
+RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 64K
 }
 
 SECTIONS
@@ -45,6 +46,35 @@ SECTIONS
     . = ALIGN(4);
     __rodata_end = .;
 } >FLASH
+
+.preinit_array     :
+{
+  . = ALIGN(4);
+  PROVIDE_HIDDEN (__preinit_array_start = .);
+  KEEP (*(.preinit_array*))
+  PROVIDE_HIDDEN (__preinit_array_end = .);
+  . = ALIGN(4);
+} >FLASH
+
+.init_array :
+{
+  . = ALIGN(4);
+  PROVIDE_HIDDEN (__init_array_start = .);
+  KEEP (*(SORT(.init_array.*)))
+  KEEP (*(.init_array*))
+  PROVIDE_HIDDEN (__init_array_end = .);
+  . = ALIGN(4);
+} >FLASH
+.fini_array :
+{
+  . = ALIGN(4);
+  PROVIDE_HIDDEN (__fini_array_start = .);
+  KEEP (*(SORT(.fini_array.*)))
+  KEEP (*(.fini_array*))
+  PROVIDE_HIDDEN (__fini_array_end = .);
+  . = ALIGN(4);
+} >FLASH
+
 
 _si_liteos_vector_data = LOADADDR(.vector_ram);
 

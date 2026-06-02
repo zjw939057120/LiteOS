@@ -35,7 +35,9 @@ STATIC UINT32 g_ledTaskId;
 STATIC UINT32 LedInit(VOID)
 {
     while (1) {
-        gpio_bit_toggle(GPIOB, GPIO_PIN_0);
+        gpio_bit_reset(GPIOC, GPIO_PIN_13);
+        LOS_TaskDelay(TASK_DELAY);
+        gpio_bit_set(GPIOC, GPIO_PIN_13);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
