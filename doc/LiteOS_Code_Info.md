@@ -128,7 +128,7 @@ INT32 main(VOID)
 |            | CB2201                   |                       | CB2201（ck802）开发板的开发工程源码包                         |
 |            | Cloud_STM32F429IGTx_FIRE |                       | 野火STM32F429（ARM Cortex M4）开发板的开发工程源码包           |
 |            | GD32E103C_START          |                       | GD32E103C_START（ARM Cortex M4）开发板的开发工程源码包        |
-|            | GD32F303RGT6_BearPi      |                       | GD32F303RGT6_BearPi（ARM Cortex M4）开发板的开发工程源码包    |
+|            | GD32F303ZET6      |                       | GD32F303ZET6（ARM Cortex M4）开发板的开发工程源码包    |
 |            | GD32VF103V_EVAL          |                       | GD32VF103V_EVAL（riscv）开发板的开发工程源码包                |
 |            | HiFive1_Rev1_B01         |                       | HiFive1_Rev1_B01（riscv）开发板的开发工程源码包                |
 |            | qemu-virt-a53            |                       | Coretex A53的qemu开发工程源码包                              |

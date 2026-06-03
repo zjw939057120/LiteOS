@@ -26,19 +26,19 @@ BSP_INC = \
     -I $(LITEOSTOPDIR)/targets/bsp/common \
     -I $(LITEOSTOPDIR)/targets/bsp/include \
     -I $(LITEOSTOPDIR)/targets/bsp/hw/include \
-    -I $(LITEOSTOPDIR)/targets/GD32F303RGT6_BearPi/include \
+    -I $(LITEOSTOPDIR)/targets/GD32F303ZET6/include \
     -I $(LITEOSTOPDIR)/kernel/extended/include \
     -I $(LITEOSTOPDIR)/kernel/include
 BOARD_INCLUDES += $(BSP_INC)
 
 USER_INC = \
-    -I $(LITEOSTOPDIR)/targets/GD32F303RGT6_BearPi/Inc
+    -I $(LITEOSTOPDIR)/targets/GD32F303ZET6/Inc
 BOARD_INCLUDES += $(USER_INC)
 
 # C defines
 C_DEFS += \
     -DUSE_HAL_DRIVER \
-    -DGD32F30X_XD \
+    -DGD32F30X_HD \
     -DNDEBUG \
     -D__LITEOS__ \
     -D_ALL_SOURCE \

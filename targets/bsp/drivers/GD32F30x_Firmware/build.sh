@@ -5,7 +5,7 @@ g_boardName=""
 
 OperationSourceFile()
 {
-    if [ ${g_boardName} = "GD32F303RGT6_BearPi" ]; then
+    if [ ${g_boardName} = "GD32F303ZET6" ]; then
         cp  ${g_sourceFile}/Firmware/CMSIS/GD/GD32F30x/Include/* ../../../${g_boardName}/Inc
         cp  ${g_sourceFile}/Firmware/CMSIS/GD/GD32F30x/Source/system_gd32f30x.c  ../../../${g_boardName}/Src
         mv  board.patch ../../../${g_boardName} > /dev/null 2>&1 
