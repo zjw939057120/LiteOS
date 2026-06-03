@@ -4,7 +4,7 @@
  * Linker Script for GigaDevice GD32F470IGH6 Microcontroller
  *
  * GD32F470IGH6 Memory Configuration:
- *   - FLASH:  512KB (0x08000000 - 0x08080000)
+ *   - FLASH:  1024KB (0x08000000 - 0x08100000)
  *   - RAM:    192KB (0x20000000 - 0x20030000)
  *   - No CCMRAM
  *
@@ -22,7 +22,7 @@ __los_stack_size__ = 0x400;     /* LiteOS kernel stack size (1KB) */
 /* Memory region definitions */
 MEMORY
 {
-    FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 512K   /* Program Flash (read/execute) */
+    FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 1024K  /* Program Flash (read/execute) */
     RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 192K   /* SRAM (read/write) */
 }
 
