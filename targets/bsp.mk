@@ -15,6 +15,10 @@ else ifeq ($(LOSCFG_PLATFORM_GD32E103C_START), y)
 else ifeq ($(LOSCFG_PLATFORM_GD32F303ZET6), y)
     LITEOS_CMACRO_TEST += -DGD32F30X_HD 
     GD_DRIVER_TYPE := GD32F30x_Firmware/GD32F30x_Firmware_Library/Firmware/GD32F30x_standard_peripheral
+######################### GD32F470IGH6 Options ###############################
+else ifeq ($(LOSCFG_PLATFORM_GD32F470IGH6), y)
+    LITEOS_CMACRO_TEST += -DGD32F470
+    GD_DRIVER_TYPE := GD32F4xx_Firmware/GD32F4xx_Firmware_Library/Firmware/GD32F4xx_standard_peripheral
 ######################### GD32VF103VBT6 Options ###############################
 else ifeq ($(LOSCFG_PLATFORM_GD32VF103V_EVAL), y)
     LITEOS_CMACRO_TEST += -DGD32VF103V_EVAL
