@@ -90,6 +90,7 @@ else ifeq ($(LOSCFG_PLATFORM_ESP8266), y)
 	esptool.py --chip esp8266 elf2image --flash_mode dio --flash_freq 40m --flash_size 2MB --version=3  -o $(OUT)/$@.bin $(OUT)/$@.elf
 else
 	$(OBJCOPY) -O binary $(OUT)/$@.elf $(OUT)/$@.bin
+	$(OBJCOPY) -O ihex $(OUT)/$@.elf $(OUT)/$@.hex
 endif
 	$(OBJDUMP) -t $(OUT)/$@.elf |sort >$(OUT)/$@.sym.sorted
 	$(OBJDUMP) -d $(OUT)/$@.elf >$(OUT)/$@.asm
