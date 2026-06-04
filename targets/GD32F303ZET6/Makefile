@@ -5,6 +5,8 @@ MODULE_NAME := $(LITEOS_PLATFORM)
 -include $(LITEOSTOPDIR)/targets/$(LITEOS_PLATFORM)/config.mk
 
 USER_SRC = \
+    Src/SEGGER_RTT_printf.c \
+    Src/SEGGER_RTT.c \
     os_adapt/os_adapt.c \
     Src/main.c \
     Src/system_gd32f30x.c \

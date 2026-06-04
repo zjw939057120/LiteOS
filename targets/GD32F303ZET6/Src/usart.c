@@ -82,8 +82,8 @@ INT32 UsartHwi(VOID)
 }
 
 UartControllerOps g_genericUart = {
-    .uartInit = UsartInit,
-    .uartWriteChar = UsartWrite,
-    .uartReadChar = UsartRead,
-    .uartHwiCreate = UsartHwi
+    .uartInit = NULL,
+    .uartWriteChar = NULL,
+    .uartReadChar = NULL,
+    .uartHwiCreate = NULL
 };
