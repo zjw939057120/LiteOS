@@ -34,55 +34,80 @@
 #define UART_QUEUE_BUF_MAX_LEN 1
 #define UART_QUEUE_REC_DELAY   5
 
+#if LOSCFG_DEBUG_VERSION 
 STATIC UINT32 g_uartQueue;
+#endif
 
 INT32 uart_putc(CHAR c)
 {
+#if LOSCFG_DEBUG_VERSION 
     return uart_write(&c, 1, 0);
+#else
+    return 0;
+#endif
 }
 
 UINT8 uart_getc(VOID)
 {
+#if LOSCFG_DEBUG_VERSION 
     UINT8 ch = 0;
     if (g_genericUart.uartReadChar != NULL) {
         ch = g_genericUart.uartReadChar();
     }
     (VOID)LOS_QueueWriteCopy(g_uartQueue, &ch, sizeof(UINT8), 0);
     return ch;
+#else
+    return 0;
+#endif
 }
 
 VOID uart_early_init(VOID)
 {
+#if LOSCFG_DEBUG_VERSION 
     if (g_genericUart.uartInit != NULL) {
         g_genericUart.uartInit();
     }
+#endif
 }
 
 INT32 ShellQueueCreat(VOID)
 {
+#if LOSCFG_DEBUG_VERSION 
     return (INT32)LOS_QueueCreate("uartQueue", UART_QUEUE_SIZE, &g_uartQueue, 0, UART_QUEUE_BUF_MAX_LEN);
+#else
+    return 0;
+#endif
 }
 
 INT32 uart_hwiCreate(VOID)
 {
+#if LOSCFG_DEBUG_VERSION 
     if (g_genericUart.uartHwiCreate != NULL) {
         g_genericUart.uartHwiCreate();
     }
     return LOS_OK;
+#else
+    return 0;
+#endif
 }
 
 UINT32 uart_read(UINT8 *rec, UINT32 timeout)
 {
+#if LOSCFG_DEBUG_VERSION 
     if (rec == NULL) {
         return LOS_NOK;
     }
     UINT32 len;
     len = UART_QUEUE_BUF_MAX_LEN;
     return LOS_QueueReadCopy(g_uartQueue, rec, &len, timeout);
+#else
+    return 0;
+#endif
 }
 
 INT32 uart_write(const CHAR *buf, INT32 len, INT32 timeout)
 {
+#if LOSCFG_DEBUG_VERSION 
     (VOID)timeout;
     UINT32 i;
     for (i = 0; i < len; i++) {  
@@ -91,10 +116,14 @@ INT32 uart_write(const CHAR *buf, INT32 len, INT32 timeout)
         }
     }
     return len;
+#else
+    return 0;
+#endif
 }
 
 VOID UartPuts(const CHAR *s, UINT32 len, BOOL isLock)
 {
+#if LOSCFG_DEBUG_VERSION 
     UINT32 i;
     (VOID)isLock;
     if (s == NULL) {
@@ -110,6 +139,7 @@ VOID UartPuts(const CHAR *s, UINT32 len, BOOL isLock)
         }
         (VOID)uart_putc(*(s + i));
     }
+#endif
 }
 
 VOID uart_init(VOID) 
