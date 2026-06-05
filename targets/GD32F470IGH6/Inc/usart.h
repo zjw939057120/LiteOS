@@ -46,6 +46,40 @@ VOID Usart0Init(UINT32 bound);
 extern UartControllerOps g_genericUart;
 #endif
 
+#define USART_REC_LEN               200         /* 定义最大接收字节数 200 */
+#define USART_EN_RX                 0           /* 使能（1）/禁止（0）串口0接收 */
+
+extern uint8_t  USART0_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
+extern uint8_t  USART1_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
+extern uint8_t  USART2_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
+extern uint8_t  USART3_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
+extern uint8_t  USART4_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
+extern uint8_t  USART5_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
+extern uint8_t  USART6_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
+
+extern uint8_t  USART0_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
+extern uint8_t  USART1_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
+extern uint8_t  USART2_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
+extern uint8_t  USART3_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
+extern uint8_t  USART4_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
+extern uint8_t  USART5_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
+extern uint8_t  USART6_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
+extern uint16_t USART0_RX_STA;         		      /* 接收状态标记 */	
+extern uint16_t USART1_RX_STA;         		      /* 接收状态标记 */
+extern uint16_t USART2_RX_STA;         		      /* 接收状态标记 */
+extern uint16_t USART3_RX_STA;         		      /* 接收状态标记 */
+extern uint16_t USART4_RX_STA;         		      /* 接收状态标记 */
+extern uint16_t USART5_RX_STA;         		      /* 接收状态标记 */
+extern uint16_t USART6_RX_STA;         		      /* 接收状态标记 */
+
+extern uint8_t USART0_RX_CNT;				      /*串口0接收的字节数*/	
+extern uint8_t USART1_RX_CNT;				      /*串口1接收的字节数*/	
+extern uint8_t USART2_RX_CNT;				      /*串口2接收的字节数*/
+extern uint8_t USART3_RX_CNT;				      /*串口3接收的字节数*/	
+extern uint8_t USART4_RX_CNT;				      /*串口4接收的字节数*/
+extern uint8_t USART5_RX_CNT;				      /*串口5接收的字节数*/	
+extern uint8_t USART6_RX_CNT;				      /*串口6接收的字节数*/
+
 void usart0_init(uint32_t bound);                /* 串口初始化函数 */
 void usart1_init(uint32_t bound);                /* 串口初始化函数 */
 void usart2_init(uint32_t bound);                /* 串口初始化函数 */

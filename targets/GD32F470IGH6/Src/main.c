@@ -51,7 +51,7 @@ VOID HardwareInit(VOID)
     usart3_init(9600U);
     usart4_init(9600U);
     usart5_init(9600U);
-    usart6_init(9600U);
+    usart6_init(115200U);
 }
 
 INT32 main(VOID)

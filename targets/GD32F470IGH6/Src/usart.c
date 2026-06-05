@@ -104,6 +104,45 @@ UartControllerOps g_genericUart = {
 };
 #endif
 
+/* 接收缓冲, 最大USART_REC_LEN个字节. */
+uint8_t USART0_RX_BUF[USART_REC_LEN];
+uint8_t USART1_RX_BUF[USART_REC_LEN];
+uint8_t USART2_RX_BUF[USART_REC_LEN];
+uint8_t USART3_RX_BUF[USART_REC_LEN];
+uint8_t USART4_RX_BUF[USART_REC_LEN];
+uint8_t USART5_RX_BUF[USART_REC_LEN];
+uint8_t USART6_RX_BUF[USART_REC_LEN];
+
+/* 发送缓冲, 最大USART_REC_LEN个字节. */
+uint8_t USART0_TX_BUF[USART_REC_LEN];
+uint8_t USART1_TX_BUF[USART_REC_LEN];
+uint8_t USART2_TX_BUF[USART_REC_LEN];
+uint8_t USART3_TX_BUF[USART_REC_LEN];
+uint8_t USART4_TX_BUF[USART_REC_LEN];
+uint8_t USART5_TX_BUF[USART_REC_LEN];
+uint8_t USART6_TX_BUF[USART_REC_LEN];
+
+uint8_t USART0_RX_CNT = 0;			//接收的字节数
+uint8_t USART1_RX_CNT = 0;			//接收的字节数
+uint8_t USART2_RX_CNT = 0;			//接收的字节数
+uint8_t USART3_RX_CNT = 0;			//接收的字节数
+uint8_t USART4_RX_CNT = 0;			//接收的字节数
+uint8_t USART5_RX_CNT = 0;			//接收的字节数
+uint8_t USART6_RX_CNT = 0;			//接收的字节数
+
+/*  接收状态
+ *  bit15，      接收完成标志
+ *  bit14，      接收到0x0d
+ *  bit13~0，    接收到的有效字节数目
+*/
+uint16_t USART0_RX_STA = 0;
+uint16_t USART1_RX_STA = 0;
+uint16_t USART2_RX_STA = 0;
+uint16_t USART3_RX_STA = 0;
+uint16_t USART4_RX_STA = 0;
+uint16_t USART5_RX_STA = 0;
+uint16_t USART6_RX_STA = 0;
+
 /**
  * @brief       串口0初始化函数
  * @param       bound: 波特率, 根据自己需要设置波特率值
@@ -136,13 +175,13 @@ void usart0_init(uint32_t bound)
     usart_word_length_set(USART0, USART_WL_8BIT);         /* 字长为8位数据格式 */
     usart_parity_config(USART0, USART_PM_NONE);           /* 无奇偶校验位 */
     usart_transmit_config(USART0, USART_TRANSMIT_ENABLE); /* 使能发送 */
-
+#if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(USART0, USART_RECEIVE_ENABLE);   /* 使能接收 */
     usart_interrupt_enable(USART0, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
 	usart_interrupt_enable(USART0, USART_INT_IDLE);       /* 使能空闲线中断 */
     /* 配置NVIC，并设置中断优先级 */
     nvic_irq_enable(USART0_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
-
+#endif
     usart_enable(USART0);	                                /* 使能串口 */
 }
 /**
@@ -177,13 +216,13 @@ void usart1_init(uint32_t bound)
     usart_word_length_set(USART1, USART_WL_8BIT);         /* 字长为8位数据格式 */
     usart_parity_config(USART1, USART_PM_NONE);           /* 无奇偶校验位 */
     usart_transmit_config(USART1, USART_TRANSMIT_ENABLE); /* 使能发送 */
-
+#if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(USART1, USART_RECEIVE_ENABLE);   /* 使能接收 */
     usart_interrupt_enable(USART1, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
 	usart_interrupt_enable(USART1, USART_INT_IDLE);       /* 使能空闲线中断 */
     /* 配置NVIC，并设置中断优先级 */
     nvic_irq_enable(USART1_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
-
+#endif
     usart_enable(USART1);	                                /* 使能串口 */
 }
 /**
@@ -218,13 +257,13 @@ void usart2_init(uint32_t bound)
     usart_word_length_set(USART2, USART_WL_8BIT);         /* 字长为8位数据格式 */
     usart_parity_config(USART2, USART_PM_NONE);           /* 无奇偶校验位 */
     usart_transmit_config(USART2, USART_TRANSMIT_ENABLE); /* 使能发送 */
-
+#if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(USART2, USART_RECEIVE_ENABLE);   /* 使能接收 */
     usart_interrupt_enable(USART2, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
 	usart_interrupt_enable(USART2, USART_INT_IDLE);       /* 使能空闲线中断 */	
     /* 配置NVIC，并设置中断优先级 */
     nvic_irq_enable(USART2_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
-
+#endif
     usart_enable(USART2);	                                /* 使能串口 */
 }
 /**
@@ -259,13 +298,13 @@ void usart3_init(uint32_t bound)
     usart_word_length_set(UART3, USART_WL_8BIT);         /* 字长为8位数据格式 */
     usart_parity_config(UART3, USART_PM_NONE);           /* 无奇偶校验位 */
     usart_transmit_config(UART3, USART_TRANSMIT_ENABLE); /* 使能发送 */
-
+#if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(UART3, USART_RECEIVE_ENABLE);   /* 使能接收 */
     usart_interrupt_enable(UART3, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
 	usart_interrupt_enable(UART3, USART_INT_IDLE);       /* 使能空闲线中断 */    
     /* 配置NVIC，并设置中断优先级 */
     nvic_irq_enable(UART3_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
-
+#endif
     usart_enable(UART3);	                                /* 使能串口 */
 }
 /**
@@ -301,13 +340,13 @@ void usart4_init(uint32_t bound)
     usart_word_length_set(UART4, USART_WL_8BIT);         /* 字长为8位数据格式 */
     usart_parity_config(UART4, USART_PM_NONE);           /* 无奇偶校验位 */
     usart_transmit_config(UART4, USART_TRANSMIT_ENABLE); /* 使能发送 */
-
+#if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(UART4, USART_RECEIVE_ENABLE);   /* 使能接收 */
     usart_interrupt_enable(UART4, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
 	usart_interrupt_enable(UART4, USART_INT_IDLE);       /* 使能空闲线中断 */	
     /* 配置NVIC，并设置中断优先级 */
     nvic_irq_enable(UART4_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
-
+#endif
     usart_enable(UART4);	                                /* 使能串口 */
 }
 /**
@@ -342,13 +381,13 @@ void usart5_init(uint32_t bound)
     usart_word_length_set(USART5, USART_WL_8BIT);         /* 字长为8位数据格式 */
     usart_parity_config(USART5, USART_PM_NONE);           /* 无奇偶校验位 */
     usart_transmit_config(USART5, USART_TRANSMIT_ENABLE); /* 使能发送 */
-
+#if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(USART5, USART_RECEIVE_ENABLE);   /* 使能接收 */
     usart_interrupt_enable(USART5, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
 	usart_interrupt_enable(USART5, USART_INT_IDLE);       /* 使能空闲线中断 */	
     /* 配置NVIC，并设置中断优先级 */
     nvic_irq_enable(USART5_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
-
+#endif
     usart_enable(USART5);	                                /* 使能串口 */
 }
 /**
@@ -383,77 +422,185 @@ void usart6_init(uint32_t bound)
     usart_word_length_set(UART6, USART_WL_8BIT);         /* 字长为8位数据格式 */
     usart_parity_config(UART6, USART_PM_NONE);           /* 无奇偶校验位 */
     usart_transmit_config(UART6, USART_TRANSMIT_ENABLE); /* 使能发送 */
-
+#if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(UART6, USART_RECEIVE_ENABLE);   /* 使能接收 */
     usart_interrupt_enable(UART6, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
 	usart_interrupt_enable(UART6, USART_INT_IDLE);       /* 使能空闲线中断 */    
     /* 配置NVIC，并设置中断优先级 */
     nvic_irq_enable(UART6_IRQn, 0, 0);                   /* 抢占优先级0，子优先级0 */
-
+#endif
     usart_enable(UART6);	                                /* 使能串口 */
+//	usart_interrupt_flag_clear(UART6,USART_INT_FLAG_TC);
 }
 
-void USART0_IRQHandler(void){
-    if((RESET != usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE)) &&
-       (RESET != usart_interrupt_flag_get(USART0, USART_INT_FLAG_IDLE)))
+/**
+ * @brief       串口0中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void USART0_IRQHandler(void)
+{
+    if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
-        uint8_t byte = usart_data_receive(USART0);
-        printf("Received byte: 0x%02X\n", byte);
+        USART0_RX_BUF[USART0_RX_CNT] = usart_data_receive(USART0);
+		USART0_RX_CNT++;
+		if(USART0_RX_CNT==255)
+	    USART0_RX_CNT = 0;
     }
+    else if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART0_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(USART0); 
+        (void)USART_DATA(USART0);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
 }
+/**
+ * @brief       串口1中断服务函数
+ * @param       无
+ * @retval      无
+ */
 void USART1_IRQHandler(void)
 {
-    if((RESET != usart_interrupt_flag_get(USART1, USART_INT_FLAG_RBNE)) &&
-       (RESET != usart_interrupt_flag_get(USART1, USART_INT_FLAG_IDLE)))
+    if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
-        uint8_t byte = usart_data_receive(USART1);
-        printf("Received byte: 0x%02X\n", byte);
+        USART1_RX_BUF[USART1_RX_CNT] = usart_data_receive(USART1);
+		USART1_RX_CNT++;
+		if(USART1_RX_CNT==255)
+	    USART1_RX_CNT = 0;
     }
+    else if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART1_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(USART1); 
+        (void)USART_DATA(USART1);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
 }
+/**
+ * @brief       串口2中断服务函数
+ * @param       无
+ * @retval      无
+ */
 void USART2_IRQHandler(void)
 {
-    if((RESET != usart_interrupt_flag_get(USART2, USART_INT_FLAG_RBNE)) &&
-       (RESET != usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE)))
+    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
-        uint8_t byte = usart_data_receive(USART2);
-        printf("Received byte: 0x%02X\n", byte);
+        USART2_RX_BUF[USART2_RX_CNT] = usart_data_receive(USART2);
+        usart_data_transmit(USART2, USART2_RX_BUF[USART2_RX_CNT]);
+		USART2_RX_CNT++;
+		if(USART2_RX_CNT==255)
+	    USART2_RX_CNT = 0;
     }
+    else if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART2_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(USART2); 
+        (void)USART_DATA(USART2);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
 }
-void USART3_IRQHandler(void)
+/**
+ * @brief       串口3中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void UART3_IRQHandler(void)
 {
-    if((RESET != usart_interrupt_flag_get(UART3, USART_INT_FLAG_RBNE)) &&
-       (RESET != usart_interrupt_flag_get(UART3, USART_INT_FLAG_IDLE)))
+    if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
-        uint8_t byte = usart_data_receive(UART3);
-        printf("Received byte: 0x%02X\n", byte);
+        USART3_RX_BUF[USART3_RX_CNT] = usart_data_receive(UART3);
+        usart_data_transmit(UART3, USART3_RX_BUF[USART3_RX_CNT]);
+		USART3_RX_CNT++;
+		if(USART3_RX_CNT==255)
+	    USART3_RX_CNT = 0;
     }
+    else if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART3_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(UART3); 
+        (void)USART_DATA(UART3);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
 }
-void USART4_IRQHandler(void)
+/**
+ * @brief       串口4中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void UART4_IRQHandler(void)
 {
-    if((RESET != usart_interrupt_flag_get(UART4, USART_INT_FLAG_RBNE)) &&
-       (RESET != usart_interrupt_flag_get(UART4, USART_INT_FLAG_IDLE)))
+    if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
-        uint8_t byte = usart_data_receive(UART4);
-        printf("Received byte: 0x%02X\n", byte);
+        USART4_RX_BUF[USART4_RX_CNT] = usart_data_receive(UART4);
+		USART4_RX_CNT++;
+		if(USART4_RX_CNT==255)
+	    USART4_RX_CNT = 0;
     }
+    else if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART4_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(UART4); 
+        (void)USART_DATA(UART4);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
 }
+/**
+ * @brief       串口5中断服务函数
+ * @param       无
+ * @retval      无
+ */
 void USART5_IRQHandler(void)
 {
-    if((RESET != usart_interrupt_flag_get(USART5, USART_INT_FLAG_RBNE)) &&
-       (RESET != usart_interrupt_flag_get(USART5, USART_INT_FLAG_IDLE)))
-    {
-        uint8_t byte = usart_data_receive(USART5);
-        printf("Received byte: 0x%02X\n", byte);
-    }
+    uint8_t res;
+	if(usart_interrupt_flag_get(USART5, USART_INT_FLAG_RBNE) != RESET)   /* 接收到数据 */
+	{
+		res =usart_data_receive(USART5);	                               /* 读取接收到的数据 */
+		
+		if((USART5_RX_STA&0x8000) == 0)                                   /* 接收未完成 */
+		{
+			if(USART5_RX_STA&0x4000)                                      /* 接收到了0x0d  */
+			{ 
+				if(res!=0x0a)                                            /* 接收到了0x0a? (必须先接收到到0x0d,才检查0x0a) */
+				{ 
+					USART5_RX_STA=0;                                      /* 接收错误,重新开始 */
+				}
+				else 
+				{
+					USART5_RX_STA|=0x8000;	                               /* 收到了0x0a,标记接收完成了 */ 
+				}
+			}
+			else                                                         /* 还没收到0X0d  */
+			{	
+				if(res==0x0d)
+				{
+					USART5_RX_STA|=0x4000;                                /* 标记接收到了 0x0d  */                            
+				} 
+				else
+				{
+					USART5_RX_BUF[USART5_RX_STA&0X3FFF]=res ;              /* 存储数据到USART_RX_BUF */
+					USART5_RX_STA++;
+					if(USART2_RX_STA>(USART_REC_LEN-1))USART5_RX_STA=0;    /* 接收数据溢出,重新开始接收 */ 
+				}		 
+			}
+		}   		 
+	} 
 }
-void USART6_IRQHandler(void)
+/**
+ * @brief       串口6中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void UART6_IRQHandler(void)
 {
-    if((RESET != usart_interrupt_flag_get(UART6, USART_INT_FLAG_RBNE)) &&
-       (RESET != usart_interrupt_flag_get(UART6, USART_INT_FLAG_IDLE)))
+    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
-        uint8_t byte = usart_data_receive(UART6);
-        printf("Received byte: 0x%02X\n", byte);
+        USART6_RX_BUF[USART6_RX_CNT] = usart_data_receive(UART6);
+		USART6_RX_CNT++;
+		if(USART6_RX_CNT==255)
+	    USART6_RX_CNT = 0;
     }
+    else if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART6_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(UART6); 
+        (void)USART_DATA(UART6);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
 }
 
 //串口发送单字节函数
