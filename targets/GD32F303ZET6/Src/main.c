@@ -40,7 +40,9 @@ VOID BoardConfig(VOID)
 VOID HardwareInit(VOID)
 {
     SystemInit();
+#if LOSCFG_DEBUG_VERSION 
     Usart0Init(USART_DEFAULT_BOUND);
+#endif
     TimInit();
     GpioInit();
 }

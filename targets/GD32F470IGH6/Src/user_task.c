@@ -29,6 +29,7 @@
 #include "los_task_pri.h"
 #include "demo_entry.h"
 #include "SEGGER_RTT.h" 
+#include "usart.h"
 
 #define TASK_DELAY 1000
 
@@ -65,6 +66,7 @@ STATIC UINT32 LedTaskCreate(VOID)
 
 VOID app_init(VOID)
 {
+    usart1_init(9600);
     (VOID)LedTaskCreate();
     printf("app init!\n");
     DemoEntry();

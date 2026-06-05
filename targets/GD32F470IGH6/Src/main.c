@@ -40,9 +40,18 @@ VOID BoardConfig(VOID)
 VOID HardwareInit(VOID)
 {
     SystemInit();
+#if LOSCFG_DEBUG_VERSION 
     Usart0Init(USART_DEFAULT_BOUND);
+#endif
     TimInit();
     GpioInit();
+    usart0_init(9600U);
+    usart1_init(9600U);
+    usart2_init(9600U);
+    usart3_init(9600U);
+    usart4_init(9600U);
+    usart5_init(9600U);
+    usart6_init(9600U);
 }
 
 INT32 main(VOID)

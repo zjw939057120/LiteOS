@@ -38,11 +38,32 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
+#if LOSCFG_DEBUG_VERSION
 #define USART_DEFAULT_BOUND 115200U
 
 VOID Usart0Init(UINT32 bound);
 
 extern UartControllerOps g_genericUart;
+#endif
+
+void usart0_init(uint32_t bound);                /* 串口初始化函数 */
+void usart1_init(uint32_t bound);                /* 串口初始化函数 */
+void usart2_init(uint32_t bound);                /* 串口初始化函数 */
+void usart3_init(uint32_t bound);                /* 串口初始化函数 */
+void usart4_init(uint32_t bound);                /* 串口初始化函数 */
+void usart5_init(uint32_t bound);                /* 串口初始化函数 */
+void usart6_init(uint32_t bound);                /* 串口初始化函数 */
+
+void USART0_IRQHandler(void);
+void USART1_IRQHandler(void);
+void USART2_IRQHandler(void);
+void USART3_IRQHandler(void);
+void USART4_IRQHandler(void);
+void USART5_IRQHandler(void);
+void USART6_IRQHandler(void);
+
+void Seria_SendByte(uint32_t USARTx,uint8_t Byte);
+void Seria_SendArray(uint32_t USARTx,uint8_t *Array, uint16_t Length);
 
 #ifdef __cplusplus
 #if __cplusplus

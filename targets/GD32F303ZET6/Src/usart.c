@@ -31,6 +31,7 @@
 #include "platform.h"
 #include "gd32f30x.h"
 
+#if LOSCFG_DEBUG_VERSION 
 VOID Usart0Init(UINT32 bound)
 {
     rcu_periph_clock_enable(RCU_GPIOA);
@@ -82,8 +83,9 @@ INT32 UsartHwi(VOID)
 }
 
 UartControllerOps g_genericUart = {
-    .uartInit = NULL,
-    .uartWriteChar = NULL,
-    .uartReadChar = NULL,
-    .uartHwiCreate = NULL
+    .uartInit = UsartInit,
+    .uartWriteChar = UsartWrite,
+    .uartReadChar = UsartRead,
+    .uartHwiCreate = UsartHwi
 };
+#endif

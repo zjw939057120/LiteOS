@@ -38,11 +38,13 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
+#if LOSCFG_DEBUG_VERSION
 #define USART_DEFAULT_BOUND 115200U
 
 VOID Usart0Init(UINT32 bound);
 
 extern UartControllerOps g_genericUart;
+#endif
 
 #ifdef __cplusplus
 #if __cplusplus
