@@ -70,6 +70,266 @@ uint16_t USART4_RX_STA = 0;
 uint16_t USART5_RX_STA = 0;
 uint16_t USART6_RX_STA = 0;
 
+/***********************************************************
+//Dim:auchCRCHI[]                                           
+//CRC计算定值数组                                           
+***********************************************************/
+const unsigned char auchCRCHI[] = {
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
+0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
+0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01,
+0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81,
+0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0,
+0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01,
+0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
+0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
+0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01,
+0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
+0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
+0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01,
+0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
+0x40
+};
+/***********************************************************
+//Dim:auchCRCLO[]                                        
+//CRC计算定值数组  
+***********************************************************/
+const unsigned char auchCRCLO[] = {
+0x00, 0xC0, 0xC1, 0x01, 0xC3, 0x03, 0x02, 0xC2, 0xC6, 0x06, 0x07, 0xC7, 0x05, 0xC5, 0xC4,
+0x04, 0xCC, 0x0C, 0x0D, 0xCD, 0x0F, 0xCF, 0xCE, 0x0E, 0x0A, 0xCA, 0xCB, 0x0B, 0xC9, 0x09,
+0x08, 0xC8, 0xD8, 0x18, 0x19, 0xD9, 0x1B, 0xDB, 0xDA, 0x1A, 0x1E, 0xDE, 0xDF, 0x1F, 0xDD,
+0x1D, 0x1C, 0xDC, 0x14, 0xD4, 0xD5, 0x15, 0xD7, 0x17, 0x16, 0xD6, 0xD2, 0x12, 0x13, 0xD3,
+0x11, 0xD1, 0xD0, 0x10, 0xF0, 0x30, 0x31, 0xF1, 0x33, 0xF3, 0xF2, 0x32, 0x36, 0xF6, 0xF7,
+0x37, 0xF5, 0x35, 0x34, 0xF4, 0x3C, 0xFC, 0xFD, 0x3D, 0xFF, 0x3F, 0x3E, 0xFE, 0xFA, 0x3A,
+0x3B, 0xFB, 0x39, 0xF9, 0xF8, 0x38, 0x28, 0xE8, 0xE9, 0x29, 0xEB, 0x2B, 0x2A, 0xEA, 0xEE,
+0x2E, 0x2F, 0xEF, 0x2D, 0xED, 0xEC, 0x2C, 0xE4, 0x24, 0x25, 0xE5, 0x27, 0xE7, 0xE6, 0x26,
+0x22, 0xE2, 0xE3, 0x23, 0xE1, 0x21, 0x20, 0xE0, 0xA0, 0x60, 0x61, 0xA1, 0x63, 0xA3, 0xA2,
+0x62, 0x66, 0xA6, 0xA7, 0x67, 0xA5, 0x65, 0x64, 0xA4, 0x6C, 0xAC, 0xAD, 0x6D, 0xAF, 0x6F,
+0x6E, 0xAE, 0xAA, 0x6A, 0x6B, 0xAB, 0x69, 0xA9, 0xA8, 0x68, 0x78, 0xB8, 0xB9, 0x79, 0xBB,
+0x7B, 0x7A, 0xBA, 0xBE, 0x7E, 0x7F, 0xBF, 0x7D, 0xBD, 0xBC, 0x7C, 0xB4, 0x74, 0x75, 0xB5,
+0x77, 0xB7, 0xB6, 0x76, 0x72, 0xB2, 0xB3, 0x73, 0xB1, 0x71, 0x70, 0xB0, 0x50, 0x90, 0x91,
+0x51, 0x93, 0x53, 0x52, 0x92, 0x96, 0x56, 0x57, 0x97, 0x55, 0x95, 0x94, 0x54, 0x9C, 0x5C,
+0x5D, 0x9D, 0x5F, 0x9F, 0x9E, 0x5E, 0x5A, 0x9A, 0x9B, 0x5B, 0x99, 0x59, 0x58, 0x98, 0x88,
+0x48, 0x49, 0x89, 0x4B, 0x8B, 0x8A, 0x4A, 0x4E, 0x8E, 0x8F, 0x4F, 0x8D, 0x4D, 0x4C, 0x8C,
+0x44, 0x84, 0x85, 0x45, 0x87, 0x47, 0x46, 0x86, 0x82, 0x42, 0x43, 0x83, 0x41, 0x81, 0x80,
+0x40
+};
+/***********************************************************
+//Function:Crc_Cal()                                       
+//CRC计算函数                                              
+***********************************************************/
+uint16_t Crc_Cal(uint8_t *Data_Buff,uint16_t Data_Length)
+{
+	unsigned char CRCHI=0xff;
+	unsigned char CRCLW=0xff;
+	unsigned int CRCINDEX,i;
+	i=0;
+	while(i<Data_Length)
+	{
+		CRCINDEX=CRCHI^Data_Buff[i];
+		CRCHI=CRCLW^auchCRCHI[CRCINDEX];
+		CRCLW=auchCRCLO[CRCINDEX];  
+		i++;
+	}
+	return (CRCHI<<8)+CRCLW;	                               
+}
+// 交换16位数据的字节序
+uint16_t swap_bytes_16(uint16_t value) 
+{
+    return (value >> 8) | (value << 8);
+}
+
+// 交换32位数据的字节序
+uint32_t swap_bytes_32(uint32_t value) 
+{
+    return ((value >> 24) & 0xFF) |
+           ((value >> 8) & 0xFF00) |
+           ((value << 8) & 0xFF0000) |
+           ((value << 24) & 0xFF000000);
+}
+// 32位数据转换为浮点型数据
+float int32_to_float(uint32_t value) {
+    union {
+        uint32_t i;
+        float    f;
+    } converter;
+    
+    converter.i = value;
+    return converter.f;
+}
+/**
+ * @brief       串口0中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void USART0_IRQHandler(void)
+{
+    if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
+    {
+        USART0_RX_BUF[USART0_RX_CNT] = usart_data_receive(USART0);
+		USART0_RX_CNT++;
+		if(USART0_RX_CNT==255)
+	    USART0_RX_CNT = 0;
+    }
+    else if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART0_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(USART0); 
+        (void)USART_DATA(USART0);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
+}
+/**
+ * @brief       串口1中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void USART1_IRQHandler(void)
+{
+    if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
+    {
+        USART1_RX_BUF[USART1_RX_CNT] = usart_data_receive(USART1);
+		USART1_RX_CNT++;
+		if(USART1_RX_CNT==255)
+	    USART1_RX_CNT = 0;
+    }
+    else if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART1_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(USART1); 
+        (void)USART_DATA(USART1);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
+}
+/**
+ * @brief       串口2中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void USART2_IRQHandler(void)
+{
+    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
+    {
+        USART2_RX_BUF[USART2_RX_CNT] = usart_data_receive(USART2);
+        usart_data_transmit(USART2, USART2_RX_BUF[USART2_RX_CNT]);
+		USART2_RX_CNT++;
+		if(USART2_RX_CNT==255)
+	    USART2_RX_CNT = 0;
+    }
+    else if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART2_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(USART2); 
+        (void)USART_DATA(USART2);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
+}
+/**
+ * @brief       串口3中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void UART3_IRQHandler(void)
+{
+    if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
+    {
+        USART3_RX_BUF[USART3_RX_CNT] = usart_data_receive(UART3);
+        usart_data_transmit(UART3, USART3_RX_BUF[USART3_RX_CNT]);
+		USART3_RX_CNT++;
+		if(USART3_RX_CNT==255)
+	    USART3_RX_CNT = 0;
+    }
+    else if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART3_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(UART3); 
+        (void)USART_DATA(UART3);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
+}
+/**
+ * @brief       串口4中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void UART4_IRQHandler(void)
+{
+    if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
+    {
+        USART4_RX_BUF[USART4_RX_CNT] = usart_data_receive(UART4);
+		USART4_RX_CNT++;
+		if(USART4_RX_CNT==255)
+	    USART4_RX_CNT = 0;
+    }
+    else if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART4_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(UART4); 
+        (void)USART_DATA(UART4);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
+}
+/**
+ * @brief       串口5中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void USART5_IRQHandler(void)
+{
+    uint8_t res;
+	if(usart_interrupt_flag_get(USART5, USART_INT_FLAG_RBNE) != RESET)   /* 接收到数据 */
+	{
+		res =usart_data_receive(USART5);	                               /* 读取接收到的数据 */
+		
+		if((USART5_RX_STA&0x8000) == 0)                                   /* 接收未完成 */
+		{
+			if(USART5_RX_STA&0x4000)                                      /* 接收到了0x0d  */
+			{ 
+				if(res!=0x0a)                                            /* 接收到了0x0a? (必须先接收到到0x0d,才检查0x0a) */
+				{ 
+					USART5_RX_STA=0;                                      /* 接收错误,重新开始 */
+				}
+				else 
+				{
+					USART5_RX_STA|=0x8000;	                               /* 收到了0x0a,标记接收完成了 */ 
+				}
+			}
+			else                                                         /* 还没收到0X0d  */
+			{	
+				if(res==0x0d)
+				{
+					USART5_RX_STA|=0x4000;                                /* 标记接收到了 0x0d  */                            
+				} 
+				else
+				{
+					USART5_RX_BUF[USART5_RX_STA&0X3FFF]=res ;              /* 存储数据到USART_RX_BUF */
+					USART5_RX_STA++;
+					if(USART2_RX_STA>(USART_REC_LEN-1))USART5_RX_STA=0;    /* 接收数据溢出,重新开始接收 */ 
+				}		 
+			}
+		}   		 
+	} 
+}
+/**
+ * @brief       串口6中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void UART6_IRQHandler(void)
+{
+    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
+    {
+        USART6_RX_BUF[USART6_RX_CNT] = usart_data_receive(UART6);
+		USART6_RX_CNT++;
+		if(USART6_RX_CNT==255)
+	    USART6_RX_CNT = 0;
+    }
+    else if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
+    {
+        USART6_RX_STA = 1;                                                          /* 标记帧接收完成 */
+        (void)USART_STAT0(UART6); 
+        (void)USART_DATA(UART6);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
+    } 
+}
 /**
  * @brief       串口0初始化函数
  * @param       bound: 波特率, 根据自己需要设置波特率值
@@ -359,184 +619,6 @@ void usart6_init(uint32_t bound)
     usart_enable(UART6);	                                /* 使能串口 */
 //	usart_interrupt_flag_clear(UART6,USART_INT_FLAG_TC);
 }
-
-/**
- * @brief       串口0中断服务函数
- * @param       无
- * @retval      无
- */
-void USART0_IRQHandler(void)
-{
-    if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
-    {
-        USART0_RX_BUF[USART0_RX_CNT] = usart_data_receive(USART0);
-        SEGGER_RTT_printf(0, "%c", USART0_RX_BUF[USART0_RX_CNT]);
-		USART0_RX_CNT++;
-		if(USART0_RX_CNT==255)
-	    USART0_RX_CNT = 0;
-    }
-    else if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
-    {
-        USART0_RX_STA = 1;                                                          /* 标记帧接收完成 */
-        (void)USART_STAT0(USART0); 
-        (void)USART_DATA(USART0);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
-    } 
-}
-/**
- * @brief       串口1中断服务函数
- * @param       无
- * @retval      无
- */
-void USART1_IRQHandler(void)
-{
-    if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
-    {
-        USART1_RX_BUF[USART1_RX_CNT] = usart_data_receive(USART1);
-        SEGGER_RTT_printf(0, "%c", USART1_RX_BUF[USART1_RX_CNT]);
-		USART1_RX_CNT++;
-		if(USART1_RX_CNT==255)
-	    USART1_RX_CNT = 0;
-    }
-    else if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
-    {
-        USART1_RX_STA = 1;                                                          /* 标记帧接收完成 */
-        (void)USART_STAT0(USART1); 
-        (void)USART_DATA(USART1);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
-    } 
-}
-/**
- * @brief       串口2中断服务函数
- * @param       无
- * @retval      无
- */
-void USART2_IRQHandler(void)
-{
-    if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
-    {
-        USART2_RX_BUF[USART2_RX_CNT] = usart_data_receive(USART2);
-        SEGGER_RTT_printf(0, "%c", USART2_RX_BUF[USART2_RX_CNT]);
-        usart_data_transmit(USART2, USART2_RX_BUF[USART2_RX_CNT]);
-		USART2_RX_CNT++;
-		if(USART2_RX_CNT==255)
-	    USART2_RX_CNT = 0;
-    }
-    else if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
-    {
-        USART2_RX_STA = 1;                                                          /* 标记帧接收完成 */
-        (void)USART_STAT0(USART2); 
-        (void)USART_DATA(USART2);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
-    } 
-}
-/**
- * @brief       串口3中断服务函数
- * @param       无
- * @retval      无
- */
-void UART3_IRQHandler(void)
-{
-    if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
-    {
-        USART3_RX_BUF[USART3_RX_CNT] = usart_data_receive(UART3);
-        SEGGER_RTT_printf(0, "%c", USART3_RX_BUF[USART3_RX_CNT]);
-        usart_data_transmit(UART3, USART3_RX_BUF[USART3_RX_CNT]);
-		USART3_RX_CNT++;
-		if(USART3_RX_CNT==255)
-	    USART3_RX_CNT = 0;
-    }
-    else if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
-    {
-        USART3_RX_STA = 1;                                                          /* 标记帧接收完成 */
-        (void)USART_STAT0(UART3); 
-        (void)USART_DATA(UART3);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
-    } 
-}
-/**
- * @brief       串口4中断服务函数
- * @param       无
- * @retval      无
- */
-void UART4_IRQHandler(void)
-{
-    if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
-    {
-        USART4_RX_BUF[USART4_RX_CNT] = usart_data_receive(UART4);
-        SEGGER_RTT_printf(0, "%c", USART4_RX_BUF[USART4_RX_CNT]);
-		USART4_RX_CNT++;
-		if(USART4_RX_CNT==255)
-	    USART4_RX_CNT = 0;
-    }
-    else if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
-    {
-        USART4_RX_STA = 1;                                                          /* 标记帧接收完成 */
-        (void)USART_STAT0(UART4); 
-        (void)USART_DATA(UART4);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
-    } 
-}
-/**
- * @brief       串口5中断服务函数
- * @param       无
- * @retval      无
- */
-void USART5_IRQHandler(void)
-{
-    uint8_t res;
-	if(usart_interrupt_flag_get(USART5, USART_INT_FLAG_RBNE) != RESET)   /* 接收到数据 */
-	{
-		res =usart_data_receive(USART5);	                               /* 读取接收到的数据 */
-        SEGGER_RTT_printf(0, "%c", res);
-		
-		if((USART5_RX_STA&0x8000) == 0)                                   /* 接收未完成 */
-		{
-			if(USART5_RX_STA&0x4000)                                      /* 接收到了0x0d  */
-			{ 
-				if(res!=0x0a)                                            /* 接收到了0x0a? (必须先接收到到0x0d,才检查0x0a) */
-				{ 
-					USART5_RX_STA=0;                                      /* 接收错误,重新开始 */
-				}
-				else 
-				{
-					USART5_RX_STA|=0x8000;	                               /* 收到了0x0a,标记接收完成了 */ 
-				}
-			}
-			else                                                         /* 还没收到0X0d  */
-			{	
-				if(res==0x0d)
-				{
-					USART5_RX_STA|=0x4000;                                /* 标记接收到了 0x0d  */                            
-				} 
-				else
-				{
-					USART5_RX_BUF[USART5_RX_STA&0X3FFF]=res ;              /* 存储数据到USART_RX_BUF */
-					USART5_RX_STA++;
-					if(USART2_RX_STA>(USART_REC_LEN-1))USART5_RX_STA=0;    /* 接收数据溢出,重新开始接收 */ 
-				}		 
-			}
-		}   		 
-	} 
-}
-/**
- * @brief       串口6中断服务函数
- * @param       无
- * @retval      无
- */
-void UART6_IRQHandler(void)
-{
-    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
-    {
-        USART6_RX_BUF[USART6_RX_CNT] = usart_data_receive(UART6);
-        SEGGER_RTT_printf(0, "%c", USART6_RX_BUF[USART6_RX_CNT]);
-		USART6_RX_CNT++;
-		if(USART6_RX_CNT==255)
-	    USART6_RX_CNT = 0;
-    }
-    else if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
-    {
-        USART6_RX_STA = 1;                                                          /* 标记帧接收完成 */
-        (void)USART_STAT0(UART6); 
-        (void)USART_DATA(UART6);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
-    } 
-}
-
 //串口发送单字节函数
 void Seria_SendByte(uint32_t USARTx,uint8_t Byte)
 {
@@ -611,8 +693,8 @@ void req_USART6(void)
 
 void UsartInit(void)
 {
-    usart0_init(9600U);
-    // usart1_init(9600U);
+    // usart0_init(9600U);
+    usart1_init(9600U);
     // usart2_init(9600U);
     // usart3_init(9600U);
     // usart4_init(9600U);

@@ -72,6 +72,10 @@ extern uint8_t USART3_RX_CNT;				      /*串口3接收的字节数*/
 extern uint8_t USART4_RX_CNT;				      /*串口4接收的字节数*/
 extern uint8_t USART5_RX_CNT;				      /*串口5接收的字节数*/	
 extern uint8_t USART6_RX_CNT;				      /*串口6接收的字节数*/
+extern uint16_t swap_bytes_16(uint16_t value);
+extern uint32_t swap_bytes_32(uint32_t value);
+extern float int32_to_float(uint32_t value);
+uint16_t Crc_Cal(uint8_t * Data_Buff,uint16_t Data_Length);
 
 void usart0_init(uint32_t bound);                /* 串口初始化函数 */
 void usart1_init(uint32_t bound);                /* 串口初始化函数 */
@@ -80,15 +84,6 @@ void usart3_init(uint32_t bound);                /* 串口初始化函数 */
 void usart4_init(uint32_t bound);                /* 串口初始化函数 */
 void usart5_init(uint32_t bound);                /* 串口初始化函数 */
 void usart6_init(uint32_t bound);                /* 串口初始化函数 */
-
-void USART0_IRQHandler(void);
-void USART1_IRQHandler(void);
-void USART2_IRQHandler(void);
-void USART3_IRQHandler(void);
-void USART4_IRQHandler(void);
-void USART5_IRQHandler(void);
-void USART6_IRQHandler(void);
-
 void Seria_SendByte(uint32_t USARTx,uint8_t Byte);
 void Seria_SendArray(uint32_t USARTx,uint8_t *Array, uint16_t Length);
 
