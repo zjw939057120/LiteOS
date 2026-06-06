@@ -41,13 +41,13 @@ STATIC UINT32 LedInit(VOID)
     UsartInit();
     while (1) {
         SEGGER_RTT_WriteString(0, "SEGGER Real-Time-Terminal Sample\r\n");
-        // req_USART0();
+        req_USART0();
         req_USART1();
-        // req_USART2();
-        // req_USART3();
-        // req_USART4();
-        // req_USART5();
-        // req_USART6();
+        req_USART2();
+        req_USART3();
+        req_USART4();
+        req_USART5();
+        req_USART6();
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;

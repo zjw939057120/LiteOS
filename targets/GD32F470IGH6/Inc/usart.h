@@ -87,6 +87,13 @@ void usart6_init(uint32_t bound);                /* 串口初始化函数 */
 void Seria_SendByte(uint32_t USARTx,uint8_t Byte);
 void Seria_SendArray(uint32_t USARTx,uint8_t *Array, uint16_t Length);
 
+void usart0_hwi(void);
+void usart1_hwi(void);
+void usart2_hwi(void);
+void uart3_hwi(void);
+void uart4_hwi(void);
+void usart5_hwi(void);
+void usart6_hwi(void);
 void req_USART0(void);
 void req_USART1(void);
 void req_USART2(void);

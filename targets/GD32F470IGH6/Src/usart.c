@@ -171,6 +171,7 @@ void USART0_IRQHandler(void)
     if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART0_RX_BUF[USART0_RX_CNT] = usart_data_receive(USART0);
+        // SEGGER_RTT_printf(0, "USART0_RX_BUF[%d] = 0x%02X\r\n", USART0_RX_CNT, USART0_RX_BUF[USART0_RX_CNT]);
 		USART0_RX_CNT++;
 		if(USART0_RX_CNT==255)
 	    USART0_RX_CNT = 0;
@@ -192,6 +193,7 @@ void USART1_IRQHandler(void)
     if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART1_RX_BUF[USART1_RX_CNT] = usart_data_receive(USART1);
+        SEGGER_RTT_printf(0, "USART1_RX_BUF[%d] = 0x%02X\r\n", USART1_RX_CNT, USART1_RX_BUF[USART1_RX_CNT]);
 		USART1_RX_CNT++;
 		if(USART1_RX_CNT==255)
 	    USART1_RX_CNT = 0;
@@ -213,6 +215,7 @@ void USART2_IRQHandler(void)
     if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART2_RX_BUF[USART2_RX_CNT] = usart_data_receive(USART2);
+        // SEGGER_RTT_printf(0, "USART2_RX_BUF[%d] = 0x%02X\r\n", USART2_RX_CNT, USART2_RX_BUF[USART2_RX_CNT]);
         usart_data_transmit(USART2, USART2_RX_BUF[USART2_RX_CNT]);
 		USART2_RX_CNT++;
 		if(USART2_RX_CNT==255)
@@ -235,6 +238,7 @@ void UART3_IRQHandler(void)
     if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART3_RX_BUF[USART3_RX_CNT] = usart_data_receive(UART3);
+        // SEGGER_RTT_printf(0, "UART3_RX_BUF[%d] = 0x%02X\r\n", USART3_RX_CNT, USART3_RX_BUF[USART3_RX_CNT]);
         usart_data_transmit(UART3, USART3_RX_BUF[USART3_RX_CNT]);
 		USART3_RX_CNT++;
 		if(USART3_RX_CNT==255)
@@ -257,6 +261,7 @@ void UART4_IRQHandler(void)
     if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART4_RX_BUF[USART4_RX_CNT] = usart_data_receive(UART4);
+        SEGGER_RTT_printf(0, "UART4_RX_BUF[%d] = 0x%02X\r\n", USART4_RX_CNT, USART4_RX_BUF[USART4_RX_CNT]);
 		USART4_RX_CNT++;
 		if(USART4_RX_CNT==255)
 	    USART4_RX_CNT = 0;
@@ -279,6 +284,7 @@ void USART5_IRQHandler(void)
 	if(usart_interrupt_flag_get(USART5, USART_INT_FLAG_RBNE) != RESET)   /* 接收到数据 */
 	{
 		res =usart_data_receive(USART5);	                               /* 读取接收到的数据 */
+        SEGGER_RTT_printf(0, "USART5_RX_BUF[%d] = 0x%02X\r\n", USART5_RX_CNT, res);
 		
 		if((USART5_RX_STA&0x8000) == 0)                                   /* 接收未完成 */
 		{
@@ -319,6 +325,7 @@ void UART6_IRQHandler(void)
     if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART6_RX_BUF[USART6_RX_CNT] = usart_data_receive(UART6);
+        // SEGGER_RTT_printf(0, "UART6_RX_BUF[%d] = 0x%02X\r\n", USART6_RX_CNT, USART6_RX_BUF[USART6_RX_CNT]);
 		USART6_RX_CNT++;
 		if(USART6_RX_CNT==255)
 	    USART6_RX_CNT = 0;
@@ -364,10 +371,11 @@ void usart0_init(uint32_t bound)
     usart_transmit_config(USART0, USART_TRANSMIT_ENABLE); /* 使能发送 */
 #if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(USART0, USART_RECEIVE_ENABLE);   /* 使能接收 */
-    usart_interrupt_enable(USART0, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
-	usart_interrupt_enable(USART0, USART_INT_IDLE);       /* 使能空闲线中断 */
-    /* 配置NVIC，并设置中断优先级 */
-    nvic_irq_enable(USART0_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    // usart_interrupt_enable(USART0, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
+	// usart_interrupt_enable(USART0, USART_INT_IDLE);       /* 使能空闲线中断 */
+    // /* 配置NVIC，并设置中断优先级 */
+    // nvic_irq_enable(USART0_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    usart0_hwi();
 #endif
     usart_enable(USART0);	                                /* 使能串口 */
 }
@@ -405,10 +413,11 @@ void usart1_init(uint32_t bound)
     usart_transmit_config(USART1, USART_TRANSMIT_ENABLE); /* 使能发送 */
 #if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(USART1, USART_RECEIVE_ENABLE);   /* 使能接收 */
-    usart_interrupt_enable(USART1, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
-	usart_interrupt_enable(USART1, USART_INT_IDLE);       /* 使能空闲线中断 */
+    // usart_interrupt_enable(USART1, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
+	// usart_interrupt_enable(USART1, USART_INT_IDLE);       /* 使能空闲线中断 */
     /* 配置NVIC，并设置中断优先级 */
-    nvic_irq_enable(USART1_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    // nvic_irq_enable(USART1_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    usart1_hwi();
 #endif
     usart_enable(USART1);	                                /* 使能串口 */
 }
@@ -446,10 +455,11 @@ void usart2_init(uint32_t bound)
     usart_transmit_config(USART2, USART_TRANSMIT_ENABLE); /* 使能发送 */
 #if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(USART2, USART_RECEIVE_ENABLE);   /* 使能接收 */
-    usart_interrupt_enable(USART2, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
-	usart_interrupt_enable(USART2, USART_INT_IDLE);       /* 使能空闲线中断 */	
-    /* 配置NVIC，并设置中断优先级 */
-    nvic_irq_enable(USART2_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    // usart_interrupt_enable(USART2, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
+	// usart_interrupt_enable(USART2, USART_INT_IDLE);       /* 使能空闲线中断 */	
+    // /* 配置NVIC，并设置中断优先级 */
+    // nvic_irq_enable(USART2_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    usart2_hwi();
 #endif
     usart_enable(USART2);	                                /* 使能串口 */
 }
@@ -487,10 +497,11 @@ void usart3_init(uint32_t bound)
     usart_transmit_config(UART3, USART_TRANSMIT_ENABLE); /* 使能发送 */
 #if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(UART3, USART_RECEIVE_ENABLE);   /* 使能接收 */
-    usart_interrupt_enable(UART3, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
-	usart_interrupt_enable(UART3, USART_INT_IDLE);       /* 使能空闲线中断 */    
-    /* 配置NVIC，并设置中断优先级 */
-    nvic_irq_enable(UART3_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    // usart_interrupt_enable(UART3, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
+	// usart_interrupt_enable(UART3, USART_INT_IDLE);       /* 使能空闲线中断 */    
+    // /* 配置NVIC，并设置中断优先级 */
+    // nvic_irq_enable(UART3_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    uart3_hwi();
 #endif
     usart_enable(UART3);	                                /* 使能串口 */
 }
@@ -529,10 +540,11 @@ void usart4_init(uint32_t bound)
     usart_transmit_config(UART4, USART_TRANSMIT_ENABLE); /* 使能发送 */
 #if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(UART4, USART_RECEIVE_ENABLE);   /* 使能接收 */
-    usart_interrupt_enable(UART4, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
-	usart_interrupt_enable(UART4, USART_INT_IDLE);       /* 使能空闲线中断 */	
-    /* 配置NVIC，并设置中断优先级 */
-    nvic_irq_enable(UART4_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    // usart_interrupt_enable(UART4, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
+	// usart_interrupt_enable(UART4, USART_INT_IDLE);       /* 使能空闲线中断 */	
+    // /* 配置NVIC，并设置中断优先级 */
+    // nvic_irq_enable(UART4_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    uart4_hwi();
 #endif
     usart_enable(UART4);	                                /* 使能串口 */
 }
@@ -570,10 +582,11 @@ void usart5_init(uint32_t bound)
     usart_transmit_config(USART5, USART_TRANSMIT_ENABLE); /* 使能发送 */
 #if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(USART5, USART_RECEIVE_ENABLE);   /* 使能接收 */
-    usart_interrupt_enable(USART5, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
-	usart_interrupt_enable(USART5, USART_INT_IDLE);       /* 使能空闲线中断 */	
-    /* 配置NVIC，并设置中断优先级 */
-    nvic_irq_enable(USART5_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    // usart_interrupt_enable(USART5, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */ 
+	// usart_interrupt_enable(USART5, USART_INT_IDLE);       /* 使能空闲线中断 */	
+    // /* 配置NVIC，并设置中断优先级 */
+    // nvic_irq_enable(USART5_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
+    usart5_hwi();
 #endif
     usart_enable(USART5);	                                /* 使能串口 */
 }
@@ -611,13 +624,13 @@ void usart6_init(uint32_t bound)
     usart_transmit_config(UART6, USART_TRANSMIT_ENABLE); /* 使能发送 */
 #if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(UART6, USART_RECEIVE_ENABLE);   /* 使能接收 */
-    usart_interrupt_enable(UART6, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
-	usart_interrupt_enable(UART6, USART_INT_IDLE);       /* 使能空闲线中断 */    
-    /* 配置NVIC，并设置中断优先级 */
-    nvic_irq_enable(UART6_IRQn, 0, 0);                   /* 抢占优先级0，子优先级0 */
+    // usart_interrupt_enable(UART6, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
+	// usart_interrupt_enable(UART6, USART_INT_IDLE);       /* 使能空闲线中断 */    
+    // /* 配置NVIC，并设置中断优先级 */
+    // nvic_irq_enable(UART6_IRQn, 0, 0);                   /* 抢占优先级0，子优先级0 */
+    usart6_hwi();
 #endif
     usart_enable(UART6);	                                /* 使能串口 */
-//	usart_interrupt_flag_clear(UART6,USART_INT_FLAG_TC);
 }
 //串口发送单字节函数
 void Seria_SendByte(uint32_t USARTx,uint8_t Byte)
@@ -635,6 +648,63 @@ void Seria_SendArray(uint32_t USARTx,uint8_t *Array, uint16_t Length)
 	} 
 }
 
+void usart0_hwi(void){
+    nvic_irq_enable(USART0_IRQn, 0, 0);
+    usart_flag_clear(USART0, USART_INT_RBNE);
+    usart_flag_clear(USART0, USART_INT_IDLE);
+    LOS_HwiCreate((USART0_IRQn + 16), 0, 0, USART0_IRQHandler, NULL);
+    usart_interrupt_enable(USART0, USART_INT_RBNE);
+    usart_interrupt_enable(USART0, USART_INT_IDLE);
+}
+void usart1_hwi(void){
+    nvic_irq_enable(USART1_IRQn, 0, 0);
+    usart_flag_clear(USART1, USART_INT_RBNE);
+    usart_flag_clear(USART1, USART_INT_IDLE);
+    LOS_HwiCreate((USART1_IRQn + 16), 0, 0, USART1_IRQHandler, NULL);
+    usart_interrupt_enable(USART1, USART_INT_RBNE);
+    usart_interrupt_enable(USART1, USART_INT_IDLE);
+}
+void usart2_hwi(void){
+    nvic_irq_enable(USART2_IRQn, 0, 0);
+    usart_flag_clear(USART2, USART_INT_RBNE);
+    usart_flag_clear(USART2, USART_INT_IDLE);
+    LOS_HwiCreate((USART2_IRQn + 16), 0, 0, USART2_IRQHandler, NULL);
+    usart_interrupt_enable(USART2, USART_INT_RBNE);
+    usart_interrupt_enable(USART2, USART_INT_IDLE);
+}
+void uart3_hwi(void){
+    nvic_irq_enable(UART3_IRQn, 0, 0);
+    usart_flag_clear(UART3, USART_INT_RBNE);
+    usart_flag_clear(UART3, USART_INT_IDLE);
+    LOS_HwiCreate((UART3_IRQn + 16), 0, 0, UART3_IRQHandler, NULL);
+    usart_interrupt_enable(UART3, USART_INT_RBNE);
+    usart_interrupt_enable(UART3, USART_INT_IDLE);
+}
+
+void uart4_hwi(void){
+    nvic_irq_enable(UART4_IRQn, 0, 0);
+    usart_flag_clear(UART4, USART_INT_RBNE);
+    usart_flag_clear(UART4, USART_INT_IDLE);
+    LOS_HwiCreate((UART4_IRQn + 16), 0, 0, UART4_IRQHandler, NULL);
+    usart_interrupt_enable(UART4, USART_INT_RBNE);
+    usart_interrupt_enable(UART4, USART_INT_IDLE);
+}
+void usart5_hwi(void){
+    nvic_irq_enable(USART5_IRQn, 0, 0);
+    usart_flag_clear(USART5, USART_INT_RBNE);
+    usart_flag_clear(USART5, USART_INT_IDLE);
+    LOS_HwiCreate((USART5_IRQn + 16), 0, 0, USART5_IRQHandler, NULL);
+    usart_interrupt_enable(USART5, USART_INT_RBNE);
+    usart_interrupt_enable(USART5, USART_INT_IDLE);
+}
+void usart6_hwi(void){
+    nvic_irq_enable(UART6_IRQn, 0, 0);
+    usart_flag_clear(UART6, USART_INT_RBNE);
+    usart_flag_clear(UART6, USART_INT_IDLE);
+    LOS_HwiCreate((UART6_IRQn + 16), 0, 0, UART6_IRQHandler, NULL);
+    usart_interrupt_enable(UART6, USART_INT_RBNE);
+    usart_interrupt_enable(UART6, USART_INT_IDLE);
+}
 void req_USART0(void)
 {
 	uint8_t Len;
@@ -693,12 +763,12 @@ void req_USART6(void)
 
 void UsartInit(void)
 {
-    // usart0_init(9600U);
+    usart0_init(9600U);
     usart1_init(9600U);
-    // usart2_init(9600U);
-    // usart3_init(9600U);
-    // usart4_init(9600U);
-    // usart5_init(9600U);
-    // usart6_init(115200U);
+    usart2_init(9600U);
+    usart3_init(9600U);
+    usart4_init(9600U);
+    usart5_init(9600U);
+    usart6_init(115200U);
 }
 
