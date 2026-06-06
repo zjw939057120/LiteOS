@@ -31,79 +31,6 @@
 #include "platform.h"
 #include "gd32f4xx.h"
 
-#if LOSCFG_DEBUG_VERSION 
-VOID Usart0Init(UINT32 bound)
-{    
-    /* enable GPIO clock */
-    rcu_periph_clock_enable(RCU_GPIOA);
-
-    /* enable USART clock */
-    rcu_periph_clock_enable(RCU_USART0);
-
-    /* connect port to USARTx_Tx */
-    gpio_af_set(GPIOA, GPIO_AF_7, GPIO_PIN_9);
-
-    /* connect port to USARTx_Rx */
-    gpio_af_set(GPIOA, GPIO_AF_7, GPIO_PIN_10);
-
-    /* configure USART Tx as alternate function push-pull */
-    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_PULLUP,GPIO_PIN_9);
-    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_9);
-
-    /* configure USART Rx as alternate function push-pull */
-    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_PULLUP,GPIO_PIN_10);
-    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,GPIO_PIN_10);
-
-    /* USART configure */
-    usart_deinit(USART0);
-    usart_baudrate_set(USART0, bound);
-    usart_receive_config(USART0, USART_RECEIVE_ENABLE);
-    usart_transmit_config(USART0, USART_TRANSMIT_ENABLE);
-    usart_enable(USART0);
-}
-
-VOID UsartInit(VOID) {
-    Usart0Init(USART_DEFAULT_BOUND);
-}
-
-VOID UsartWrite(const CHAR c)
-{
-    while (usart_flag_get(USART0, USART_FLAG_TBE) == 0) {}
-    usart_data_transmit(USART0, c);
-}
-
-UINT8 UsartRead(VOID)
-{
-    UINT8 ch = 0;
-    if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE) == RESET) {
-        return ch;
-    }
-    ch = (UINT8)(usart_data_receive(USART0) & 0xFF);
-    return ch;
-}
-
-STATIC VOID UartHandler(VOID)
-{
-    (VOID)uart_getc();
-}
-
-INT32 UsartHwi(VOID)
-{
-    nvic_irq_enable(USART0_IRQn, 0, 0);
-    usart_flag_clear(USART0, USART_INT_RBNE);
-    LOS_HwiCreate(NUM_HAL_INTERRUPT_UART, 0, 0, UartHandler, NULL);
-    usart_interrupt_enable(USART0, USART_INT_RBNE);
-    return LOS_OK;
-}
-
-UartControllerOps g_genericUart = {
-    .uartInit = UsartInit,
-    .uartWriteChar = UsartWrite,
-    .uartReadChar = UsartRead,
-    .uartHwiCreate = UsartHwi
-};
-#endif
-
 /* 接收缓冲, 最大USART_REC_LEN个字节. */
 uint8_t USART0_RX_BUF[USART_REC_LEN];
 uint8_t USART1_RX_BUF[USART_REC_LEN];
@@ -443,6 +370,7 @@ void USART0_IRQHandler(void)
     if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART0_RX_BUF[USART0_RX_CNT] = usart_data_receive(USART0);
+        SEGGER_RTT_printf(0, "%c", USART0_RX_BUF[USART0_RX_CNT]);
 		USART0_RX_CNT++;
 		if(USART0_RX_CNT==255)
 	    USART0_RX_CNT = 0;
@@ -464,6 +392,7 @@ void USART1_IRQHandler(void)
     if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART1_RX_BUF[USART1_RX_CNT] = usart_data_receive(USART1);
+        SEGGER_RTT_printf(0, "%c", USART1_RX_BUF[USART1_RX_CNT]);
 		USART1_RX_CNT++;
 		if(USART1_RX_CNT==255)
 	    USART1_RX_CNT = 0;
@@ -485,6 +414,7 @@ void USART2_IRQHandler(void)
     if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART2_RX_BUF[USART2_RX_CNT] = usart_data_receive(USART2);
+        SEGGER_RTT_printf(0, "%c", USART2_RX_BUF[USART2_RX_CNT]);
         usart_data_transmit(USART2, USART2_RX_BUF[USART2_RX_CNT]);
 		USART2_RX_CNT++;
 		if(USART2_RX_CNT==255)
@@ -507,6 +437,7 @@ void UART3_IRQHandler(void)
     if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART3_RX_BUF[USART3_RX_CNT] = usart_data_receive(UART3);
+        SEGGER_RTT_printf(0, "%c", USART3_RX_BUF[USART3_RX_CNT]);
         usart_data_transmit(UART3, USART3_RX_BUF[USART3_RX_CNT]);
 		USART3_RX_CNT++;
 		if(USART3_RX_CNT==255)
@@ -529,6 +460,7 @@ void UART4_IRQHandler(void)
     if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART4_RX_BUF[USART4_RX_CNT] = usart_data_receive(UART4);
+        SEGGER_RTT_printf(0, "%c", USART4_RX_BUF[USART4_RX_CNT]);
 		USART4_RX_CNT++;
 		if(USART4_RX_CNT==255)
 	    USART4_RX_CNT = 0;
@@ -551,6 +483,7 @@ void USART5_IRQHandler(void)
 	if(usart_interrupt_flag_get(USART5, USART_INT_FLAG_RBNE) != RESET)   /* 接收到数据 */
 	{
 		res =usart_data_receive(USART5);	                               /* 读取接收到的数据 */
+        SEGGER_RTT_printf(0, "%c", res);
 		
 		if((USART5_RX_STA&0x8000) == 0)                                   /* 接收未完成 */
 		{
@@ -591,6 +524,7 @@ void UART6_IRQHandler(void)
     if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART6_RX_BUF[USART6_RX_CNT] = usart_data_receive(UART6);
+        SEGGER_RTT_printf(0, "%c", USART6_RX_BUF[USART6_RX_CNT]);
 		USART6_RX_CNT++;
 		if(USART6_RX_CNT==255)
 	    USART6_RX_CNT = 0;
@@ -618,3 +552,71 @@ void Seria_SendArray(uint32_t USARTx,uint8_t *Array, uint16_t Length)
 		Seria_SendByte(USARTx,Array[i]); 	
 	} 
 }
+
+void req_USART0(void)
+{
+	uint8_t Len;
+	USART0_TX_BUF[0] = 0xFF;
+	USART0_TX_BUF[1] = 0x61;
+	USART0_TX_BUF[2] = 0x02;
+	USART0_TX_BUF[3] = 0x01;
+    USART0_TX_BUF[4] = 0x9C;
+    
+	Len = 5;
+	Seria_SendArray(USART0,USART0_TX_BUF,Len);
+}
+void req_USART1(void)
+{
+	uint8_t Len;
+	USART1_TX_BUF[0] = 0xFF;
+	USART1_TX_BUF[1] = 0x01;
+	USART1_TX_BUF[2] = 0x86;
+	USART1_TX_BUF[3] = 0x00;
+    USART1_TX_BUF[4] = 0x00;
+    USART1_TX_BUF[5] = 0x00;
+    USART1_TX_BUF[6] = 0x00;
+    USART1_TX_BUF[7] = 0x00;
+    USART1_TX_BUF[8] = 0x79;
+    
+	Len = 9;
+	Seria_SendArray(USART1,USART1_TX_BUF,Len);
+}
+void req_USART2(void)
+{
+	uint8_t Len;
+	USART2_TX_BUF[0] = 0x11;
+	USART2_TX_BUF[1] = 0x01;
+	USART2_TX_BUF[2] = 0x01;
+	USART2_TX_BUF[3] = 0xED;
+	Len = 4;
+	Seria_SendArray(USART2,USART2_TX_BUF,Len);
+}
+void req_USART3(void)
+{
+	uint8_t Len;
+	USART3_TX_BUF[0] = 0x11;
+	USART3_TX_BUF[1] = 0x02;
+	USART3_TX_BUF[2] = 0x0B;
+	USART3_TX_BUF[3] = 0x07;
+	USART3_TX_BUF[4] = 0xDB;
+	Len = 5;
+	Seria_SendArray(UART3,USART3_TX_BUF,Len);
+}
+void req_USART4(void)
+{}
+void req_USART5(void)
+{}
+void req_USART6(void)
+{}
+
+void UsartInit(void)
+{
+    usart0_init(9600U);
+    // usart1_init(9600U);
+    // usart2_init(9600U);
+    // usart3_init(9600U);
+    // usart4_init(9600U);
+    // usart5_init(9600U);
+    // usart6_init(115200U);
+}
+

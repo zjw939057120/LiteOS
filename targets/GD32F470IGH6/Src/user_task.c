@@ -28,7 +28,7 @@
 
 #include "los_task_pri.h"
 #include "demo_entry.h"
-#include "SEGGER_RTT.h" 
+#include "gpio.h"
 #include "usart.h"
 
 #define TASK_DELAY 1000
@@ -37,11 +37,17 @@ STATIC UINT32 g_ledTaskId;
 STATIC UINT32 LedInit(VOID)
 {
     SEGGER_RTT_WriteString(0, "Build: " __DATE__ " " __TIME__ "\r\n");
+    GpioInit();
+    UsartInit();
     while (1) {
         SEGGER_RTT_WriteString(0, "SEGGER Real-Time-Terminal Sample\r\n");
-        GPIO_BOP(GPIOC) = GPIO_PIN_13;
-        LOS_TaskDelay(TASK_DELAY);
-        GPIO_BC(GPIOC) = GPIO_PIN_13;
+        req_USART0();
+        req_USART1();
+        req_USART2();
+        req_USART3();
+        req_USART4();
+        req_USART5();
+        // req_USART6();
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -66,7 +72,6 @@ STATIC UINT32 LedTaskCreate(VOID)
 
 VOID app_init(VOID)
 {
-    usart1_init(9600);
     (VOID)LedTaskCreate();
     printf("app init!\n");
     DemoEntry();
