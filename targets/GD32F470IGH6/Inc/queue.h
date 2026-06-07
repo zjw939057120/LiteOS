@@ -1,6 +1,6 @@
 /*----------------------------------------------------------------------------
  * Copyright (c) Huawei Technologies Co., Ltd. 2021-2021. All rights reserved.
- * Description: User Task Implementation
+ * Description: Timer Driver Initialization HeadFile
  * Author: Huawei LiteOS Team
  * Create: 2021-03-20
  * Redistribution and use in source and binary forms, with or without modification,
@@ -26,55 +26,35 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * --------------------------------------------------------------------------- */
 
-#include "los_task_pri.h"
-#include "demo_entry.h"
-#include "gpio.h"
-#include "usart.h"
-#include "i2c.h"
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef _QUEUE_H
+#define _QUEUE_H
 
-#define TASK_DELAY 1000
+#include "los_typedef.h"
+#include "platform.h"
 
-STATIC UINT32 g_ledTaskId;
-STATIC UINT32 LedInit(VOID)
-{
-    SEGGER_RTT_WriteString(0, "Build: " __DATE__ " " __TIME__ "\r\n");
-    GpioInit();
-    UsartInit();
-    I2cInit();
-    while (1) {
-        SEGGER_RTT_WriteString(0, "SEGGER Real-Time-Terminal Sample\r\n");
-        Usart0Req();
-        Usart1Req();
-        Usart2Req();
-        Usart3Req();
-        Usart4Req();
-        Usart5Req();
-        Usart6Req();
-        LOS_TaskDelay(TASK_DELAY);
-    }
-    return 0;
+#ifdef __cplusplus
+#if __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+#endif /* __cplusplus */
+
+static UINT32 g_queueId_0;
+static UINT32 g_queueId_1;
+static UINT32 g_queueId_2;
+static UINT32 g_queueId_3;
+static UINT32 g_queueId_4;
+static UINT32 g_queueId_5;
+static UINT32 g_queueId_6;
+
+void QueueInit(void);
+UINT32 QueueRead(UINT32 queueId, VOID *bufferAddr, UINT32 *bufferSize);
+UINT32 QueueWrite(UINT32 queueId, VOID *bufferAddr, UINT32 bufferSize);
+
+#ifdef __cplusplus
+#if __cplusplus
 }
+#endif /* __cplusplus */
+#endif /* __cplusplus */
 
-STATIC UINT32 LedTaskCreate(VOID)
-{
-    INT32 ret;
-    TSK_INIT_PARAM_S ledTask;
-
-    ret = memset_s(&ledTask, sizeof(TSK_INIT_PARAM_S), 0, sizeof(TSK_INIT_PARAM_S));
-    if (ret != EOK) {
-        return ret;
-    }
-    ledTask.pfnTaskEntry = (TSK_ENTRY_FUNC)LedInit;
-    ledTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    ledTask.pcName = "LedTask";
-    ledTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
-    ledTask.uwResved = LOS_TASK_STATUS_DETACHED;
-    return LOS_TaskCreate(&g_ledTaskId, &ledTask);
-}
-
-VOID app_init(VOID)
-{
-    (VOID)LedTaskCreate();
-    printf("app init!\n");
-    DemoEntry();
-}
+#endif /* _QUEUE_H */

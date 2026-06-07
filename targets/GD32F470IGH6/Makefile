@@ -14,7 +14,8 @@ USER_SRC = \
     Src/tim.c \
     Src/usart.c \
     Src/user_task.c \
-    Src/i2c.c
+    Src/i2c.c \
+    Src/queue.c
 C_SOURCES += $(USER_SRC)
 
 GD_DRIVER_INC = \

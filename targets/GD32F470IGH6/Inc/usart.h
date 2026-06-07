@@ -77,30 +77,31 @@ extern uint32_t swap_bytes_32(uint32_t value);
 extern float int32_to_float(uint32_t value);
 uint16_t Crc_Cal(uint8_t * Data_Buff,uint16_t Data_Length);
 
-void usart0_init(uint32_t bound);                /* 串口初始化函数 */
-void usart1_init(uint32_t bound);                /* 串口初始化函数 */
-void usart2_init(uint32_t bound);                /* 串口初始化函数 */
-void usart3_init(uint32_t bound);                /* 串口初始化函数 */
-void usart4_init(uint32_t bound);                /* 串口初始化函数 */
-void usart5_init(uint32_t bound);                /* 串口初始化函数 */
-void usart6_init(uint32_t bound);                /* 串口初始化函数 */
+void usart0_init(uint32_t bound);                /* 串口初始化函数,空气质量传感器MS-VOC-V4 */
+void usart1_init(uint32_t bound);                /* 串口初始化函数,甲醛传感器SC11-CH2O */
+void usart2_init(uint32_t bound);                /* 串口初始化函数,红外二氧化碳传感器CM1106 */
+void usart3_init(uint32_t bound);                /* 串口初始化函数,激光粉尘传感器PM2012 */
+void usart4_init(uint32_t bound);                /* 串口初始化函数,RS485串口通讯 */
+void usart5_init(uint32_t bound);                /* 串口初始化函数,esp32c3串口通讯 */
+void usart6_init(uint32_t bound);                /* 串口初始化函数,SWM34SMEU6-QFN80串口通讯 */
 void Seria_SendByte(uint32_t USARTx,uint8_t Byte);
 void Seria_SendArray(uint32_t USARTx,uint8_t *Array, uint16_t Length);
 
-void usart0_hwi(void);
-void usart1_hwi(void);
-void usart2_hwi(void);
-void uart3_hwi(void);
-void uart4_hwi(void);
-void usart5_hwi(void);
-void usart6_hwi(void);
-void req_USART0(void);
-void req_USART1(void);
-void req_USART2(void);
-void req_USART3(void);
-void req_USART4(void);
-void req_USART5(void);
-void req_USART6(void);
+void Usart0Hwi(void);
+void Usart1Hwi(void);
+void Usart2Hwi(void);
+void Usart3Hwi(void);
+void Usart4Hwi(void);
+void Usart5Hwi(void);
+void Usart6Hwi(void);
+
+void Usart0Req(void);
+void Usart1Req(void);
+void Usart2Req(void);
+void Usart3Req(void);
+void Usart4Req(void);
+void Usart5Req(void);
+void Usart6Req(void);
 
 void UsartInit(void);
 

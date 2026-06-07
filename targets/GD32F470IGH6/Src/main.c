@@ -31,6 +31,7 @@
 #include "gpio.h"
 #include "usart.h"
 #include "tim.h"
+#include "queue.h"
 
 VOID BoardConfig(VOID)
 {
@@ -43,6 +44,11 @@ VOID HardwareInit(VOID)
     TimInit();
 }
 
+VOID SoftwareInit(VOID)
+{
+    QueueInit();
+}
+
 INT32 main(VOID)
 {
 #ifdef __GNUC__
@@ -53,6 +59,7 @@ INT32 main(VOID)
 
     BoardConfig();
     HardwareInit();
+    SoftwareInit();
 
     PRINT_RELEASE("\n********Hello Huawei LiteOS********\n"
                   "\nLiteOS Kernel Version : %s\n"
