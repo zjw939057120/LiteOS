@@ -171,13 +171,14 @@ void USART0_IRQHandler(void)
     if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART0_RX_BUF[USART0_RX_CNT] = usart_data_receive(USART0);
-        // SEGGER_RTT_printf(0, "USART0_RX_BUF[%d] = 0x%02X\r\n", USART0_RX_CNT, USART0_RX_BUF[USART0_RX_CNT]);
+        SEGGER_RTT_printf(0, "USART0_RX_BUF[%d] = 0x%02X\r\n", USART0_RX_CNT, USART0_RX_BUF[USART0_RX_CNT]);
 		USART0_RX_CNT++;
-		if(USART0_RX_CNT==255)
+		if(USART0_RX_CNT>=USART_REC_LEN)
 	    USART0_RX_CNT = 0;
     }
     else if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
+        SEGGER_RTT_printf(0, "USART0_RX_STA = 1\r\n");
         USART0_RX_STA = 1;                                                          /* 标记帧接收完成 */
         (void)USART_STAT0(USART0); 
         (void)USART_DATA(USART0);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
@@ -195,11 +196,12 @@ void USART1_IRQHandler(void)
         USART1_RX_BUF[USART1_RX_CNT] = usart_data_receive(USART1);
         SEGGER_RTT_printf(0, "USART1_RX_BUF[%d] = 0x%02X\r\n", USART1_RX_CNT, USART1_RX_BUF[USART1_RX_CNT]);
 		USART1_RX_CNT++;
-		if(USART1_RX_CNT==255)
+		if(USART1_RX_CNT>=USART_REC_LEN)
 	    USART1_RX_CNT = 0;
     }
     else if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
+        SEGGER_RTT_printf(0, "USART1_RX_STA = 1\r\n");
         USART1_RX_STA = 1;                                                          /* 标记帧接收完成 */
         (void)USART_STAT0(USART1); 
         (void)USART_DATA(USART1);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
@@ -215,14 +217,15 @@ void USART2_IRQHandler(void)
     if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART2_RX_BUF[USART2_RX_CNT] = usart_data_receive(USART2);
-        // SEGGER_RTT_printf(0, "USART2_RX_BUF[%d] = 0x%02X\r\n", USART2_RX_CNT, USART2_RX_BUF[USART2_RX_CNT]);
+        SEGGER_RTT_printf(0, "USART2_RX_BUF[%d] = 0x%02X\r\n", USART2_RX_CNT, USART2_RX_BUF[USART2_RX_CNT]);
         usart_data_transmit(USART2, USART2_RX_BUF[USART2_RX_CNT]);
 		USART2_RX_CNT++;
-		if(USART2_RX_CNT==255)
+		if(USART2_RX_CNT>=USART_REC_LEN)
 	    USART2_RX_CNT = 0;
     }
     else if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
+        SEGGER_RTT_printf(0, "USART2_RX_STA = 1\r\n");
         USART2_RX_STA = 1;                                                          /* 标记帧接收完成 */
         (void)USART_STAT0(USART2); 
         (void)USART_DATA(USART2);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
@@ -238,14 +241,15 @@ void UART3_IRQHandler(void)
     if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART3_RX_BUF[USART3_RX_CNT] = usart_data_receive(UART3);
-        // SEGGER_RTT_printf(0, "UART3_RX_BUF[%d] = 0x%02X\r\n", USART3_RX_CNT, USART3_RX_BUF[USART3_RX_CNT]);
+        SEGGER_RTT_printf(0, "UART3_RX_BUF[%d] = 0x%02X\r\n", USART3_RX_CNT, USART3_RX_BUF[USART3_RX_CNT]);
         usart_data_transmit(UART3, USART3_RX_BUF[USART3_RX_CNT]);
 		USART3_RX_CNT++;
-		if(USART3_RX_CNT==255)
+		if(USART3_RX_CNT>=USART_REC_LEN)
 	    USART3_RX_CNT = 0;
     }
     else if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
+        SEGGER_RTT_printf(0, "UART3_RX_STA = 1\r\n");
         USART3_RX_STA = 1;                                                          /* 标记帧接收完成 */
         (void)USART_STAT0(UART3); 
         (void)USART_DATA(UART3);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
@@ -263,11 +267,12 @@ void UART4_IRQHandler(void)
         USART4_RX_BUF[USART4_RX_CNT] = usart_data_receive(UART4);
         SEGGER_RTT_printf(0, "UART4_RX_BUF[%d] = 0x%02X\r\n", USART4_RX_CNT, USART4_RX_BUF[USART4_RX_CNT]);
 		USART4_RX_CNT++;
-		if(USART4_RX_CNT==255)
+		if(USART4_RX_CNT>=USART_REC_LEN)
 	    USART4_RX_CNT = 0;
     }
     else if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
+        SEGGER_RTT_printf(0, "UART4_RX_STA = 1\r\n");
         USART4_RX_STA = 1;                                                          /* 标记帧接收完成 */
         (void)USART_STAT0(UART4); 
         (void)USART_DATA(UART4);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
@@ -325,20 +330,21 @@ void UART6_IRQHandler(void)
     if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART6_RX_BUF[USART6_RX_CNT] = usart_data_receive(UART6);
-        // SEGGER_RTT_printf(0, "UART6_RX_BUF[%d] = 0x%02X\r\n", USART6_RX_CNT, USART6_RX_BUF[USART6_RX_CNT]);
+        SEGGER_RTT_printf(0, "UART6_RX_BUF[%d] = 0x%02X\r\n", USART6_RX_CNT, USART6_RX_BUF[USART6_RX_CNT]);
 		USART6_RX_CNT++;
-		if(USART6_RX_CNT==255)
+		if(USART6_RX_CNT>=USART_REC_LEN)
 	    USART6_RX_CNT = 0;
     }
     else if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
+        SEGGER_RTT_printf(0, "UART6_RX_STA = 1\r\n");
         USART6_RX_STA = 1;                                                          /* 标记帧接收完成 */
         (void)USART_STAT0(UART6); 
         (void)USART_DATA(UART6);                                                   /* 先读USART_STAT0，再读USART_DATA清除该标志位 */ 
     } 
 }
 /**
- * @brief       串口0初始化函数
+ * @brief       串口0初始化函数,空气质量传感器MS-VOC-V4
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */
@@ -380,7 +386,7 @@ void usart0_init(uint32_t bound)
     usart_enable(USART0);	                                /* 使能串口 */
 }
 /**
- * @brief       串口1初始化函数
+ * @brief       串口1初始化函数,甲醛传感器SC11-CH2O
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */
@@ -422,7 +428,7 @@ void usart1_init(uint32_t bound)
     usart_enable(USART1);	                                /* 使能串口 */
 }
 /**
- * @brief       串口2初始化函数
+ * @brief       串口2初始化函数,红外二氧化碳传感器CM1106
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */
@@ -464,7 +470,7 @@ void usart2_init(uint32_t bound)
     usart_enable(USART2);	                                /* 使能串口 */
 }
 /**
- * @brief       串口3初始化函数
+ * @brief       串口3初始化函数,激光粉尘传感器PM2012
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */
@@ -506,7 +512,7 @@ void usart3_init(uint32_t bound)
     usart_enable(UART3);	                                /* 使能串口 */
 }
 /**
- * @brief       串口4初始化函数
+ * @brief       串口4初始化函数,RS485串口通讯
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */
@@ -549,7 +555,7 @@ void usart4_init(uint32_t bound)
     usart_enable(UART4);	                                /* 使能串口 */
 }
 /**
- * @brief       串口5初始化函数
+ * @brief       串口5初始化函数,esp32c3串口通讯
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */
@@ -591,7 +597,7 @@ void usart5_init(uint32_t bound)
     usart_enable(USART5);	                                /* 使能串口 */
 }
 /**
- * @brief       串口6初始化函数
+ * @brief       串口6初始化函数,SWM34SMEU6-QFN80串口通讯
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */

@@ -1,6 +1,6 @@
 /*----------------------------------------------------------------------------
  * Copyright (c) Huawei Technologies Co., Ltd. 2021-2021. All rights reserved.
- * Description: User Task Implementation
+ * Description: Timer Driver Initialization HeadFile
  * Author: Huawei LiteOS Team
  * Create: 2021-03-20
  * Redistribution and use in source and binary forms, with or without modification,
@@ -26,55 +26,41 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * --------------------------------------------------------------------------- */
 
-#include "los_task_pri.h"
-#include "demo_entry.h"
-#include "gpio.h"
-#include "usart.h"
-#include "i2c.h"
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef _I2C_H
+#define _I2C_H
 
-#define TASK_DELAY 1000
+#include "los_typedef.h"
+#include "platform.h"
 
-STATIC UINT32 g_ledTaskId;
-STATIC UINT32 LedInit(VOID)
-{
-    SEGGER_RTT_WriteString(0, "Build: " __DATE__ " " __TIME__ "\r\n");
-    GpioInit();
-    UsartInit();
-    I2cInit();
-    while (1) {
-        SEGGER_RTT_WriteString(0, "SEGGER Real-Time-Terminal Sample\r\n");
-        req_USART0();
-        req_USART1();
-        req_USART2();
-        req_USART3();
-        req_USART4();
-        req_USART5();
-        req_USART6();
-        LOS_TaskDelay(TASK_DELAY);
-    }
-    return 0;
+#ifdef __cplusplus
+#if __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+#endif /* __cplusplus */
+
+#define I2C1_SPEED              100000  // I2C1 通信速率(100KHz)
+#define I2C1_SLAVE_ADDRESS7     0x70    // I2C1 7位从机地址
+
+/* ================ 超时配置 ================ */
+/* 基于循环计数的超时机制(无需HAL_GetTick函数)
+   I2C_TIMEOUT_LOOP: 200MHz主频下约50ms超时
+   I2C_TIMEOUT_START_LOOP: 200MHz主频下约10ms超时(用于START/ACK检测) */
+#ifndef I2C_TIMEOUT_LOOP
+#define I2C_TIMEOUT_LOOP        500000U
+#endif
+#ifndef I2C_TIMEOUT_START_LOOP
+#define I2C_TIMEOUT_START_LOOP  100000U
+#endif
+
+void I2cInit(void);
+
+
+
+#ifdef __cplusplus
+#if __cplusplus
 }
+#endif /* __cplusplus */
+#endif /* __cplusplus */
 
-STATIC UINT32 LedTaskCreate(VOID)
-{
-    INT32 ret;
-    TSK_INIT_PARAM_S ledTask;
-
-    ret = memset_s(&ledTask, sizeof(TSK_INIT_PARAM_S), 0, sizeof(TSK_INIT_PARAM_S));
-    if (ret != EOK) {
-        return ret;
-    }
-    ledTask.pfnTaskEntry = (TSK_ENTRY_FUNC)LedInit;
-    ledTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    ledTask.pcName = "LedTask";
-    ledTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
-    ledTask.uwResved = LOS_TASK_STATUS_DETACHED;
-    return LOS_TaskCreate(&g_ledTaskId, &ledTask);
-}
-
-VOID app_init(VOID)
-{
-    (VOID)LedTaskCreate();
-    printf("app init!\n");
-    DemoEntry();
-}
+#endif /* _I2C_H */
