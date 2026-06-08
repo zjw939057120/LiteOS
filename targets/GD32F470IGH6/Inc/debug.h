@@ -41,6 +41,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 void SEGGER_RTT_printf_hex(const unsigned char* array, unsigned int length);
+void SEGGER_RTT_printf_dec(const unsigned char* array, unsigned int length);
 
 #ifdef __cplusplus
 #if __cplusplus

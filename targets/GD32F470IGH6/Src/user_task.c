@@ -35,16 +35,16 @@
 
 #define TASK_DELAY 1000
 
-STATIC UINT32 g_UartTaskId;
-STATIC UINT32 g_RecvUart0TaskId;
-STATIC UINT32 g_RecvUart1TaskId;
-STATIC UINT32 g_RecvUart2TaskId;
-STATIC UINT32 g_RecvUart3TaskId;
-STATIC UINT32 g_RecvUart4TaskId;
-STATIC UINT32 g_RecvUart5TaskId;
-STATIC UINT32 g_RecvUart6TaskId;
+UINT32 g_UartTaskId = 0;
+UINT32 g_RecvUart0TaskId = 0;
+UINT32 g_RecvUart1TaskId = 0;
+UINT32 g_RecvUart2TaskId = 0;
+UINT32 g_RecvUart3TaskId = 0;
+UINT32 g_RecvUart4TaskId = 0;
+UINT32 g_RecvUart5TaskId = 0;
+UINT32 g_RecvUart6TaskId = 0;
 
-STATIC UINT32 UartTaskEntry(VOID)
+UINT32 UartTaskEntry(VOID)
 {
     GpioInit();
     UsartInit();
@@ -63,49 +63,55 @@ STATIC UINT32 UartTaskEntry(VOID)
     return 0;
 }
 
-STATIC UINT32 RecvUart0TaskEntry(VOID)
+UINT32 RecvUart0TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
     while (1) {
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart0, buff, &recvLen);
-        SEGGER_RTT_printf(0, "RecvUart0TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart0TaskId, recvLen, ret);
-        SEGGER_RTT_printf_hex(buff, recvLen);
+        uint16_t TVOC = 0;
+        TVOC = buff[8] * 256 + buff[9]; // Data[8]*256+Data[9]
+        SEGGER_RTT_printf(0, "RecvUart0TaskEntry %d, recvLen = %d, ret = %d, TVOC = %d\n",g_RecvUart0TaskId, recvLen, ret, TVOC);
+        // SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
 }
 
-STATIC UINT32 RecvUart1TaskEntry(VOID)
+UINT32 RecvUart1TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
     while (1) {
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart1, buff, &recvLen);
-        SEGGER_RTT_printf(0, "RecvUart1TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart1TaskId, recvLen, ret);
-        SEGGER_RTT_printf_hex(buff, recvLen);
+        uint16_t PPB = 0;
+        PPB = (buff[2] * 256 + buff[3]); // (Data[2]*256+Data[3])
+        SEGGER_RTT_printf(0, "RecvUart1TaskEntry %d, recvLen = %d, ret = %d, PPB = %d\n",g_RecvUart1TaskId, recvLen, ret, PPB);
+        // SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
 }
 
-STATIC UINT32 RecvUart2TaskEntry(VOID)
+UINT32 RecvUart2TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
     while (1) {
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart2, buff, &recvLen);
-        SEGGER_RTT_printf(0, "RecvUart2TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart2TaskId, recvLen, ret);
+        uint16_t CO2 = 0;
+        CO2 = (buff[3] * 256 + buff[4]); // (Data[3]*256+Data[4])
+        SEGGER_RTT_printf(0, "RecvUart2TaskEntry %d, recvLen = %d, ret = %d, CO2 = %d\n",g_RecvUart2TaskId, recvLen, ret, CO2);
         SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
 }
 
-STATIC UINT32 RecvUart3TaskEntry(VOID)
+UINT32 RecvUart3TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
@@ -113,13 +119,13 @@ STATIC UINT32 RecvUart3TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart3, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart3TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart3TaskId, recvLen, ret);
-        SEGGER_RTT_printf_hex(buff, recvLen);
+        // SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
 }
 
-STATIC UINT32 RecvUart4TaskEntry(VOID)
+UINT32 RecvUart4TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
@@ -127,13 +133,13 @@ STATIC UINT32 RecvUart4TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart4TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart4TaskId, recvLen, ret);
-        SEGGER_RTT_printf_hex(buff, recvLen);
+        // SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
 }
 
-STATIC UINT32 RecvUart5TaskEntry(VOID)
+UINT32 RecvUart5TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
@@ -141,13 +147,13 @@ STATIC UINT32 RecvUart5TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart5TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart5TaskId, recvLen, ret);
-        SEGGER_RTT_printf_hex(buff, recvLen);
+        // SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
 }
 
-STATIC UINT32 RecvUart6TaskEntry(VOID)
+UINT32 RecvUart6TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
@@ -155,13 +161,13 @@ STATIC UINT32 RecvUart6TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart6TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart6TaskId, recvLen, ret);
-        SEGGER_RTT_printf_hex(buff, recvLen);
+        // SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
 }
 
-STATIC UINT32 UartTaskCreate(VOID)
+UINT32 UartTaskCreate(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -178,7 +184,7 @@ STATIC UINT32 UartTaskCreate(VOID)
     return LOS_TaskCreate(&g_UartTaskId, &uartTask);
 }
 
-STATIC UINT32 RecvUart0Create(VOID)
+UINT32 RecvUart0Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -194,7 +200,7 @@ STATIC UINT32 RecvUart0Create(VOID)
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
     return LOS_TaskCreate(&g_RecvUart0TaskId, &uartTask);
 }
-STATIC UINT32 RecvUart1Create(VOID)
+UINT32 RecvUart1Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -210,7 +216,7 @@ STATIC UINT32 RecvUart1Create(VOID)
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
     return LOS_TaskCreate(&g_RecvUart1TaskId, &uartTask);
 }
-STATIC UINT32 RecvUart2Create(VOID)
+UINT32 RecvUart2Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -226,7 +232,7 @@ STATIC UINT32 RecvUart2Create(VOID)
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
     return LOS_TaskCreate(&g_RecvUart2TaskId, &uartTask);
 }
-STATIC UINT32 RecvUart3Create(VOID)
+UINT32 RecvUart3Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -242,7 +248,7 @@ STATIC UINT32 RecvUart3Create(VOID)
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
     return LOS_TaskCreate(&g_RecvUart3TaskId, &uartTask);
 }
-STATIC UINT32 RecvUart4Create(VOID)
+UINT32 RecvUart4Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -258,7 +264,7 @@ STATIC UINT32 RecvUart4Create(VOID)
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
     return LOS_TaskCreate(&g_RecvUart4TaskId, &uartTask);
 }
-STATIC UINT32 RecvUart5Create(VOID)
+UINT32 RecvUart5Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -274,7 +280,7 @@ STATIC UINT32 RecvUart5Create(VOID)
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
     return LOS_TaskCreate(&g_RecvUart5TaskId, &uartTask);
 }
-STATIC UINT32 RecvUart6Create(VOID)
+UINT32 RecvUart6Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;

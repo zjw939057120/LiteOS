@@ -72,7 +72,7 @@ uint16_t Crc_Cal(uint8_t * Data_Buff,uint16_t Data_Length);
 
 void usart0_init(uint32_t bound);                /* 串口初始化函数,空气质量传感器MS-VOC-V4 */
 void usart1_init(uint32_t bound);                /* 串口初始化函数,甲醛传感器SC11-CH2O */
-void usart2_init(uint32_t bound);                /* 串口初始化函数,红外二氧化碳传感器CM1106 */
+void usart2_init(uint32_t bound);                /* 串口初始化函数,红外二氧化碳传感器CM1106S */
 void usart3_init(uint32_t bound);                /* 串口初始化函数,激光粉尘传感器PM2012 */
 void usart4_init(uint32_t bound);                /* 串口初始化函数,RS485串口通讯 */
 void usart5_init(uint32_t bound);                /* 串口初始化函数,esp32c3串口通讯 */

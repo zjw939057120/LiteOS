@@ -38,3 +38,14 @@ void SEGGER_RTT_printf_hex(const unsigned char *array, unsigned int length) {
   }
   SEGGER_RTT_printf(0, "\n");
 }
+
+void SEGGER_RTT_printf_dec(const unsigned char* array, unsigned int length) {
+  for (unsigned int i = 0; i < length; i++) {
+    SEGGER_RTT_printf(0, "%d ", array[i]);
+    // 每16字节换行
+    if ((i + 1) % 16 == 0) {
+      SEGGER_RTT_printf(0, "\n");
+    }
+  }
+  SEGGER_RTT_printf(0, "\n");
+}

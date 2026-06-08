@@ -38,6 +38,23 @@
 extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
+UINT32 UartTaskEntry(VOID);
+UINT32 RecvUart0TaskEntry(VOID);
+UINT32 RecvUart1TaskEntry(VOID);
+UINT32 RecvUart2TaskEntry(VOID);
+UINT32 RecvUart3TaskEntry(VOID);
+UINT32 RecvUart4TaskEntry(VOID);
+UINT32 RecvUart5TaskEntry(VOID);
+UINT32 RecvUart6TaskEntry(VOID);
+
+UINT32 UartTaskCreate(VOID);
+UINT32 RecvUart0Create(VOID);
+UINT32 RecvUart1Create(VOID);
+UINT32 RecvUart2Create(VOID);
+UINT32 RecvUart3Create(VOID);
+UINT32 RecvUart4Create(VOID);
+UINT32 RecvUart5Create(VOID);
+UINT32 RecvUart6Create(VOID);
 
 VOID app_init(VOID);
 
