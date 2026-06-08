@@ -29,26 +29,38 @@
 #include "queue.h"
 #include "los_hwi.h"
 #include "los_queue.h"
+#include "usart.h"
 
-#define UART_QUEUE_SIZE        64
-#define UART_QUEUE_BUF_MAX_LEN 1
-#define UART_QUEUE_REC_DELAY   5
+UINT32 g_queueId_uart0 = 0;
+UINT32 g_queueId_uart1 = 0;
+UINT32 g_queueId_uart2 = 0;
+UINT32 g_queueId_uart3 = 0;
+UINT32 g_queueId_uart4 = 0;
+UINT32 g_queueId_uart5 = 0;
+UINT32 g_queueId_uart6 = 0;
 
 void QueueInit(void)
 {
-    LOS_QueueCreate("q0", UART_QUEUE_SIZE, &g_queueId_0, 0, UART_QUEUE_BUF_MAX_LEN);
-    LOS_QueueCreate("q1", UART_QUEUE_SIZE, &g_queueId_1, 0, UART_QUEUE_BUF_MAX_LEN);
-    LOS_QueueCreate("q2", UART_QUEUE_SIZE, &g_queueId_2, 0, UART_QUEUE_BUF_MAX_LEN);
-    LOS_QueueCreate("q3", UART_QUEUE_SIZE, &g_queueId_3, 0, UART_QUEUE_BUF_MAX_LEN);
-    LOS_QueueCreate("q4", UART_QUEUE_SIZE, &g_queueId_4, 0, UART_QUEUE_BUF_MAX_LEN);
-    LOS_QueueCreate("q5", UART_QUEUE_SIZE, &g_queueId_5, 0, UART_QUEUE_BUF_MAX_LEN);
-    LOS_QueueCreate("q6", UART_QUEUE_SIZE, &g_queueId_6, 0, UART_QUEUE_BUF_MAX_LEN);
+  LOS_QueueCreate("uart0", DEFAULT_QUEUE_SIZE, &g_queueId_uart0, 0,
+                  DEFAULT_QUEUE_BUF_MAX_LEN);
+  LOS_QueueCreate("uart1", DEFAULT_QUEUE_SIZE, &g_queueId_uart1, 0,
+                  DEFAULT_QUEUE_BUF_MAX_LEN);
+  LOS_QueueCreate("uart2", DEFAULT_QUEUE_SIZE, &g_queueId_uart2, 0,
+                  DEFAULT_QUEUE_BUF_MAX_LEN);
+  LOS_QueueCreate("uart3", DEFAULT_QUEUE_SIZE, &g_queueId_uart3, 0,
+                  DEFAULT_QUEUE_BUF_MAX_LEN);
+  LOS_QueueCreate("uart4", DEFAULT_QUEUE_SIZE, &g_queueId_uart4, 0,
+                  DEFAULT_QUEUE_BUF_MAX_LEN);
+  LOS_QueueCreate("uart5", DEFAULT_QUEUE_SIZE, &g_queueId_uart5, 0,
+                  DEFAULT_QUEUE_BUF_MAX_LEN);
+  LOS_QueueCreate("uart6", DEFAULT_QUEUE_SIZE, &g_queueId_uart6, 0,
+                  DEFAULT_QUEUE_BUF_MAX_LEN);
 }
 
-UINT32 QueueRead(UINT32 queueId, VOID *bufferAddr, UINT32 *bufferSize) {
-  return LOS_QueueReadCopy(queueId, bufferAddr, bufferSize, 0);
+UINT32 QueueRecv(UINT32 queueId, VOID *bufferAddr, UINT32 *bufferSize) {
+  return LOS_QueueReadCopy(queueId, bufferAddr, bufferSize, LOS_WAIT_FOREVER);
 }
 
-UINT32 QueueWrite(UINT32 queueId, VOID *bufferAddr, UINT32 bufferSize) {
+UINT32 QueueSend(UINT32 queueId, VOID *bufferAddr, UINT32 bufferSize) {
   return LOS_QueueWriteCopy(queueId, bufferAddr, bufferSize, 0);
 }

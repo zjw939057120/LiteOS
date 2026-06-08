@@ -44,11 +44,6 @@ VOID HardwareInit(VOID)
     TimInit();
 }
 
-VOID SoftwareInit(VOID)
-{
-    QueueInit();
-}
-
 INT32 main(VOID)
 {
 #ifdef __GNUC__
@@ -59,9 +54,8 @@ INT32 main(VOID)
 
     BoardConfig();
     HardwareInit();
-    SoftwareInit();
 
-    PRINT_RELEASE("\n********Hello Huawei LiteOS********\n"
+    SEGGER_RTT_printf(0, "\n********Hello Huawei LiteOS********\n"
                   "\nLiteOS Kernel Version : %s\n"
                   "build date : %s %s\n\n"
                   "**********************************\n",

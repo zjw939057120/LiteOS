@@ -27,8 +27,8 @@
  * --------------------------------------------------------------------------- */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef _QUEUE_H
-#define _QUEUE_H
+#ifndef _USER_TASK_H
+#define _USER_TASK_H
 
 #include "los_typedef.h"
 #include "platform.h"
@@ -39,21 +39,7 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-#define DEFAULT_QUEUE_SIZE        3
-#define DEFAULT_QUEUE_BUF_MAX_LEN 200
-#define DEFAULT_QUEUE_REC_DELAY   5
-
-extern UINT32 g_queueId_uart0;
-extern UINT32 g_queueId_uart1;
-extern UINT32 g_queueId_uart2;
-extern UINT32 g_queueId_uart3;
-extern UINT32 g_queueId_uart4;
-extern UINT32 g_queueId_uart5;
-extern UINT32 g_queueId_uart6;
-
-void QueueInit(void);
-UINT32 QueueRecv(UINT32 queueId, VOID *bufferAddr, UINT32 *bufferSize);
-UINT32 QueueSend(UINT32 queueId, VOID *bufferAddr, UINT32 bufferSize);
+VOID app_init(VOID);
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -61,4 +47,4 @@ UINT32 QueueSend(UINT32 queueId, VOID *bufferAddr, UINT32 bufferSize);
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-#endif /* _QUEUE_H */
+#endif /* _USER_TASK_H */

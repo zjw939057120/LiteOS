@@ -30,11 +30,11 @@
 #include "los_queue.h"
 #include "usart.h"
 
+#if LOSCFG_DEBUG_VERSION 
 #define UART_QUEUE_SIZE        64
 #define UART_QUEUE_BUF_MAX_LEN 1
 #define UART_QUEUE_REC_DELAY   5
 
-#if LOSCFG_DEBUG_VERSION 
 STATIC UINT32 g_uartQueue;
 #endif
 
