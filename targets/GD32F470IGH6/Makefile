@@ -5,8 +5,6 @@ MODULE_NAME := $(LITEOS_PLATFORM)
 -include $(LITEOSTOPDIR)/targets/$(LITEOS_PLATFORM)/config.mk
 
 USER_SRC = \
-    Src/SEGGER_RTT_printf.c \
-    Src/SEGGER_RTT.c \
     os_adapt/os_adapt.c \
     Src/main.c \
     Src/system_gd32f4xx.c \
@@ -14,8 +12,13 @@ USER_SRC = \
     Src/tim.c \
     Src/usart.c \
     Src/user_task.c \
+    Src/SEGGER_RTT_printf.c \
+    Src/SEGGER_RTT.c \
+    Src/debug.c \
     Src/i2c.c \
-    Src/queue.c
+    Src/queue.c \
+    Src/sensor.c
+    
 C_SOURCES += $(USER_SRC)
 
 GD_DRIVER_INC = \

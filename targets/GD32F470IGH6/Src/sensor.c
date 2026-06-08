@@ -26,27 +26,6 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * --------------------------------------------------------------------------- */
 
-#include "i2c.h"
-#include "platform.h"
-#include "gd32f4xx.h"
+#include "sensor.h"
+#include "usart.h"
 
-void I2cInit(void)
-{
-    rcu_periph_clock_enable(RCU_GPIOH);      // 使能GPIOH时钟
-    
-    gpio_af_set(GPIOH, GPIO_AF_4, GPIO_PIN_4 | GPIO_PIN_5);  // 配置引脚复用功能为I2C1
-
-    // 配置SCL引脚(Pin4)
-    gpio_mode_set(GPIOH, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_4);        // 上拉复用模式
-    gpio_output_options_set(GPIOH, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_4);  // 推挽输出,50MHz
-
-    // 配置SDA引脚(Pin5)
-    gpio_mode_set(GPIOH, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_5);        // 上拉复用模式
-    gpio_output_options_set(GPIOH, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, GPIO_PIN_5);  // 开漏输出,50MHz
-
-    rcu_periph_clock_enable(RCU_I2C1);  // 使能I2C1时钟
-    i2c_clock_config(I2C1, I2C1_SPEED, I2C_DTCY_2);  // 配置速率和占空比(50%)
-    i2c_mode_addr_config(I2C1, I2C_I2CMODE_ENABLE, I2C_ADDFORMAT_7BITS, I2C1_SLAVE_ADDRESS7);  // 7位地址模式
-    i2c_enable(I2C1);  // 使能I2C1
-    i2c_ack_config(I2C1, I2C_ACK_ENABLE);  // 使能应答
-}

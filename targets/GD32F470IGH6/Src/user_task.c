@@ -71,6 +71,7 @@ STATIC UINT32 RecvUart0TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart0, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart0TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart0TaskId, recvLen, ret);
+        SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -84,6 +85,7 @@ STATIC UINT32 RecvUart1TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart1, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart1TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart1TaskId, recvLen, ret);
+        SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -97,6 +99,7 @@ STATIC UINT32 RecvUart2TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart2, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart2TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart2TaskId, recvLen, ret);
+        SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -110,6 +113,7 @@ STATIC UINT32 RecvUart3TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart3, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart3TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart3TaskId, recvLen, ret);
+        SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -123,6 +127,7 @@ STATIC UINT32 RecvUart4TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart4TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart4TaskId, recvLen, ret);
+        SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -136,6 +141,7 @@ STATIC UINT32 RecvUart5TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart5TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart5TaskId, recvLen, ret);
+        SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -149,6 +155,7 @@ STATIC UINT32 RecvUart6TaskEntry(VOID)
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         UINT32 ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
         SEGGER_RTT_printf(0, "RecvUart6TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart6TaskId, recvLen, ret);
+        SEGGER_RTT_printf_hex(buff, recvLen);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;

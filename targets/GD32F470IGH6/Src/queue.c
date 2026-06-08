@@ -27,7 +27,6 @@
  * --------------------------------------------------------------------------- */
 
 #include "queue.h"
-#include "los_hwi.h"
 #include "los_queue.h"
 #include "usart.h"
 

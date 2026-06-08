@@ -41,11 +41,11 @@ uint8_t USART4_RX_BUF[USART_REC_LEN];
 uint8_t USART5_RX_BUF[USART_REC_LEN];
 uint8_t USART6_RX_BUF[USART_REC_LEN];
 
-/* 发送缓冲, 最大USART_REC_LEN个字节. */
-uint8_t USART0_TX_BUF[USART_REC_LEN];
-uint8_t USART1_TX_BUF[USART_REC_LEN];
-uint8_t USART2_TX_BUF[USART_REC_LEN];
-uint8_t USART3_TX_BUF[USART_REC_LEN];
+/* 发送缓冲 */
+uint8_t USART0_TX_BUF[] = {0xFF, 0x61, 0x02, 0x01, 0x9C};
+uint8_t USART1_TX_BUF[] = {0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
+uint8_t USART2_TX_BUF[] = {0x11, 0x01, 0x01, 0xED};
+uint8_t USART3_TX_BUF[] = {0x11, 0x02, 0x0B, 0x07, 0xDB};
 uint8_t USART4_TX_BUF[USART_REC_LEN];
 uint8_t USART5_TX_BUF[USART_REC_LEN];
 uint8_t USART6_TX_BUF[USART_REC_LEN];
@@ -684,52 +684,19 @@ void Usart6Hwi(void){
 }
 void Usart0Req(void)
 {
-	uint8_t Len;
-	USART0_TX_BUF[0] = 0xFF;
-	USART0_TX_BUF[1] = 0x61;
-	USART0_TX_BUF[2] = 0x02;
-	USART0_TX_BUF[3] = 0x01;
-    USART0_TX_BUF[4] = 0x9C;
-    
-	Len = 5;
-	Seria_SendArray(USART0,USART0_TX_BUF,Len);
+	Seria_SendArray(USART0,USART0_TX_BUF,sizeof(USART0_TX_BUF));
 }
 void Usart1Req(void)
 {
-	uint8_t Len;
-	USART1_TX_BUF[0] = 0xFF;
-	USART1_TX_BUF[1] = 0x01;
-	USART1_TX_BUF[2] = 0x86;
-	USART1_TX_BUF[3] = 0x00;
-    USART1_TX_BUF[4] = 0x00;
-    USART1_TX_BUF[5] = 0x00;
-    USART1_TX_BUF[6] = 0x00;
-    USART1_TX_BUF[7] = 0x00;
-    USART1_TX_BUF[8] = 0x79;
-    
-	Len = 9;
-	Seria_SendArray(USART1,USART1_TX_BUF,Len);
+	Seria_SendArray(USART1,USART1_TX_BUF,sizeof(USART1_TX_BUF));
 }
 void Usart2Req(void)
 {
-	uint8_t Len;
-	USART2_TX_BUF[0] = 0x11;
-	USART2_TX_BUF[1] = 0x01;
-	USART2_TX_BUF[2] = 0x01;
-	USART2_TX_BUF[3] = 0xED;
-	Len = 4;
-	Seria_SendArray(USART2,USART2_TX_BUF,Len);
+	Seria_SendArray(USART2,USART2_TX_BUF,sizeof(USART2_TX_BUF));
 }
 void Usart3Req(void)
 {
-	uint8_t Len;
-	USART3_TX_BUF[0] = 0x11;
-	USART3_TX_BUF[1] = 0x02;
-	USART3_TX_BUF[2] = 0x0B;
-	USART3_TX_BUF[3] = 0x07;
-	USART3_TX_BUF[4] = 0xDB;
-	Len = 5;
-	Seria_SendArray(UART3,USART3_TX_BUF,Len);
+	Seria_SendArray(UART3,USART3_TX_BUF,sizeof(USART3_TX_BUF));
 }
 void Usart4Req(void)
 {}
