@@ -38,23 +38,25 @@
 extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
-UINT32 UartTaskEntry(VOID);
-UINT32 RecvUart0TaskEntry(VOID);
-UINT32 RecvUart1TaskEntry(VOID);
-UINT32 RecvUart2TaskEntry(VOID);
-UINT32 RecvUart3TaskEntry(VOID);
-UINT32 RecvUart4TaskEntry(VOID);
-UINT32 RecvUart5TaskEntry(VOID);
-UINT32 RecvUart6TaskEntry(VOID);
 
-UINT32 UartTaskCreate(VOID);
-UINT32 RecvUart0Create(VOID);
-UINT32 RecvUart1Create(VOID);
-UINT32 RecvUart2Create(VOID);
-UINT32 RecvUart3Create(VOID);
-UINT32 RecvUart4Create(VOID);
-UINT32 RecvUart5Create(VOID);
-UINT32 RecvUart6Create(VOID);
+
+UINT32 SensorTaskEntry(VOID);
+UINT32 RecvUsart0TaskEntry(VOID);
+UINT32 RecvUsart1TaskEntry(VOID);
+UINT32 RecvUsart2TaskEntry(VOID);
+UINT32 RecvUsart3TaskEntry(VOID);
+UINT32 RecvUsart4TaskEntry(VOID);
+UINT32 RecvUsart5TaskEntry(VOID);
+UINT32 RecvUsart6TaskEntry(VOID);
+
+UINT32 SensorTaskCreate(VOID);
+UINT32 RecvUsart0Create(VOID);
+UINT32 RecvUsart1Create(VOID);
+UINT32 RecvUsart2Create(VOID);
+UINT32 RecvUsart3Create(VOID);
+UINT32 RecvUsart4Create(VOID);
+UINT32 RecvUsart5Create(VOID);
+UINT32 RecvUsart6Create(VOID);
 
 VOID app_init(VOID);
 

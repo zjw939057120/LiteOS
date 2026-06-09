@@ -14,11 +14,11 @@ USER_SRC = \
     Src/user_task.c \
     Src/SEGGER_RTT_printf.c \
     Src/SEGGER_RTT.c \
-    Src/debug.c \
+    Src/toolkit.c \
     Src/i2c.c \
     Src/queue.c \
-    Src/sensor.c
-    
+    Src/sensor.c \
+
 C_SOURCES += $(USER_SRC)
 
 GD_DRIVER_INC = \

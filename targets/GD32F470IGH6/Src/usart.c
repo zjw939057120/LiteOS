@@ -441,7 +441,7 @@ void usart2_init(uint32_t bound)
     usart_enable(USART2);	                                /* 使能串口 */
 }
 /**
- * @brief       串口3初始化函数,激光粉尘传感器PM2012
+ * @brief       串口3初始化函数,激光粉尘传感器PM2012SE
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */

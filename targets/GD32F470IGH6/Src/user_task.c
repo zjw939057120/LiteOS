@@ -32,25 +32,26 @@
 #include "usart.h"
 #include "i2c.h"
 #include "queue.h"
+#include "sensor.h"
 
 #define TASK_DELAY 1000
 
 UINT32 g_UartTaskId = 0;
-UINT32 g_RecvUart0TaskId = 0;
-UINT32 g_RecvUart1TaskId = 0;
-UINT32 g_RecvUart2TaskId = 0;
-UINT32 g_RecvUart3TaskId = 0;
-UINT32 g_RecvUart4TaskId = 0;
-UINT32 g_RecvUart5TaskId = 0;
-UINT32 g_RecvUart6TaskId = 0;
+UINT32 g_RecvUsart0TaskId = 0;
+UINT32 g_RecvUsart1TaskId = 0;
+UINT32 g_RecvUsart2TaskId = 0;
+UINT32 g_RecvUsart3TaskId = 0;
+UINT32 g_RecvUsart4TaskId = 0;
+UINT32 g_RecvUsart5TaskId = 0;
+UINT32 g_RecvUsart6TaskId = 0;
 
-UINT32 UartTaskEntry(VOID)
+UINT32 SensorTaskEntry(VOID)
 {
     GpioInit();
     UsartInit();
     I2cInit();
     while (1) {
-        SEGGER_RTT_printf(0, "UartTaskEntry %d\n", g_UartTaskId);
+        SEGGER_RTT_printf(0, "SensorTaskEntry loop\n");
         Usart0Req();
         Usart1Req();
         Usart2Req();
@@ -63,111 +64,144 @@ UINT32 UartTaskEntry(VOID)
     return 0;
 }
 
-UINT32 RecvUart0TaskEntry(VOID)
+UINT32 RecvUsart0TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
+    UINT32 ret = 0;
+    while (1) {
+      resetSensorTVOC(&g_sensor);
+      recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+      ret = QueueRecv(g_queueId_uart0, buff, &recvLen);
+      // SEGGER_RTT_printf_hex(buff, recvLen);
+      DecodeSensorDataTVOC(buff, &g_sensor);
+
+      SEGGER_RTT_printf(
+          0, "RecvUsart0TaskEntry recvLen = %d, ret = %d, TVOC = %d\n", recvLen,
+          ret, g_sensor.TVOC);
+      LOS_TaskDelay(TASK_DELAY);
+    }
+    return 0;
+}
+
+UINT32 RecvUsart1TaskEntry(VOID)
+{
+    UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+    UINT32 recvLen = 0;
+    UINT32 ret = 0;
+    while (1) {
+      resetSensorPPB(&g_sensor);
+      recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+      ret = QueueRecv(g_queueId_uart1, buff, &recvLen);
+      // SEGGER_RTT_printf_hex(buff, recvLen);
+      DecodeSensorDataPPB(buff, &g_sensor);
+
+      SEGGER_RTT_printf(
+          0, "RecvUsart1TaskEntry recvLen = %d, ret = %d, PPB = %d\n", recvLen,
+          ret, g_sensor.PPB);
+      LOS_TaskDelay(TASK_DELAY);
+    }
+    return 0;
+}
+
+UINT32 RecvUsart2TaskEntry(VOID)
+{
+    UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+    UINT32 recvLen = 0;
+    UINT32 ret = 0;
+    while (1) {
+      resetSensorCO2(&g_sensor);
+      recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+      ret = QueueRecv(g_queueId_uart2, buff, &recvLen);
+      // SEGGER_RTT_printf_hex(buff, recvLen);
+      DecodeSensorDataCO2(buff, &g_sensor);
+
+      SEGGER_RTT_printf(
+          0, "RecvUsart2TaskEntry recvLen = %d, ret = %d, CO2 = %d\n", recvLen,
+          ret, g_sensor.CO2);
+      LOS_TaskDelay(TASK_DELAY);
+    }
+    return 0;
+}
+
+UINT32 RecvUsart3TaskEntry(VOID)
+{
+    UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+    UINT32 recvLen = 0;
+    UINT32 ret = 0;
+    while (1) {
+      resetSensorPM10(&g_sensor);
+      resetSensorPM25(&g_sensor);
+      resetSensorPM100(&g_sensor);
+      recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+      ret = QueueRecv(g_queueId_uart3, buff, &recvLen);
+      // SEGGER_RTT_printf_hex(buff, recvLen);
+      DecodeSensorDataPM10(buff, &g_sensor);
+      DecodeSensorDataPM25(buff, &g_sensor);
+      DecodeSensorDataPM100(buff, &g_sensor);
+
+      SEGGER_RTT_printf(0,
+                        "RecvUsart3TaskEntry recvLen = %d, ret = %d, PM10 = "
+                        "%d, PM25 = %d, PM100 = %d\n",
+                        recvLen, ret, g_sensor.PM10, g_sensor.PM25,
+                        g_sensor.PM100);
+      LOS_TaskDelay(TASK_DELAY);
+    }
+    return 0;
+}
+
+UINT32 RecvUsart4TaskEntry(VOID)
+{
+    UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+    UINT32 recvLen = 0;
+    UINT32 ret = 0;
     while (1) {
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
-        UINT32 ret = QueueRecv(g_queueId_uart0, buff, &recvLen);
-        uint16_t TVOC = 0;
-        TVOC = buff[8] * 256 + buff[9]; // Data[8]*256+Data[9]
-        SEGGER_RTT_printf(0, "RecvUart0TaskEntry %d, recvLen = %d, ret = %d, TVOC = %d\n",g_RecvUart0TaskId, recvLen, ret, TVOC);
+        ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
         // SEGGER_RTT_printf_hex(buff, recvLen);
+
+        SEGGER_RTT_printf(0, "RecvUsart4TaskEntry recvLen = %d, ret = %d\n", recvLen, ret);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
 }
 
-UINT32 RecvUart1TaskEntry(VOID)
+UINT32 RecvUsart5TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
+    UINT32 ret = 0;
     while (1) {
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
-        UINT32 ret = QueueRecv(g_queueId_uart1, buff, &recvLen);
-        uint16_t PPB = 0;
-        PPB = (buff[2] * 256 + buff[3]); // (Data[2]*256+Data[3])
-        SEGGER_RTT_printf(0, "RecvUart1TaskEntry %d, recvLen = %d, ret = %d, PPB = %d\n",g_RecvUart1TaskId, recvLen, ret, PPB);
+        ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
         // SEGGER_RTT_printf_hex(buff, recvLen);
+
+        SEGGER_RTT_printf(0, "RecvUsart5TaskEntry recvLen = %d, ret = %d\n", recvLen, ret);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
 }
 
-UINT32 RecvUart2TaskEntry(VOID)
+UINT32 RecvUsart6TaskEntry(VOID)
 {
     UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
     UINT32 recvLen = 0;
-    while (1) {
-        recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
-        UINT32 ret = QueueRecv(g_queueId_uart2, buff, &recvLen);
-        uint16_t CO2 = 0;
-        CO2 = (buff[3] * 256 + buff[4]); // (Data[3]*256+Data[4])
-        SEGGER_RTT_printf(0, "RecvUart2TaskEntry %d, recvLen = %d, ret = %d, CO2 = %d\n",g_RecvUart2TaskId, recvLen, ret, CO2);
-        SEGGER_RTT_printf_hex(buff, recvLen);
-        LOS_TaskDelay(TASK_DELAY);
-    }
+    UINT32 ret = 0;
+        while (1) {
+          resetModbus(&g_modbus);
+          recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+          ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
+          SEGGER_RTT_printf_hex(buff, recvLen);
+          DecodeModbusData(buff, &g_modbus);
+
+          SEGGER_RTT_printf(0, "RecvUsart6TaskEntry recvLen = %d, ret = %d, address = %d, func_code = %d, reg_addr = %d, reg_number = %d, crc_sum = %d\n",
+                            recvLen, ret, g_modbus.address, g_modbus.func_code, g_modbus.reg_addr, g_modbus.reg_number, g_modbus.crc_sum);
+          LOS_TaskDelay(TASK_DELAY);
+        }
     return 0;
 }
 
-UINT32 RecvUart3TaskEntry(VOID)
-{
-    UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
-    UINT32 recvLen = 0;
-    while (1) {
-        recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
-        UINT32 ret = QueueRecv(g_queueId_uart3, buff, &recvLen);
-        SEGGER_RTT_printf(0, "RecvUart3TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart3TaskId, recvLen, ret);
-        // SEGGER_RTT_printf_hex(buff, recvLen);
-        LOS_TaskDelay(TASK_DELAY);
-    }
-    return 0;
-}
-
-UINT32 RecvUart4TaskEntry(VOID)
-{
-    UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
-    UINT32 recvLen = 0;
-    while (1) {
-        recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
-        UINT32 ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
-        SEGGER_RTT_printf(0, "RecvUart4TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart4TaskId, recvLen, ret);
-        // SEGGER_RTT_printf_hex(buff, recvLen);
-        LOS_TaskDelay(TASK_DELAY);
-    }
-    return 0;
-}
-
-UINT32 RecvUart5TaskEntry(VOID)
-{
-    UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
-    UINT32 recvLen = 0;
-    while (1) {
-        recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
-        UINT32 ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
-        SEGGER_RTT_printf(0, "RecvUart5TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart5TaskId, recvLen, ret);
-        // SEGGER_RTT_printf_hex(buff, recvLen);
-        LOS_TaskDelay(TASK_DELAY);
-    }
-    return 0;
-}
-
-UINT32 RecvUart6TaskEntry(VOID)
-{
-    UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
-    UINT32 recvLen = 0;
-    while (1) {
-        recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
-        UINT32 ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
-        SEGGER_RTT_printf(0, "RecvUart6TaskEntry %d, recvLen = %d, ret = %d\n",g_RecvUart6TaskId, recvLen, ret);
-        // SEGGER_RTT_printf_hex(buff, recvLen);
-        LOS_TaskDelay(TASK_DELAY);
-    }
-    return 0;
-}
-
-UINT32 UartTaskCreate(VOID)
+UINT32 SensorTaskCreate(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -176,15 +210,15 @@ UINT32 UartTaskCreate(VOID)
     if (ret != EOK) {
         return ret;
     }
-    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)UartTaskEntry;
+    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)SensorTaskEntry;
     uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    uartTask.pcName = "UartTask";
+    uartTask.pcName = "SensorTask";
     uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
     return LOS_TaskCreate(&g_UartTaskId, &uartTask);
 }
 
-UINT32 RecvUart0Create(VOID)
+UINT32 RecvUsart0Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -193,14 +227,14 @@ UINT32 RecvUart0Create(VOID)
     if (ret != EOK) {
         return ret;
     }
-    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUart0TaskEntry;
+    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUsart0TaskEntry;
     uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    uartTask.pcName = "RecvUart0Task";
+    uartTask.pcName = "RecvUsart0Task";
     uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
-    return LOS_TaskCreate(&g_RecvUart0TaskId, &uartTask);
+    return LOS_TaskCreate(&g_RecvUsart0TaskId, &uartTask);
 }
-UINT32 RecvUart1Create(VOID)
+UINT32 RecvUsart1Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -209,14 +243,14 @@ UINT32 RecvUart1Create(VOID)
     if (ret != EOK) {
         return ret;
     }
-    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUart1TaskEntry;
+    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUsart1TaskEntry;
     uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    uartTask.pcName = "RecvUart1Task";
+    uartTask.pcName = "RecvUsart1Task";
     uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
-    return LOS_TaskCreate(&g_RecvUart1TaskId, &uartTask);
+    return LOS_TaskCreate(&g_RecvUsart1TaskId, &uartTask);
 }
-UINT32 RecvUart2Create(VOID)
+UINT32 RecvUsart2Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -225,14 +259,14 @@ UINT32 RecvUart2Create(VOID)
     if (ret != EOK) {
         return ret;
     }
-    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUart2TaskEntry;
+    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUsart2TaskEntry;
     uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    uartTask.pcName = "RecvUart2Task";
+    uartTask.pcName = "RecvUsart2Task";
     uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
-    return LOS_TaskCreate(&g_RecvUart2TaskId, &uartTask);
+    return LOS_TaskCreate(&g_RecvUsart2TaskId, &uartTask);
 }
-UINT32 RecvUart3Create(VOID)
+UINT32 RecvUsart3Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -241,14 +275,14 @@ UINT32 RecvUart3Create(VOID)
     if (ret != EOK) {
         return ret;
     }
-    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUart3TaskEntry;
+    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUsart3TaskEntry;
     uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    uartTask.pcName = "RecvUart3Task";
+    uartTask.pcName = "RecvUsart3Task";
     uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
-    return LOS_TaskCreate(&g_RecvUart3TaskId, &uartTask);
+    return LOS_TaskCreate(&g_RecvUsart3TaskId, &uartTask);
 }
-UINT32 RecvUart4Create(VOID)
+UINT32 RecvUsart4Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -257,14 +291,14 @@ UINT32 RecvUart4Create(VOID)
     if (ret != EOK) {
         return ret;
     }
-    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUart4TaskEntry;
+    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUsart4TaskEntry;
     uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    uartTask.pcName = "RecvUart4Task"; 
+    uartTask.pcName = "RecvUsart4Task"; 
     uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
-    return LOS_TaskCreate(&g_RecvUart4TaskId, &uartTask);
+    return LOS_TaskCreate(&g_RecvUsart4TaskId, &uartTask);
 }
-UINT32 RecvUart5Create(VOID)
+UINT32 RecvUsart5Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -273,14 +307,14 @@ UINT32 RecvUart5Create(VOID)
     if (ret != EOK) {
         return ret;
     }
-    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUart5TaskEntry;
+    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUsart5TaskEntry;
     uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    uartTask.pcName = "RecvUart5Task"; 
+    uartTask.pcName = "RecvUsart5Task"; 
     uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
-    return LOS_TaskCreate(&g_RecvUart5TaskId, &uartTask);
+    return LOS_TaskCreate(&g_RecvUsart5TaskId, &uartTask);
 }
-UINT32 RecvUart6Create(VOID)
+UINT32 RecvUsart6Create(VOID)
 {
     INT32 ret;
     TSK_INIT_PARAM_S uartTask;
@@ -289,25 +323,25 @@ UINT32 RecvUart6Create(VOID)
     if (ret != EOK) {
         return ret;
     }
-    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUart6TaskEntry;
+    uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RecvUsart6TaskEntry;
     uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    uartTask.pcName = "RecvUart6Task"; 
+    uartTask.pcName = "RecvUsart6Task"; 
     uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
     uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
-    return LOS_TaskCreate(&g_RecvUart6TaskId, &uartTask);
+    return LOS_TaskCreate(&g_RecvUsart6TaskId, &uartTask);
 }
 
 VOID app_init(VOID)
 {
     QueueInit();
-    (VOID)UartTaskCreate();
-    (VOID)RecvUart0Create();
-    (VOID)RecvUart1Create();
-    (VOID)RecvUart2Create();
-    (VOID)RecvUart3Create();
-    (VOID)RecvUart4Create();
-    (VOID)RecvUart5Create();
-    (VOID)RecvUart6Create();
+    SensorTaskCreate();
+    RecvUsart0Create();
+    RecvUsart1Create();
+    RecvUsart2Create();
+    RecvUsart3Create();
+    RecvUsart4Create();
+    RecvUsart5Create();
+    RecvUsart6Create();
     SEGGER_RTT_printf(0, "app init!\n");
     DemoEntry();
 }

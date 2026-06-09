@@ -1,6 +1,6 @@
 /*----------------------------------------------------------------------------
  * Copyright (c) Huawei Technologies Co., Ltd. 2021-2021. All rights reserved.
- * Description: Timer Driver Initialization HeadFile
+ * Description: Timer Driver Initialization Implementation
  * Author: Huawei LiteOS Team
  * Create: 2021-03-20
  * Redistribution and use in source and binary forms, with or without modification,
@@ -26,27 +26,34 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * --------------------------------------------------------------------------- */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef _DEBUG_H
-#define _DEBUG_H
+#include "toolkit.h"
 
-#include "los_typedef.h"
-#include "platform.h"
-#include "SEGGER_RTT.h"
-
-#ifdef __cplusplus
-#if __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-#endif /* __cplusplus */
-
-void SEGGER_RTT_printf_hex(const unsigned char* array, unsigned int length);
-void SEGGER_RTT_printf_dec(const unsigned char* array, unsigned int length);
-
-#ifdef __cplusplus
-#if __cplusplus
+void SEGGER_RTT_printf_hex(const uint8_t *array, uint32_t length) {
+  for (uint32_t i = 0; i < length; i++) {
+    SEGGER_RTT_printf(0, "%02X ", array[i]);
+    // 每16字节换行
+    if ((i + 1) % 16 == 0) {
+      SEGGER_RTT_printf(0, "\n");
+    }
+  }
+  SEGGER_RTT_printf(0, "\n");
 }
-#endif /* __cplusplus */
-#endif /* __cplusplus */
 
-#endif /* _DEBUG_H */
+void SEGGER_RTT_printf_dec(const uint8_t *array, uint32_t length) {
+  for (uint32_t i = 0; i < length; i++) {
+    SEGGER_RTT_printf(0, "%d ", array[i]);
+    // 每16字节换行
+    if ((i + 1) % 16 == 0) {
+      SEGGER_RTT_printf(0, "\n");
+    }
+  }
+  SEGGER_RTT_printf(0, "\n");
+}
+
+uint16_t bl_t_uint16(const uint8_t *array) {
+  return (array[0] << 8) | array[1];
+}
+
+uint32_t bl_t_uint32(const uint8_t *array) {
+  return (array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3];
+}

@@ -29,3 +29,51 @@
 #include "sensor.h"
 #include "usart.h"
 
+Sensor g_sensor = {0};
+Modbus g_modbus = {0};
+
+void resetSensorTVOC(Sensor *sensor) { sensor->TVOC = 0; }
+void resetSensorPPB(Sensor *sensor) { sensor->PPB = 0; }
+void resetSensorCO2(Sensor *sensor) { sensor->CO2 = 0; }
+void resetSensorPM10(Sensor *sensor) { sensor->PM10 = 0; }
+void resetSensorPM25(Sensor *sensor) { sensor->PM25 = 0; }
+void resetSensorPM100(Sensor *sensor) { sensor->PM100 = 0; }
+void resetModbus(Modbus *modbus) {
+  //   modbus->address = 0;
+  modbus->func_code = 0;
+  modbus->reg_addr = 0;
+  modbus->reg_number = 0;
+  modbus->crc_sum = 0;
+}
+
+void DecodeSensorDataTVOC(const uint8_t *array, Sensor *sensor) {
+  // TVOC(ug/m3) = Data[8]*256+Data[9]
+  sensor->TVOC = bl_t_uint16(array + 8);
+}
+void DecodeSensorDataPPB(const uint8_t *array, Sensor *sensor) {
+  // PPB = (Data[2]*256+Data[3]),PPM= PPB/1000
+  sensor->PPB = bl_t_uint16(array + 2);
+}
+void DecodeSensorDataCO2(const uint8_t *array, Sensor *sensor) {
+  // CO2 = (Data[3]*256+Data[4])
+  sensor->CO2 = bl_t_uint16(array + 3);
+}
+void DecodeSensorDataPM10(const uint8_t *array, Sensor *sensor) {
+  // PM1.0 GRIMM = DF1*256^3 + DF2*256^2 + DF3*256^1 + DF4
+  sensor->PM10 = bl_t_uint32(array + 3);
+}
+void DecodeSensorDataPM25(const uint8_t *array, Sensor *sensor) {
+  // PM2.5 GRIMM = DF5*256^3 + DF6*256^2 + DF7*256^1 + DF8
+  sensor->PM25 = bl_t_uint32(array + 7);
+}
+void DecodeSensorDataPM100(const uint8_t *array, Sensor *sensor) {
+  // PM100 GRIMM = DF9*256^3 + DF10*256^2 + DF11*256^1 + DF12
+  sensor->PM100 = bl_t_uint32(array + 11);
+}
+void DecodeModbusData(const uint8_t *array, Modbus *modbus) {
+  modbus->address = array[0];
+  modbus->func_code = array[1];
+  modbus->reg_addr = bl_t_uint16(array + 2);
+  modbus->reg_number = bl_t_uint16(array + 4);
+  modbus->crc_sum = bl_t_uint16(array + 6);
+}
