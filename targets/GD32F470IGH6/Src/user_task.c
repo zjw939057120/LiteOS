@@ -70,15 +70,14 @@ UINT32 RecvUsart0TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
-      resetSensorTVOC(&g_sensor);
+      ResetSensorTVOC(&g_sensor);
       recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
       ret = QueueRecv(g_queueId_uart0, buff, &recvLen);
       // SEGGER_RTT_printf_hex(buff, recvLen);
       DecodeSensorDataTVOC(buff, &g_sensor);
 
-      SEGGER_RTT_printf(
-          0, "RecvUsart0TaskEntry recvLen = %d, ret = %d, TVOC = %d\n", recvLen,
-          ret, g_sensor.TVOC);
+      SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, TVOC = %d\n", __func__,
+                        recvLen, ret, g_sensor.TVOC);
       LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -90,15 +89,14 @@ UINT32 RecvUsart1TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
-      resetSensorPPB(&g_sensor);
+      ResetSensorPPB(&g_sensor);
       recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
       ret = QueueRecv(g_queueId_uart1, buff, &recvLen);
       // SEGGER_RTT_printf_hex(buff, recvLen);
       DecodeSensorDataPPB(buff, &g_sensor);
 
-      SEGGER_RTT_printf(
-          0, "RecvUsart1TaskEntry recvLen = %d, ret = %d, PPB = %d\n", recvLen,
-          ret, g_sensor.PPB);
+      SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, PPB = %d\n", __func__,
+                        recvLen, ret, g_sensor.PPB);
       LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -110,15 +108,14 @@ UINT32 RecvUsart2TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
-      resetSensorCO2(&g_sensor);
+      ResetSensorCO2(&g_sensor);
       recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
       ret = QueueRecv(g_queueId_uart2, buff, &recvLen);
       // SEGGER_RTT_printf_hex(buff, recvLen);
       DecodeSensorDataCO2(buff, &g_sensor);
 
-      SEGGER_RTT_printf(
-          0, "RecvUsart2TaskEntry recvLen = %d, ret = %d, CO2 = %d\n", recvLen,
-          ret, g_sensor.CO2);
+      SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, CO2 = %d\n", __func__,
+                        recvLen, ret, g_sensor.CO2);
       LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -130,9 +127,9 @@ UINT32 RecvUsart3TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
-      resetSensorPM10(&g_sensor);
-      resetSensorPM25(&g_sensor);
-      resetSensorPM100(&g_sensor);
+      ResetSensorPM10(&g_sensor);
+      ResetSensorPM25(&g_sensor);
+      ResetSensorPM100(&g_sensor);
       recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
       ret = QueueRecv(g_queueId_uart3, buff, &recvLen);
       // SEGGER_RTT_printf_hex(buff, recvLen);
@@ -141,8 +138,8 @@ UINT32 RecvUsart3TaskEntry(VOID)
       DecodeSensorDataPM100(buff, &g_sensor);
 
       SEGGER_RTT_printf(0,
-                        "RecvUsart3TaskEntry recvLen = %d, ret = %d, PM10 = "
-                        "%d, PM25 = %d, PM100 = %d\n",
+                        "%s recvLen = %d, ret = %d, PM10 = "
+                        "%d, PM25 = %d, PM100 = %d\n", __func__,
                         recvLen, ret, g_sensor.PM10, g_sensor.PM25,
                         g_sensor.PM100);
       LOS_TaskDelay(TASK_DELAY);
@@ -156,11 +153,14 @@ UINT32 RecvUsart4TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
+        ResetModbus(&g_modbus_485);
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
         // SEGGER_RTT_printf_hex(buff, recvLen);
-
-        SEGGER_RTT_printf(0, "RecvUsart4TaskEntry recvLen = %d, ret = %d\n", recvLen, ret);
+        DecodeModbusData(buff, &g_modbus_485);
+        handleModbusData(&g_modbus_485);
+        SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, address = %d, func_code = %d, reg_addr = %d, reg_number = %d, crc_sum = %d, uart = %d\n", __func__,
+                            recvLen, ret, g_modbus_485.address, g_modbus_485.func_code, g_modbus_485.reg_addr, g_modbus_485.reg_number, g_modbus_485.crc_sum, g_modbus_485.uart);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -176,7 +176,7 @@ UINT32 RecvUsart5TaskEntry(VOID)
         ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
         // SEGGER_RTT_printf_hex(buff, recvLen);
 
-        SEGGER_RTT_printf(0, "RecvUsart5TaskEntry recvLen = %d, ret = %d\n", recvLen, ret);
+        SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d\n", __func__, recvLen, ret);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -188,14 +188,15 @@ UINT32 RecvUsart6TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
         while (1) {
-          resetModbus(&g_modbus);
+          ResetModbus(&g_modbus);
           recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
           ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
           SEGGER_RTT_printf_hex(buff, recvLen);
           DecodeModbusData(buff, &g_modbus);
+          handleModbusData(&g_modbus);
 
-          SEGGER_RTT_printf(0, "RecvUsart6TaskEntry recvLen = %d, ret = %d, address = %d, func_code = %d, reg_addr = %d, reg_number = %d, crc_sum = %d\n",
-                            recvLen, ret, g_modbus.address, g_modbus.func_code, g_modbus.reg_addr, g_modbus.reg_number, g_modbus.crc_sum);
+          SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, address = %d, func_code = %d, reg_addr = %d, reg_number = %d, crc_sum = %d, uart = %d\n", __func__,
+                            recvLen, ret, g_modbus.address, g_modbus.func_code, g_modbus.reg_addr, g_modbus.reg_number, g_modbus.crc_sum, g_modbus.uart);
           LOS_TaskDelay(TASK_DELAY);
         }
     return 0;

@@ -67,19 +67,21 @@ typedef struct {
   uint16_t reg_addr;   // 寄存器地址
   uint16_t reg_number; // 寄存器数量
   uint16_t crc_sum;    // CRC校验码
+  uint32_t uart; // 串口外设
 } Modbus;
 
 extern Sensor g_sensor;
 
+extern Modbus g_modbus_485;
 extern Modbus g_modbus;
 
-void resetSensorTVOC(Sensor *sensor);
-void resetSensorPPB(Sensor *sensor);
-void resetSensorCO2(Sensor *sensor);
-void resetSensorPM10(Sensor *sensor);
-void resetSensorPM25(Sensor *sensor);
-void resetSensorPM100(Sensor *sensor);
-void resetModbus(Modbus *modbus);
+void ResetSensorTVOC(Sensor *sensor);
+void ResetSensorPPB(Sensor *sensor);
+void ResetSensorCO2(Sensor *sensor);
+void ResetSensorPM10(Sensor *sensor);
+void ResetSensorPM25(Sensor *sensor);
+void ResetSensorPM100(Sensor *sensor);
+void ResetModbus(Modbus *modbus);
 
 void DecodeSensorDataTVOC(const uint8_t *array, Sensor *sensor);
 void DecodeSensorDataPPB(const uint8_t *array, Sensor *sensor);
@@ -88,6 +90,16 @@ void DecodeSensorDataPM10(const uint8_t *array, Sensor *sensor);
 void DecodeSensorDataPM25(const uint8_t *array, Sensor *sensor);
 void DecodeSensorDataPM100(const uint8_t *array, Sensor *sensor);
 void DecodeModbusData(const uint8_t *array, Modbus *modbus);
+
+void handleModbusData(const Modbus *modbus);
+void handleModbusDataByFuncCode00(const Modbus *modbus);
+void handleModbusDataByFuncCode01(const Modbus *modbus);
+void handleModbusDataByFuncCode02(const Modbus *modbus);
+void handleModbusDataByFuncCode03(const Modbus *modbus);
+void handleModbusDataByFuncCode04(const Modbus *modbus);
+void handleModbusDataByFuncCode05(const Modbus *modbus);
+void handleModbusDataByFuncCode06(const Modbus *modbus);
+
 
 #ifdef __cplusplus
 #if __cplusplus

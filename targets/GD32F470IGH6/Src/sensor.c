@@ -30,15 +30,16 @@
 #include "usart.h"
 
 Sensor g_sensor = {0};
-Modbus g_modbus = {0};
+Modbus g_modbus_485 = {0, 0, 0, 0, 0, UART4};
+Modbus g_modbus = {0, 0, 0, 0, 0, UART6};
 
-void resetSensorTVOC(Sensor *sensor) { sensor->TVOC = 0; }
-void resetSensorPPB(Sensor *sensor) { sensor->PPB = 0; }
-void resetSensorCO2(Sensor *sensor) { sensor->CO2 = 0; }
-void resetSensorPM10(Sensor *sensor) { sensor->PM10 = 0; }
-void resetSensorPM25(Sensor *sensor) { sensor->PM25 = 0; }
-void resetSensorPM100(Sensor *sensor) { sensor->PM100 = 0; }
-void resetModbus(Modbus *modbus) {
+void ResetSensorTVOC(Sensor *sensor) { sensor->TVOC = 0; }
+void ResetSensorPPB(Sensor *sensor) { sensor->PPB = 0; }
+void ResetSensorCO2(Sensor *sensor) { sensor->CO2 = 0; }
+void ResetSensorPM10(Sensor *sensor) { sensor->PM10 = 0; }
+void ResetSensorPM25(Sensor *sensor) { sensor->PM25 = 0; }
+void ResetSensorPM100(Sensor *sensor) { sensor->PM100 = 0; }
+void ResetModbus(Modbus *modbus) {
   //   modbus->address = 0;
   modbus->func_code = 0;
   modbus->reg_addr = 0;
@@ -76,4 +77,60 @@ void DecodeModbusData(const uint8_t *array, Modbus *modbus) {
   modbus->reg_addr = bl_t_uint16(array + 2);
   modbus->reg_number = bl_t_uint16(array + 4);
   modbus->crc_sum = bl_t_uint16(array + 6);
+}
+
+void handleModbusData(const Modbus *modbus) {
+  switch (modbus->func_code) {
+  case 0x00:
+    handleModbusDataByFuncCode00(modbus);
+    break;
+  case 0x01:
+    handleModbusDataByFuncCode01(modbus);
+    break;
+  case 0x02:
+    handleModbusDataByFuncCode02(modbus);
+    break;
+  case 0x03:
+    handleModbusDataByFuncCode03(modbus);
+    break;
+  case 0x04:
+    handleModbusDataByFuncCode04(modbus);
+    break;
+  case 0x05:
+    handleModbusDataByFuncCode05(modbus);
+    break;
+  case 0x06:
+    handleModbusDataByFuncCode06(modbus);
+    break;
+  default:
+    break;
+  }
+}
+void handleModbusDataByFuncCode00(const Modbus *modbus) {
+  // 读取寄存器数据
+  SEGGER_RTT_printf(0, "%s %d\n",__func__, modbus->func_code);
+}
+void handleModbusDataByFuncCode01(const Modbus *modbus) {
+  // 写入寄存器数据
+  SEGGER_RTT_printf(0, "%s %d\n",__func__, modbus->func_code);
+}
+void handleModbusDataByFuncCode02(const Modbus *modbus) {
+  // 写入寄存器数据
+  SEGGER_RTT_printf(0, "%s %d\n",__func__, modbus->func_code);
+}
+void handleModbusDataByFuncCode03(const Modbus *modbus) {
+  // 读取寄存器数据
+  SEGGER_RTT_printf(0, "%s %d\n",__func__, modbus->func_code);
+}
+void handleModbusDataByFuncCode04(const Modbus *modbus) { 
+  // 写入寄存器数据
+  SEGGER_RTT_printf(0, "%s %d\n",__func__, modbus->func_code);
+}
+void handleModbusDataByFuncCode05(const Modbus *modbus) {
+  // 写入寄存器数据
+  SEGGER_RTT_printf(0, "%s %d\n",__func__, modbus->func_code);
+}
+void handleModbusDataByFuncCode06(const Modbus *modbus) {
+  // 写入寄存器数据
+  SEGGER_RTT_printf(0, "%s %d\n",__func__, modbus->func_code);
 }
