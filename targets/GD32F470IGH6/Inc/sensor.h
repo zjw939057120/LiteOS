@@ -32,12 +32,29 @@
 
 #include "los_typedef.h"
 #include "platform.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
+
+// 传感器数据头
+enum SensorDataHeader {
+  TVOC_Sensor_Data_Header = 0xFF,
+  CH2O_Sensor_Data_Header = 0xFF,
+  CO2_Sensor_Data_Header = 0x16,
+  PM_Sensor_Data_Header = 0x16,
+};
+
+// 传感器数据长度
+enum SensorDataLength {
+  TVOC_Sensor_Data_Length = 13,
+  CH2O_Sensor_Data_Length = 9,
+  CO2_Sensor_Data_Length = 8,
+  PM_Sensor_Data_Length = 56,
+};
 
 typedef struct {
   // 空气质量传感器MS-VOC-V4
@@ -54,6 +71,8 @@ typedef struct {
   uint16_t RH;
   // 温度传感器
   uint16_t TEMP;
+  // 传感器类型
+  uint8_t TYPE;
 } Sensor;
 
 extern Sensor g_sensor;

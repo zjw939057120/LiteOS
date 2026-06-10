@@ -112,7 +112,7 @@ void handleModbusDataByFuncCode03(const Modbus *modbus) {
   Sonsor_meter.crc_sum = toolkit_swap_uint16(
       Crc_Cal((uint8_t *)&Sonsor_meter,
               sizeof(Sonsor_meter) - sizeof(Sonsor_meter.crc_sum)));
-
+  // SEGGER_RTT_printf_hex((uint8_t *)&Sonsor_meter, sizeof(Sonsor_meter));
   Seria_SendArray(modbus->uart, (uint8_t *)&Sonsor_meter, sizeof(Sonsor_meter));
 }
 void handleModbusDataByFuncCode04(const Modbus *modbus) {
