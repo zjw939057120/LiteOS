@@ -27,12 +27,11 @@
  * --------------------------------------------------------------------------- */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef _TOOLKIT_H
-#define _TOOLKIT_H
+#ifndef _MODBUS_H
+#define _MODBUS_H
 
 #include "los_typedef.h"
 #include "platform.h"
-#include "SEGGER_RTT.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -40,12 +39,52 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-void SEGGER_RTT_printf_hex(const uint8_t *array, uint32_t length);
-void SEGGER_RTT_printf_dec(const uint8_t *array, uint32_t length);
-uint16_t toolkit_uint16_little(const uint8_t *array);
-uint32_t toolkit_uint32_little(const uint8_t *array);
-uint16_t toolkit_swap_uint16(uint16_t val);
-uint32_t toolkit_swap_uint32(uint32_t val);
+typedef struct __attribute__((packed)) // 结构体内存对齐
+{
+  uint8_t DeVadd;             // 设备地址
+  uint8_t Functioncode;       // 功能码
+  uint8_t len;                // 字节数
+  uint16_t CO2_Sonsor_data;   // CO2传感器数据
+  uint16_t CH2O_Sonsor_data;  // CH2O传感器数据
+  uint16_t TVOC_Sonsor_data;  // TVOC传感器数据
+  uint16_t PM25_Sonsor_data;  // PM2.5传感器数据
+  uint16_t PM100_Sonsor_data; // PM1.0传感器数据
+  uint16_t TEMP_Sonsor_data;  // TEMP传感器数据
+  uint16_t RH_Sonsor_data;    // RH传感器数据
+  uint16_t PM10_Sonsor_data;  // PM10传感器数据
+  uint16_t Sonsor_Type;       // 传感器类型
+  uint16_t crc_sum;           // CRC校验码
+} Sonsor_meter;
+
+// RS485串口通讯
+
+// esp32c3串口通讯
+
+typedef struct {
+  // SWM34SMEU6-QFN80串口通讯
+  uint8_t address;   // 设备地址
+  uint8_t func_code; // 功能码
+  // uint8_t len = 0x0;          // 字节数
+  uint16_t reg_addr;   // 寄存器地址
+  uint16_t reg_number; // 寄存器数量
+  uint16_t crc_sum;    // CRC校验码
+  uint32_t uart;       // 串口外设
+} Modbus;
+
+extern Modbus g_modbus_485;
+extern Modbus g_modbus;
+
+void ResetModbus(Modbus *modbus);
+void DecodeModbusData(const uint8_t *array, Modbus *modbus);
+
+void handleModbusData(const Modbus *modbus);
+void handleModbusDataByFuncCode00(const Modbus *modbus);
+void handleModbusDataByFuncCode01(const Modbus *modbus);
+void handleModbusDataByFuncCode02(const Modbus *modbus);
+void handleModbusDataByFuncCode03(const Modbus *modbus);
+void handleModbusDataByFuncCode04(const Modbus *modbus);
+void handleModbusDataByFuncCode05(const Modbus *modbus);
+void handleModbusDataByFuncCode06(const Modbus *modbus);
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -53,4 +92,4 @@ uint32_t toolkit_swap_uint32(uint32_t val);
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-#endif /* _TOOLKIT_H */
+#endif /* _MODBUS_H */

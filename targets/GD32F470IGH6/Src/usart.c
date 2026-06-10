@@ -46,9 +46,9 @@ uint8_t USART0_TX_BUF[] = {0xFF, 0x61, 0x02, 0x01, 0x9C};
 uint8_t USART1_TX_BUF[] = {0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
 uint8_t USART2_TX_BUF[] = {0x11, 0x01, 0x01, 0xED};
 uint8_t USART3_TX_BUF[] = {0x11, 0x02, 0x0B, 0x07, 0xDB};
-uint8_t USART4_TX_BUF[USART_REC_LEN] = {0};
-uint8_t USART5_TX_BUF[USART_REC_LEN] = {0};
-uint8_t USART6_TX_BUF[USART_REC_LEN] = {0};
+uint8_t USART4_TX_BUF[USART_REC_LEN];
+uint8_t USART5_TX_BUF[USART_REC_LEN];
+uint8_t USART6_TX_BUF[USART_REC_LEN];
 
 uint8_t USART0_RX_CNT = 0;			//接收的字节数
 uint8_t USART1_RX_CNT = 0;			//接收的字节数

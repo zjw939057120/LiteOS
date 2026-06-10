@@ -50,6 +50,10 @@ extern uint8_t  USART4_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC
 extern uint8_t  USART5_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
 extern uint8_t  USART6_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
 
+extern uint8_t  USART4_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
+extern uint8_t  USART5_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */  
+extern uint8_t  USART6_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
+
 extern uint16_t USART0_RX_STA;         		      /* 接收状态标记 */	
 extern uint16_t USART1_RX_STA;         		      /* 接收状态标记 */
 extern uint16_t USART2_RX_STA;         		      /* 接收状态标记 */

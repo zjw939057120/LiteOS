@@ -33,6 +33,7 @@
 #include "i2c.h"
 #include "queue.h"
 #include "sensor.h"
+#include "modbus.h"
 
 #define TASK_DELAY 1000
 
@@ -51,7 +52,6 @@ UINT32 SensorTaskEntry(VOID)
     UsartInit();
     I2cInit();
     while (1) {
-        SEGGER_RTT_printf(0, "SensorTaskEntry loop\n");
         Usart0Req();
         Usart1Req();
         Usart2Req();
@@ -70,7 +70,6 @@ UINT32 RecvUsart0TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
-      ResetSensorTVOC(&g_sensor);
       recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
       ret = QueueRecv(g_queueId_uart0, buff, &recvLen);
       // SEGGER_RTT_printf_hex(buff, recvLen);
@@ -89,14 +88,13 @@ UINT32 RecvUsart1TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
-      ResetSensorPPB(&g_sensor);
       recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
       ret = QueueRecv(g_queueId_uart1, buff, &recvLen);
       // SEGGER_RTT_printf_hex(buff, recvLen);
-      DecodeSensorDataPPB(buff, &g_sensor);
+      DecodeSensorDataCH2O(buff, &g_sensor);
 
-      SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, PPB = %d\n", __func__,
-                        recvLen, ret, g_sensor.PPB);
+      SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, CH2O = %d\n", __func__,
+                        recvLen, ret, g_sensor.CH2O);   
       LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -108,7 +106,6 @@ UINT32 RecvUsart2TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
-      ResetSensorCO2(&g_sensor);
       recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
       ret = QueueRecv(g_queueId_uart2, buff, &recvLen);
       // SEGGER_RTT_printf_hex(buff, recvLen);
@@ -127,9 +124,6 @@ UINT32 RecvUsart3TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
-      ResetSensorPM10(&g_sensor);
-      ResetSensorPM25(&g_sensor);
-      ResetSensorPM100(&g_sensor);
       recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
       ret = QueueRecv(g_queueId_uart3, buff, &recvLen);
       // SEGGER_RTT_printf_hex(buff, recvLen);
@@ -153,14 +147,13 @@ UINT32 RecvUsart4TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
     while (1) {
-        ResetModbus(&g_modbus_485);
         recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
         ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
         // SEGGER_RTT_printf_hex(buff, recvLen);
         DecodeModbusData(buff, &g_modbus_485);
         handleModbusData(&g_modbus_485);
-        SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, address = %d, func_code = %d, reg_addr = %d, reg_number = %d, crc_sum = %d, uart = %d\n", __func__,
-                            recvLen, ret, g_modbus_485.address, g_modbus_485.func_code, g_modbus_485.reg_addr, g_modbus_485.reg_number, g_modbus_485.crc_sum, g_modbus_485.uart);
+        SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, address = 0x%02X, func_code = 0x%02X, reg_addr = 0x%02X, reg_number = 0x%02X, crc_sum = 0x%02X\n", __func__,
+                            recvLen, ret, g_modbus_485.address, g_modbus_485.func_code, g_modbus_485.reg_addr, g_modbus_485.reg_number, g_modbus_485.crc_sum);
         LOS_TaskDelay(TASK_DELAY);
     }
     return 0;
@@ -188,15 +181,14 @@ UINT32 RecvUsart6TaskEntry(VOID)
     UINT32 recvLen = 0;
     UINT32 ret = 0;
         while (1) {
-          ResetModbus(&g_modbus);
           recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
           ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
-          SEGGER_RTT_printf_hex(buff, recvLen);
+        //   SEGGER_RTT_printf_hex(buff, recvLen);
           DecodeModbusData(buff, &g_modbus);
           handleModbusData(&g_modbus);
 
-          SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, address = %d, func_code = %d, reg_addr = %d, reg_number = %d, crc_sum = %d, uart = %d\n", __func__,
-                            recvLen, ret, g_modbus.address, g_modbus.func_code, g_modbus.reg_addr, g_modbus.reg_number, g_modbus.crc_sum, g_modbus.uart);
+          SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, address = 0x%02X, func_code = 0x%02X, reg_addr = 0x%02X, reg_number = 0x%02X, crc_sum = 0x%02X\n", __func__,
+                            recvLen, ret, g_modbus.address, g_modbus.func_code, g_modbus.reg_addr, g_modbus.reg_number, g_modbus.crc_sum);
           LOS_TaskDelay(TASK_DELAY);
         }
     return 0;

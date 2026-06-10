@@ -30,9 +30,9 @@
 
 void SEGGER_RTT_printf_hex(const uint8_t *array, uint32_t length) {
   for (uint32_t i = 0; i < length; i++) {
-    SEGGER_RTT_printf(0, "%02X ", array[i]);
-    // 每16字节换行
-    if ((i + 1) % 16 == 0) {
+    SEGGER_RTT_printf(0, "0x%02X ", array[i]);
+    // 每32字节换行
+    if ((i + 1) % 32 == 0) {
       SEGGER_RTT_printf(0, "\n");
     }
   }
@@ -42,18 +42,24 @@ void SEGGER_RTT_printf_hex(const uint8_t *array, uint32_t length) {
 void SEGGER_RTT_printf_dec(const uint8_t *array, uint32_t length) {
   for (uint32_t i = 0; i < length; i++) {
     SEGGER_RTT_printf(0, "%d ", array[i]);
-    // 每16字节换行
-    if ((i + 1) % 16 == 0) {
+    // 每32字节换行
+    if ((i + 1) % 32 == 0) {
       SEGGER_RTT_printf(0, "\n");
     }
   }
   SEGGER_RTT_printf(0, "\n");
 }
 
-uint16_t bl_t_uint16(const uint8_t *array) {
+uint16_t toolkit_uint16_little(const uint8_t *array) {
   return (array[0] << 8) | array[1];
 }
 
-uint32_t bl_t_uint32(const uint8_t *array) {
+uint32_t toolkit_uint32_little(const uint8_t *array) {
   return (array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3];
+}
+uint16_t toolkit_swap_uint16(uint16_t val){
+  return (val << 8) | (val >> 8);
+}
+uint32_t toolkit_swap_uint32(uint32_t val){
+  return (val << 24) | (val << 8) | (val >> 8) | (val >> 24);
 }

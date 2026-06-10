@@ -18,6 +18,7 @@ USER_SRC = \
     Src/i2c.c \
     Src/queue.c \
     Src/sensor.c \
+    Src/modbus.c \
 
 C_SOURCES += $(USER_SRC)
 

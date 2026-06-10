@@ -42,64 +42,28 @@ extern "C" {
 typedef struct {
   // 空气质量传感器MS-VOC-V4
   uint16_t TVOC; // TVOC
-
   // 甲醛传感器SC11-CH2O
-  uint16_t PPB; // PPB
-
+  uint16_t CH2O; // CH2O
   // 红外二氧化碳传感器CM1106S
   uint16_t CO2; // CO2
-
   // 激光粉尘传感器PM2012SE
   uint16_t PM10;  // PM1.0 GRIMM
   uint16_t PM25;  // PM2.5 GRIMM
   uint16_t PM100; // PM100 GRIMM
+  // 湿度传感器
+  uint16_t RH;
+  // 温度传感器
+  uint16_t TEMP;
 } Sensor;
-
-// RS485串口通讯
-
-// esp32c3串口通讯
-
-typedef struct {
-  // SWM34SMEU6-QFN80串口通讯
-  uint8_t address;   // 设备地址
-  uint8_t func_code; // 功能码
-  // uint8_t len = 0x0;          // 字节数
-  uint16_t reg_addr;   // 寄存器地址
-  uint16_t reg_number; // 寄存器数量
-  uint16_t crc_sum;    // CRC校验码
-  uint32_t uart; // 串口外设
-} Modbus;
 
 extern Sensor g_sensor;
 
-extern Modbus g_modbus_485;
-extern Modbus g_modbus;
-
-void ResetSensorTVOC(Sensor *sensor);
-void ResetSensorPPB(Sensor *sensor);
-void ResetSensorCO2(Sensor *sensor);
-void ResetSensorPM10(Sensor *sensor);
-void ResetSensorPM25(Sensor *sensor);
-void ResetSensorPM100(Sensor *sensor);
-void ResetModbus(Modbus *modbus);
-
 void DecodeSensorDataTVOC(const uint8_t *array, Sensor *sensor);
-void DecodeSensorDataPPB(const uint8_t *array, Sensor *sensor);
+void DecodeSensorDataCH2O(const uint8_t *array, Sensor *sensor);
 void DecodeSensorDataCO2(const uint8_t *array, Sensor *sensor);
 void DecodeSensorDataPM10(const uint8_t *array, Sensor *sensor);
 void DecodeSensorDataPM25(const uint8_t *array, Sensor *sensor);
 void DecodeSensorDataPM100(const uint8_t *array, Sensor *sensor);
-void DecodeModbusData(const uint8_t *array, Modbus *modbus);
-
-void handleModbusData(const Modbus *modbus);
-void handleModbusDataByFuncCode00(const Modbus *modbus);
-void handleModbusDataByFuncCode01(const Modbus *modbus);
-void handleModbusDataByFuncCode02(const Modbus *modbus);
-void handleModbusDataByFuncCode03(const Modbus *modbus);
-void handleModbusDataByFuncCode04(const Modbus *modbus);
-void handleModbusDataByFuncCode05(const Modbus *modbus);
-void handleModbusDataByFuncCode06(const Modbus *modbus);
-
 
 #ifdef __cplusplus
 #if __cplusplus
