@@ -5,7 +5,7 @@
  *
  * GD32F470IGH6 Memory Configuration:
  *   - FLASH:  1024KB (0x08000000 - 0x08100000)
- *   - RAM:    192KB (0x20000000 - 0x20030000)
+ *   - RAM:    448KB (0x20000000 - 0x20070000)
  *   - No CCMRAM
  *
  * This script defines how the linker arranges sections in memory.
@@ -16,14 +16,14 @@ ENTRY(Reset_Handler)
 
 /* Stack configuration */
 _sstack = 0x20000000;           /* Stack start address (beginning of RAM) */
-_estack = 0x20030000;           /* Stack end address (end of RAM: 0x20000000 + 192KB) */
+_estack = 0x20070000;           /* Stack end address (end of RAM: 0x20000000 + 448KB) */
 __los_stack_size__ = 0x400;     /* LiteOS kernel stack size (1KB) */
 
 /* Memory region definitions */
 MEMORY
 {
     FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 1024K  /* Program Flash (read/execute) */
-    RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 192K   /* SRAM (read/write) */
+    RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 448K   /* SRAM (read/write) */
 }
 
 /* Section definitions */

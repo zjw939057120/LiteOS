@@ -19,6 +19,7 @@ USER_SRC = \
     Src/queue.c \
     Src/sensor.c \
     Src/modbus.c \
+    Src/dog.c \
 
 C_SOURCES += $(USER_SRC)
 
