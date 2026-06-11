@@ -34,8 +34,21 @@
 #include "queue.h"
 #include "sensor.h"
 #include "usart.h"
+#include "gd32f4xx_fwdgt.h"
 
 #define TASK_DELAY 1000
+
+/* FWDGT configuration: prescaler DIV256, reload value 4095
+ * Timeout ≈ (256 * 4096) / 40kHz ≈ 26.2 seconds */
+#define FWDGT_RELOAD_VALUE 4095
+#define FWDGT_PRESCALER_DIV FWDGT_PSC_DIV256
+
+static void FwdgtInit(void) {
+  fwdgt_write_enable();
+  fwdgt_config(FWDGT_RELOAD_VALUE, FWDGT_PRESCALER_DIV);
+  fwdgt_counter_reload();
+  fwdgt_enable();
+}
 
 UINT32 g_UartTaskId = 0;
 UINT32 g_RecvUsart0TaskId = 0;
@@ -52,7 +65,8 @@ UINT32 SensorTaskEntry(VOID) {
   float humidity = 0.0f;
   int tempInt = 0;
   int humiInt = 0;
-
+  
+  FwdgtInit();
   GpioInit();
   UsartInit();
   I2cInit();
@@ -75,6 +89,7 @@ UINT32 SensorTaskEntry(VOID) {
     Usart4Req();
     Usart5Req();
     Usart6Req();
+    fwdgt_counter_reload();
     LOS_TaskDelay(TASK_DELAY);
     index++;
   }
