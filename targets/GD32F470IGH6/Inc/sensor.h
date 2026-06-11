@@ -32,6 +32,7 @@
 
 #include "los_typedef.h"
 #include "platform.h"
+#include "toolkit.h"
 #include <stdint.h>
 
 #ifdef __cplusplus

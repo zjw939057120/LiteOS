@@ -39,23 +39,27 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-#define I2C1_SPEED              100000  // I2C1 通信速率(100KHz)
-#define I2C1_SLAVE_ADDRESS7     0x70    // I2C1 7位从机地址
 
-/* ================ 超时配置 ================ */
-/* 基于循环计数的超时机制(无需HAL_GetTick函数)
-   I2C_TIMEOUT_LOOP: 200MHz主频下约50ms超时
-   I2C_TIMEOUT_START_LOOP: 200MHz主频下约10ms超时(用于START/ACK检测) */
-#ifndef I2C_TIMEOUT_LOOP
-#define I2C_TIMEOUT_LOOP        500000U
-#endif
-#ifndef I2C_TIMEOUT_START_LOOP
-#define I2C_TIMEOUT_START_LOOP  100000U
-#endif
+/* I2C1 GPIO definitions (PH4=SCL, PH5=SDA) */
+#define I2C1_PERIPH                  I2C1
+#define I2C1_CLK                     RCU_I2C1
+#define I2C1_SCL_PORT                GPIOH
+#define I2C1_SCL_PIN                 GPIO_PIN_4
+#define I2C1_SDA_PORT                GPIOH
+#define I2C1_SDA_PIN                 GPIO_PIN_5
+#define I2C1_GPIO_CLK                RCU_GPIOH
+#define I2C1_GPIO_AF                 GPIO_AF_4
+
+/* AHT30 definitions */
+#define AHT30_I2C_ADDR               0x38
+#define AHT30_CMD_INIT               0xBE
+#define AHT30_CMD_TRIGGER            0xAC
 
 void I2cInit(void);
-
-
+void I2c1Write(UINT8 devAddr, UINT8 *data, UINT8 len);
+void I2c1Read(UINT8 devAddr, UINT8 *buf, UINT8 len);
+void Aht30Init(void);
+UINT8 Aht30Read(float *temperature, float *humidity);
 
 #ifdef __cplusplus
 #if __cplusplus

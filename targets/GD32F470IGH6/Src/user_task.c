@@ -47,10 +47,27 @@ UINT32 g_RecvUsart5TaskId = 0;
 UINT32 g_RecvUsart6TaskId = 0;
 
 UINT32 SensorTaskEntry(VOID) {
+  UINT32 index = 0;
+  float temperature = 0.0f;
+  float humidity = 0.0f;
+  int tempInt = 0;
+  int humiInt = 0;
+
   GpioInit();
   UsartInit();
   I2cInit();
+  Aht30Init();
+
   while (1) {
+    if (Aht30Read(&temperature, &humidity) == 0) {
+      tempInt = (int)(temperature * 10);
+      humiInt = (int)(humidity * 10);
+      if (index % 60 == 0) {
+        SEGGER_RTT_printf(0, "%s AHT30: Temp=%d, Humi=%d\n", __func__, tempInt,
+                          humiInt);
+      }
+    }
+
     Usart0Req();
     Usart1Req();
     Usart2Req();
@@ -59,6 +76,7 @@ UINT32 SensorTaskEntry(VOID) {
     Usart5Req();
     Usart6Req();
     LOS_TaskDelay(TASK_DELAY);
+    index++;
   }
   return 0;
 }
