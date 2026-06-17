@@ -64,7 +64,7 @@ void usart4_init(uint32_t bound);                /* 串口初始化函数,RS485�
 void usart5_init(uint32_t bound);                /* 串口初始化函数,esp32c3串口通讯 */
 void usart6_init(uint32_t bound);                /* 串口初始化函数,屏幕MCU串口通讯 */
 void Seria_SendByte(uint32_t USARTx,uint8_t Byte);
-void Seria_SendArray(uint32_t USARTx,uint8_t *Array, uint16_t Length);
+void Seria_SendArray(uint32_t USARTx, const uint8_t *Array, uint16_t Length);
 
 void Usart0Hwi(void);
 void Usart1Hwi(void);

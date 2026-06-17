@@ -51,9 +51,8 @@ void SEGGER_RTT_printf_dec(const uint8_t *array, uint32_t length) {
 }
 
 void SEGGER_RTT_printf_string(const uint8_t *array, uint32_t length) {
-  for (uint32_t i = 0; i < length; i++) {
-    SEGGER_RTT_printf(0, "%c", array[i]);
-  }
+  SEGGER_RTT_Write(0, array, length);
+  SEGGER_RTT_printf(0, "\n");
 }
 
 uint16_t toolkit_uint16_little(const uint8_t *array) {

@@ -27,8 +27,8 @@
  * --------------------------------------------------------------------------- */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef _USER_TASK_H
-#define _USER_TASK_H
+#ifndef _RTT_H
+#define _RTT_H
 
 #include "los_typedef.h"
 #include "platform.h"
@@ -39,33 +39,18 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-
-UINT32 SensorTaskEntry(VOID);
-UINT32 RecvUsart0TaskEntry(VOID);
-UINT32 RecvUsart1TaskEntry(VOID);
-UINT32 RecvUsart2TaskEntry(VOID);
-UINT32 RecvUsart3TaskEntry(VOID);
-UINT32 RecvUsart4TaskEntry(VOID);
-UINT32 RecvUsart5TaskEntry(VOID);
-UINT32 RecvUsart6TaskEntry(VOID);
-UINT32 RTTTaskEntry(VOID);
-
-UINT32 SensorTaskCreate(VOID);
-UINT32 RecvUsart0Create(VOID);
-UINT32 RecvUsart1Create(VOID);
-UINT32 RecvUsart2Create(VOID);
-UINT32 RecvUsart3Create(VOID);
-UINT32 RecvUsart4Create(VOID);
-UINT32 RecvUsart5Create(VOID);
-UINT32 RecvUsart6Create(VOID);
-UINT32 RTTTaskCreate(VOID);
-
-VOID app_init(VOID);
-
+void RTTHandle(void);
+void PassthroughUSART0(uint8_t *array, uint32_t length);
+void PassthroughUSART1(uint8_t *array, uint32_t length);
+void PassthroughUSART2(uint8_t *array, uint32_t length);
+void PassthroughUSART3(uint8_t *array, uint32_t length);
+void PassthroughUSART4(uint8_t *array, uint32_t length);
+void PassthroughUSART5(uint8_t *array, uint32_t length);
+void PassthroughUART6(uint8_t *array, uint32_t length);
 #ifdef __cplusplus
 #if __cplusplus
 }
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-#endif /* _USER_TASK_H */
+#endif /* _RTT_H */

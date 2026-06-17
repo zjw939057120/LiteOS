@@ -593,7 +593,7 @@ void Seria_SendByte(uint32_t USARTx,uint8_t Byte)
 	while (usart_flag_get(USARTx, USART_FLAG_TC) == RESET); 
 }
 //串口发送一组数据函数
-void Seria_SendArray(uint32_t USARTx,uint8_t *Array, uint16_t Length) 
+void Seria_SendArray(uint32_t USARTx, const uint8_t *Array, uint16_t Length) 
 { 	
 	uint16_t i; 	
 	for (i = 0; i < Length; i ++) 	

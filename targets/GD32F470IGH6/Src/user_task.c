@@ -27,6 +27,7 @@
  * --------------------------------------------------------------------------- */
 
 #include "demo_entry.h"
+#include "flash_storage.h"
 #include "gpio.h"
 #include "i2c.h"
 #include "los_task_pri.h"
@@ -35,6 +36,7 @@
 #include "sensor.h"
 #include "usart.h"
 #include "dog.h"
+#include "rtt.h"
 
 #define TASK_DELAY 1000
 
@@ -46,6 +48,8 @@ UINT32 g_RecvUsart3TaskId = 0;
 UINT32 g_RecvUsart4TaskId = 0;
 UINT32 g_RecvUsart5TaskId = 0;
 UINT32 g_RecvUsart6TaskId = 0;
+UINT32 g_RTTTaskId = 0;
+
 
 UINT32 SensorTaskEntry(VOID) {
   UINT32 index = 0;
@@ -254,6 +258,10 @@ UINT32 RecvUsart6TaskEntry(VOID) {
   return 0;
 }
 
+VOID RTTTaskEntry(VOID) {
+  RTTHandle();
+}
+
 UINT32 SensorTaskCreate(VOID) {
   INT32 ret;
   TSK_INIT_PARAM_S uartTask;
@@ -383,6 +391,22 @@ UINT32 RecvUsart6Create(VOID) {
   uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
   return LOS_TaskCreate(&g_RecvUsart6TaskId, &uartTask);
 }
+UINT32 RTTTaskCreate(VOID) {
+  INT32 ret;
+  TSK_INIT_PARAM_S uartTask;
+
+  ret = memset_s(&uartTask, sizeof(TSK_INIT_PARAM_S), 0,
+                 sizeof(TSK_INIT_PARAM_S));
+  if (ret != EOK) {
+    return ret;
+  }
+  uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RTTTaskEntry;
+  uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
+  uartTask.pcName = "RTTTask";
+  uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
+  uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
+  return LOS_TaskCreate(&g_RTTTaskId, &uartTask);
+}
 
 VOID app_init(VOID) {
   QueueInit();
@@ -394,6 +418,7 @@ VOID app_init(VOID) {
   RecvUsart4Create();
   RecvUsart5Create();
   RecvUsart6Create();
+  RTTTaskCreate();
   SEGGER_RTT_printf(0, "app init!\n");
   DemoEntry();
 }
