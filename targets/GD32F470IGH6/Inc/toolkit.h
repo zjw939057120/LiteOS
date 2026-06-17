@@ -42,6 +42,8 @@ extern "C" {
 
 void SEGGER_RTT_printf_hex(const uint8_t *array, uint32_t length);
 void SEGGER_RTT_printf_dec(const uint8_t *array, uint32_t length);
+void SEGGER_RTT_printf_string(const uint8_t *array, uint32_t length);
+
 uint16_t toolkit_uint16_little(const uint8_t *array);
 uint32_t toolkit_uint32_little(const uint8_t *array);
 uint16_t toolkit_swap_uint16(uint16_t val);

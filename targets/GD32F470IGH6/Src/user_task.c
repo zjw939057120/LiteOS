@@ -105,7 +105,6 @@ UINT32 RecvUsart0TaskEntry(VOID) {
                         recvLen, ret, g_sensor.TVOC);
     }
 
-    LOS_TaskDelay(TASK_DELAY);
     index++;
   }
   return 0;
@@ -130,7 +129,6 @@ UINT32 RecvUsart1TaskEntry(VOID) {
       SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, CH2O = %d\n", __func__,
                         recvLen, ret, g_sensor.CH2O);
     }
-    LOS_TaskDelay(TASK_DELAY);
     index++;
   }
   return 0;
@@ -155,7 +153,6 @@ UINT32 RecvUsart2TaskEntry(VOID) {
       SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d, CO2 = %d\n", __func__,
                         recvLen, ret, g_sensor.CO2);
     }
-    LOS_TaskDelay(TASK_DELAY);
     index++;
   }
   return 0;
@@ -185,7 +182,6 @@ UINT32 RecvUsart3TaskEntry(VOID) {
                         __func__, recvLen, ret, g_sensor.PM10, g_sensor.PM25,
                         g_sensor.PM100);
     }
-    LOS_TaskDelay(TASK_DELAY);
     index++;
   }
   return 0;
@@ -209,7 +205,6 @@ UINT32 RecvUsart4TaskEntry(VOID) {
           "reg_addr = 0x%02X, reg_number = 0x%02X, crc_sum = 0x%02X\n",
           __func__, recvLen, ret, g_modbus_485.address, g_modbus_485.func_code,
           g_modbus_485.reg_addr, g_modbus_485.reg_number, g_modbus_485.crc_sum);
-      LOS_TaskDelay(TASK_DELAY);
       index++;
     }
     return 0;
@@ -224,12 +219,12 @@ UINT32 RecvUsart5TaskEntry(VOID) {
   while (1) {
     recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
     ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
-    // SEGGER_RTT_printf_hex(buff, recvLen);
+    SEGGER_RTT_printf_hex(buff, recvLen);
+    SEGGER_RTT_printf_string(buff, recvLen);
     if (index % 60 == 0) {
       SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d\n", __func__, recvLen,
                         ret);
     }
-    LOS_TaskDelay(TASK_DELAY);
     index++;
   }
   return 0;
@@ -254,7 +249,6 @@ UINT32 RecvUsart6TaskEntry(VOID) {
           __func__, recvLen, ret, g_modbus.address, g_modbus.func_code,
           g_modbus.reg_addr, g_modbus.reg_number, g_modbus.crc_sum);
     }
-    LOS_TaskDelay(TASK_DELAY);
     index++;
   }
   return 0;

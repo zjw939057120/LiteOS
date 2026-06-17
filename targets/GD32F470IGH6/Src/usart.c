@@ -138,30 +138,7 @@ uint16_t Crc_Cal(uint8_t *Data_Buff,uint16_t Data_Length)
 	}
 	return (CRCHI<<8)+CRCLW;	                               
 }
-// 交换16位数据的字节序
-uint16_t swap_bytes_16(uint16_t value) 
-{
-    return (value >> 8) | (value << 8);
-}
 
-// 交换32位数据的字节序
-uint32_t swap_bytes_32(uint32_t value) 
-{
-    return ((value >> 24) & 0xFF) |
-           ((value >> 8) & 0xFF00) |
-           ((value << 8) & 0xFF0000) |
-           ((value << 24) & 0xFF000000);
-}
-// 32位数据转换为浮点型数据
-float int32_to_float(uint32_t value) {
-    union {
-        uint32_t i;
-        float    f;
-    } converter;
-    
-    converter.i = value;
-    return converter.f;
-}
 /**
  * @brief       串口0中断服务函数
  * @param       无
@@ -568,7 +545,7 @@ void usart5_init(uint32_t bound)
     usart_enable(USART5);	                                /* 使能串口 */
 }
 /**
- * @brief       串口6初始化函数,SWM34SMEU6-QFN80串口通讯
+ * @brief       串口6初始化函数,屏幕MCU串口通讯
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */
@@ -707,12 +684,19 @@ void Usart6Req(void)
 
 void UsartInit(void)
 {
+    // 空气质量传感器MS-VOC-V4
     usart0_init(9600U);
+    //甲醛传感器SC11-CH2O
     usart1_init(9600U);
+    //红外二氧化碳传感器CM1106
     usart2_init(9600U);
+    //红外二氧化碳传感器CM1106
     usart3_init(9600U);
+    //RS485串口通讯
     usart4_init(9600U);
-    usart5_init(9600U);
+    //esp32c3串口通讯
+    usart5_init(115200U);
+    //屏幕MCU串口通讯
     usart6_init(115200U);
 }
 
