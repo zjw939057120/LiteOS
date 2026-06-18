@@ -51,8 +51,8 @@ void RTTHandle(void) {
     }
 
     /* Echo back received characters */
-    SEGGER_RTT_printf_string(buff, recvLen);
-    SEGGER_RTT_printf(0, "%s recvLen = %d\n", __func__, recvLen);
+    // SEGGER_RTT_printf_string(buff, recvLen);
+    // SEGGER_RTT_printf(0, "%s recvLen = %d\n", __func__, recvLen);
     
     //+++切换透传串口
     if (recvLen == 4 && buff[0] == 0x2B && buff[1] == 0x2B && buff[2] == 0x2B &&

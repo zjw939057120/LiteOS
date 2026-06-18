@@ -46,9 +46,6 @@ uint8_t USART0_TX_BUF[] = {0xFF, 0x61, 0x02, 0x01, 0x9C};
 uint8_t USART1_TX_BUF[] = {0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
 uint8_t USART2_TX_BUF[] = {0x11, 0x01, 0x01, 0xED};
 uint8_t USART3_TX_BUF[] = {0x11, 0x02, 0x0B, 0x07, 0xDB};
-uint8_t USART4_TX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
-uint8_t USART5_TX_BUF[USART5_QUEUE_BUF_LEN] = {0};
-uint8_t USART6_TX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
 
 uint16_t USART0_RX_CNT = 0;			//接收的字节数
 uint16_t USART1_RX_CNT = 0;			//接收的字节数
@@ -251,8 +248,17 @@ void USART5_IRQHandler(void)
     if (usart_interrupt_flag_get(USART5, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
     {
         USART5_RX_BUF[USART5_RX_CNT] = usart_data_receive(USART5);
-        // SEGGER_RTT_printf(0, "USART5_RX_BUF[%d] = 0x%02X\n", USART5_RX_CNT, USART5_RX_BUF[USART5_RX_CNT]);
-        USART5_RX_CNT >= USART5_QUEUE_BUF_LEN ? USART5_RX_CNT = 0 : USART5_RX_CNT++;
+        // SEGGER_RTT_printf(0, "USART5_RX_BUF[%d] = %c\n", USART5_RX_CNT, USART5_RX_BUF[USART5_RX_CNT]);
+        if (USART5_RX_CNT > 2 && USART5_RX_BUF[USART5_RX_CNT-1] == 0x0D && USART5_RX_BUF[USART5_RX_CNT] == 0x0A) {
+            //分段接收AT指令
+            QueueSend(g_queueId_uart5,USART5_RX_BUF, USART5_RX_CNT);
+            // SEGGER_RTT_printf_string(USART5_RX_BUF, USART5_RX_CNT);
+            USART5_RX_CNT = 0;
+        }else if(USART5_RX_CNT >= USART5_QUEUE_BUF_LEN){
+            USART5_RX_CNT = 0;//环形缓冲区
+        }else{
+            USART5_RX_CNT++;
+        }        
     }
     else if (usart_interrupt_flag_get(USART5, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
@@ -674,7 +680,8 @@ void Usart3Req(void)
 void Usart4Req(void)
 {}
 void Usart5Req(void)
-{}
+{
+}
 void Usart6Req(void)
 {}
 
