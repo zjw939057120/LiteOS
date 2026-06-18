@@ -39,9 +39,14 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-#define DEFAULT_QUEUE_SIZE        3
+// 默认队列大小
+#define DEFAULT_QUEUE_SIZE 4
+// 默认队列最大大小
+#define DEFAULT_QUEUE_MAX_SIZE DEFAULT_QUEUE_SIZE * 4
+// 默认队列缓冲区最大长度
 #define DEFAULT_QUEUE_BUF_MAX_LEN 200
-#define DEFAULT_QUEUE_REC_DELAY   5
+// 默认队列接收延迟时间，单位：毫秒
+#define DEFAULT_QUEUE_REC_DELAY 5
 
 extern UINT32 g_queueId_uart0;
 extern UINT32 g_queueId_uart1;

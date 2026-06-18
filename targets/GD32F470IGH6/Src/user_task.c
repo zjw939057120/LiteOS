@@ -223,7 +223,6 @@ UINT32 RecvUsart5TaskEntry(VOID) {
   while (1) {
     recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
     ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
-    SEGGER_RTT_printf_hex(buff, recvLen);
     SEGGER_RTT_printf_string(buff, recvLen);
     if (index % 60 == 0) {
       SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d\n", __func__, recvLen,

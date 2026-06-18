@@ -42,18 +42,6 @@ extern "C" {
 #define USART_REC_LEN DEFAULT_QUEUE_BUF_MAX_LEN /* 定义最大接收字节数 200 */
 #define USART_EN_RX 1 /* 使能（1）/禁止（0）串口0接收 */
 
-extern uint8_t  USART0_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
-extern uint8_t  USART1_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
-extern uint8_t  USART2_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
-extern uint8_t  USART3_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
-extern uint8_t  USART4_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
-extern uint8_t  USART5_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
-extern uint8_t  USART6_RX_BUF[USART_REC_LEN];    /* 接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
-
-extern uint8_t  USART4_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */
-extern uint8_t  USART5_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */  
-extern uint8_t  USART6_TX_BUF[USART_REC_LEN];    /* 发送缓冲,最大USART_REC_LEN个字节.末字节为换行符 */ 
-
 uint16_t Crc_Cal(uint8_t * Data_Buff,uint16_t Data_Length);
 
 void usart0_init(uint32_t bound);                /* 串口初始化函数,空气质量传感器MS-VOC-V4 */

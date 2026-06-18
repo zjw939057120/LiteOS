@@ -50,7 +50,7 @@ void QueueInit(void)
                   DEFAULT_QUEUE_BUF_MAX_LEN);
   LOS_QueueCreate("uart4", DEFAULT_QUEUE_SIZE, &g_queueId_uart4, 0,
                   DEFAULT_QUEUE_BUF_MAX_LEN);
-  LOS_QueueCreate("uart5", DEFAULT_QUEUE_SIZE, &g_queueId_uart5, 0,
+  LOS_QueueCreate("uart5", DEFAULT_QUEUE_MAX_SIZE, &g_queueId_uart5, 0,
                   DEFAULT_QUEUE_BUF_MAX_LEN);
   LOS_QueueCreate("uart6", DEFAULT_QUEUE_SIZE, &g_queueId_uart6, 0,
                   DEFAULT_QUEUE_BUF_MAX_LEN);

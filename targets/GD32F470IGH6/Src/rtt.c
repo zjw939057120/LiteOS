@@ -86,8 +86,6 @@ void RTTHandle(void) {
     default:
       break;
     }
-    //透传数据
-    Seria_SendArray(USARTx,buff,recvLen);
   }
 }
 
