@@ -217,10 +217,10 @@ UINT32 RecvUsart4TaskEntry(VOID) {
 
 UINT32 RecvUsart5TaskEntry(VOID) {
   UINT32 index = 0;
+  UINT8 buff[USART5_QUEUE_BUF_LEN];
   UINT32 recvLen = 0;
   UINT32 ret = 0;
   while (1) {
-    UINT8 buff[USART5_QUEUE_BUF_LEN];
     recvLen = USART5_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
     SEGGER_RTT_printf_string(buff, recvLen);
