@@ -39,7 +39,6 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-#define USART_REC_LEN DEFAULT_QUEUE_BUF_MAX_LEN /* 定义最大接收字节数 200 */
 #define USART_EN_RX 1 /* 使能（1）/禁止（0）串口0接收 */
 
 uint16_t Crc_Cal(uint8_t * Data_Buff,uint16_t Data_Length);

@@ -41,19 +41,20 @@ UINT32 g_queueId_uart6 = 0;
 void QueueInit(void)
 {
   LOS_QueueCreate("uart0", DEFAULT_QUEUE_SIZE, &g_queueId_uart0, 0,
-                  DEFAULT_QUEUE_BUF_MAX_LEN);
+                  DEFAULT_QUEUE_BUF_LEN);
   LOS_QueueCreate("uart1", DEFAULT_QUEUE_SIZE, &g_queueId_uart1, 0,
-                  DEFAULT_QUEUE_BUF_MAX_LEN);
+                  DEFAULT_QUEUE_BUF_LEN);
   LOS_QueueCreate("uart2", DEFAULT_QUEUE_SIZE, &g_queueId_uart2, 0,
-                  DEFAULT_QUEUE_BUF_MAX_LEN);
+                  DEFAULT_QUEUE_BUF_LEN);
   LOS_QueueCreate("uart3", DEFAULT_QUEUE_SIZE, &g_queueId_uart3, 0,
-                  DEFAULT_QUEUE_BUF_MAX_LEN);
+                  DEFAULT_QUEUE_BUF_LEN);
   LOS_QueueCreate("uart4", DEFAULT_QUEUE_SIZE, &g_queueId_uart4, 0,
-                  DEFAULT_QUEUE_BUF_MAX_LEN);
-  LOS_QueueCreate("uart5", DEFAULT_QUEUE_MAX_SIZE, &g_queueId_uart5, 0,
-                  DEFAULT_QUEUE_BUF_MAX_LEN);
+                  DEFAULT_QUEUE_BUF_LEN);
+  LOS_QueueCreate("uart5", USART5_QUEUE_SIZE, &g_queueId_uart5, 0,
+                  USART5_QUEUE_BUF_LEN);
   LOS_QueueCreate("uart6", DEFAULT_QUEUE_SIZE, &g_queueId_uart6, 0,
-                  DEFAULT_QUEUE_BUF_MAX_LEN);
+                  DEFAULT_QUEUE_BUF_LEN);
+
 }
 
 UINT32 QueueRecv(UINT32 queueId, VOID *bufferAddr, UINT32 *bufferSize) {

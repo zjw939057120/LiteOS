@@ -90,11 +90,11 @@ UINT32 SensorTaskEntry(VOID) {
 
 UINT32 RecvUsart0TaskEntry(VOID) {
   UINT32 index = 0;
-  UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+  UINT8 buff[DEFAULT_QUEUE_BUF_LEN];
   UINT32 recvLen = 0;
   UINT32 ret = 0;
   while (1) {
-    recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+    recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart0, buff, &recvLen);
     // SEGGER_RTT_printf_hex(buff, recvLen);
     if (ret != 0 || recvLen != TVOC_Sensor_Data_Length ||
@@ -116,11 +116,11 @@ UINT32 RecvUsart0TaskEntry(VOID) {
 
 UINT32 RecvUsart1TaskEntry(VOID) {
   UINT32 index = 0;
-  UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+  UINT8 buff[DEFAULT_QUEUE_BUF_LEN];
   UINT32 recvLen = 0;
   UINT32 ret = 0;
   while (1) {
-    recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+    recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart1, buff, &recvLen);
     if (ret != 0 || recvLen != CH2O_Sensor_Data_Length ||
         buff[0] != CH2O_Sensor_Data_Header) {
@@ -140,11 +140,11 @@ UINT32 RecvUsart1TaskEntry(VOID) {
 
 UINT32 RecvUsart2TaskEntry(VOID) {
   UINT32 index = 0;
-  UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+  UINT8 buff[DEFAULT_QUEUE_BUF_LEN];
   UINT32 recvLen = 0;
   UINT32 ret = 0;
   while (1) {
-    recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+    recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart2, buff, &recvLen);
     if (ret != 0 || recvLen != CO2_Sensor_Data_Length ||
         buff[0] != CO2_Sensor_Data_Header) {
@@ -164,11 +164,11 @@ UINT32 RecvUsart2TaskEntry(VOID) {
 
 UINT32 RecvUsart3TaskEntry(VOID) {
   UINT32 index = 0;
-  UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+  UINT8 buff[DEFAULT_QUEUE_BUF_LEN];
   UINT32 recvLen = 0;
   UINT32 ret = 0;
   while (1) {
-    recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+    recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart3, buff, &recvLen);
     if (ret != 0 || recvLen != PM_Sensor_Data_Length ||
         buff[0] != PM_Sensor_Data_Header) {
@@ -193,11 +193,11 @@ UINT32 RecvUsart3TaskEntry(VOID) {
 
 UINT32 RecvUsart4TaskEntry(VOID) {
   UINT32 index = 0;
-  UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+  UINT8 buff[DEFAULT_QUEUE_BUF_LEN];
   UINT32 recvLen = 0;
   UINT32 ret = 0;
   while (1) {
-    recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+    recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
     // SEGGER_RTT_printf_hex(buff, recvLen);
     DecodeModbusData(buff, &g_modbus_485);
@@ -217,11 +217,11 @@ UINT32 RecvUsart4TaskEntry(VOID) {
 
 UINT32 RecvUsart5TaskEntry(VOID) {
   UINT32 index = 0;
-  UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+  UINT8 buff[USART5_QUEUE_BUF_LEN];
   UINT32 recvLen = 0;
   UINT32 ret = 0;
   while (1) {
-    recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+    recvLen = USART5_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
     SEGGER_RTT_printf_string(buff, recvLen);
     if (index % 60 == 0) {
@@ -235,11 +235,11 @@ UINT32 RecvUsart5TaskEntry(VOID) {
 
 UINT32 RecvUsart6TaskEntry(VOID) {
   UINT32 index = 0;
-  UINT8 buff[DEFAULT_QUEUE_BUF_MAX_LEN];
+  UINT8 buff[DEFAULT_QUEUE_BUF_LEN];
   UINT32 recvLen = 0;
   UINT32 ret = 0;
   while (1) {
-    recvLen = DEFAULT_QUEUE_BUF_MAX_LEN;
+    recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
     //   SEGGER_RTT_printf_hex(buff, recvLen);
     DecodeModbusData(buff, &g_modbus);

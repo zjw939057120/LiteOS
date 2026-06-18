@@ -32,31 +32,31 @@
 #include "gd32f4xx.h"
 #include "queue.h"
 
-/* 接收缓冲, 最大USART_REC_LEN个字节. */
-uint8_t USART0_RX_BUF[USART_REC_LEN] = {0};
-uint8_t USART1_RX_BUF[USART_REC_LEN] = {0};
-uint8_t USART2_RX_BUF[USART_REC_LEN] = {0};
-uint8_t USART3_RX_BUF[USART_REC_LEN] = {0};
-uint8_t USART4_RX_BUF[USART_REC_LEN] = {0};
-uint8_t USART5_RX_BUF[USART_REC_LEN] = {0};
-uint8_t USART6_RX_BUF[USART_REC_LEN] = {0};
+/* 接收缓冲, 最大DEFAULT_QUEUE_BUF_LEN个字节. */
+uint8_t USART0_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
+uint8_t USART1_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
+uint8_t USART2_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
+uint8_t USART3_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
+uint8_t USART4_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
+uint8_t USART5_RX_BUF[USART5_QUEUE_BUF_LEN] = {0};
+uint8_t USART6_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
 
 /* 发送缓冲 */
 uint8_t USART0_TX_BUF[] = {0xFF, 0x61, 0x02, 0x01, 0x9C};
 uint8_t USART1_TX_BUF[] = {0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
 uint8_t USART2_TX_BUF[] = {0x11, 0x01, 0x01, 0xED};
 uint8_t USART3_TX_BUF[] = {0x11, 0x02, 0x0B, 0x07, 0xDB};
-uint8_t USART4_TX_BUF[USART_REC_LEN];
-uint8_t USART5_TX_BUF[USART_REC_LEN];
-uint8_t USART6_TX_BUF[USART_REC_LEN];
+uint8_t USART4_TX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
+uint8_t USART5_TX_BUF[USART5_QUEUE_BUF_LEN] = {0};
+uint8_t USART6_TX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
 
-uint8_t USART0_RX_CNT = 0;			//接收的字节数
-uint8_t USART1_RX_CNT = 0;			//接收的字节数
-uint8_t USART2_RX_CNT = 0;			//接收的字节数
-uint8_t USART3_RX_CNT = 0;			//接收的字节数
-uint8_t USART4_RX_CNT = 0;			//接收的字节数
-uint8_t USART5_RX_CNT = 0;			//接收的字节数
-uint8_t USART6_RX_CNT = 0;			//接收的字节数
+uint16_t USART0_RX_CNT = 0;			//接收的字节数
+uint16_t USART1_RX_CNT = 0;			//接收的字节数
+uint16_t USART2_RX_CNT = 0;			//接收的字节数
+uint16_t USART3_RX_CNT = 0;			//接收的字节数
+uint16_t USART4_RX_CNT = 0;			//接收的字节数
+uint16_t USART5_RX_CNT = 0;			//接收的字节数
+uint16_t USART6_RX_CNT = 0;			//接收的字节数
 
 /***********************************************************
 //Dim:auchCRCHI[]                                           
@@ -137,7 +137,7 @@ void USART0_IRQHandler(void)
     {
         USART0_RX_BUF[USART0_RX_CNT] = usart_data_receive(USART0);
         // SEGGER_RTT_printf(0, "USART0_RX_BUF[%d] = 0x%02X\n", USART0_RX_CNT, USART0_RX_BUF[USART0_RX_CNT]);
-        USART0_RX_CNT >= USART_REC_LEN ? USART0_RX_CNT = 0 : USART0_RX_CNT++;
+        USART0_RX_CNT >= DEFAULT_QUEUE_BUF_LEN ? USART0_RX_CNT = 0 : USART0_RX_CNT++;
     }
     else if (usart_interrupt_flag_get(USART0, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
@@ -160,7 +160,7 @@ void USART1_IRQHandler(void)
     {
         USART1_RX_BUF[USART1_RX_CNT] = usart_data_receive(USART1);
         // SEGGER_RTT_printf(0, "USART1_RX_BUF[%d] = 0x%02X\n", USART1_RX_CNT, USART1_RX_BUF[USART1_RX_CNT]);
-        USART1_RX_CNT >= USART_REC_LEN ? USART1_RX_CNT = 0 : USART1_RX_CNT++;
+        USART1_RX_CNT >= DEFAULT_QUEUE_BUF_LEN ? USART1_RX_CNT = 0 : USART1_RX_CNT++;
     }
     else if (usart_interrupt_flag_get(USART1, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
@@ -183,7 +183,7 @@ void USART2_IRQHandler(void)
     {
         USART2_RX_BUF[USART2_RX_CNT] = usart_data_receive(USART2);
         // SEGGER_RTT_printf(0, "USART2_RX_BUF[%d] = 0x%02X\n", USART2_RX_CNT, USART2_RX_BUF[USART2_RX_CNT]);
-        USART2_RX_CNT >= USART_REC_LEN ? USART2_RX_CNT = 0 : USART2_RX_CNT++;
+        USART2_RX_CNT >= DEFAULT_QUEUE_BUF_LEN ? USART2_RX_CNT = 0 : USART2_RX_CNT++;
     }
     else if (usart_interrupt_flag_get(USART2, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
@@ -206,7 +206,7 @@ void UART3_IRQHandler(void)
     {
         USART3_RX_BUF[USART3_RX_CNT] = usart_data_receive(UART3);
         // SEGGER_RTT_printf(0, "UART3_RX_BUF[%d] = 0x%02X\n", USART3_RX_CNT, USART3_RX_BUF[USART3_RX_CNT]);
-        USART3_RX_CNT >= USART_REC_LEN ? USART3_RX_CNT = 0 : USART3_RX_CNT++;
+        USART3_RX_CNT >= DEFAULT_QUEUE_BUF_LEN ? USART3_RX_CNT = 0 : USART3_RX_CNT++;
     }
     else if (usart_interrupt_flag_get(UART3, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
@@ -229,7 +229,7 @@ void UART4_IRQHandler(void)
     {
         USART4_RX_BUF[USART4_RX_CNT] = usart_data_receive(UART4);
         // SEGGER_RTT_printf(0, "UART4_RX_BUF[%d] = 0x%02X\n", USART4_RX_CNT, USART4_RX_BUF[USART4_RX_CNT]);
-        USART4_RX_CNT >= USART_REC_LEN ? USART4_RX_CNT = 0 : USART4_RX_CNT++;
+        USART4_RX_CNT >= DEFAULT_QUEUE_BUF_LEN ? USART4_RX_CNT = 0 : USART4_RX_CNT++;
     }
     else if (usart_interrupt_flag_get(UART4, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
@@ -252,13 +252,13 @@ void USART5_IRQHandler(void)
     {
         USART5_RX_BUF[USART5_RX_CNT] = usart_data_receive(USART5);
         // SEGGER_RTT_printf(0, "USART5_RX_BUF[%d] = 0x%02X\n", USART5_RX_CNT, USART5_RX_BUF[USART5_RX_CNT]);
-        USART5_RX_CNT >= USART_REC_LEN ? USART5_RX_CNT = 0 : USART5_RX_CNT++;
+        USART5_RX_CNT >= USART5_QUEUE_BUF_LEN ? USART5_RX_CNT = 0 : USART5_RX_CNT++;
     }
     else if (usart_interrupt_flag_get(USART5, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
-        QueueSend(g_queueId_uart5,USART5_RX_BUF, USART5_RX_CNT);
+         QueueSend(g_queueId_uart5,USART5_RX_BUF, USART5_RX_CNT);
         // SEGGER_RTT_printf(0, "USART_INT_FLAG_IDLE %d, ret = %d\n",USART5_RX_CNT, ret);
-        // SEGGER_RTT_printf_hex(USART5_RX_BUF, USART5_RX_CNT);
+        // SEGGER_RTT_printf_string(USART5_RX_BUF, USART5_RX_CNT);
         USART5_RX_CNT = 0;                                                          /* 标记帧接收完成 */    
         (void)USART_STAT0(USART5); 
         (void)USART_DATA(USART5);   
@@ -275,7 +275,7 @@ void UART6_IRQHandler(void)
     {
         USART6_RX_BUF[USART6_RX_CNT] = usart_data_receive(UART6);
         // SEGGER_RTT_printf(0, "UART6_RX_BUF[%d] = 0x%02X\n", USART6_RX_CNT, USART6_RX_BUF[USART6_RX_CNT]);
-        USART6_RX_CNT >= USART_REC_LEN ? USART6_RX_CNT = 0 : USART6_RX_CNT++;
+        USART6_RX_CNT >= DEFAULT_QUEUE_BUF_LEN ? USART6_RX_CNT = 0 : USART6_RX_CNT++;
     }
     else if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
