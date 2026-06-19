@@ -198,8 +198,11 @@ UINT32 RecvUsart4TaskEntry(VOID) {
   while (1) {
     recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
-    // SEGGER_RTT_printf_hex(buff, recvLen);
-    if (recvLen == 8) {
+      // SEGGER_RTT_printf_hex(buff, recvLen);
+    if (recvLen >= 4 && buff[0] == 'A' && buff[1] == 'T' && buff[recvLen - 2] == '\r' && buff[recvLen - 1] == '\n') {
+      // AT 数据
+      ATHandle(buff, recvLen);
+    } else if (recvLen == 8) {
       // Modbus 数据
       ModbusHandle(buff, &g_modbus_485);
     }
@@ -240,8 +243,8 @@ UINT32 RecvUsart6TaskEntry(VOID) {
   while (1) {
     recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
-    //   SEGGER_RTT_printf_hex(buff, recvLen);
-    if (recvLen >= 4 && buff[0] == 'A' && buff[1] == 'T' && buff[recvLen - 1] == '\r' && buff[recvLen] == '\n') {
+    // SEGGER_RTT_printf_hex(buff, recvLen);
+    if (recvLen >= 4 && buff[0] == 'A' && buff[1] == 'T' && buff[recvLen - 2] == '\r' && buff[recvLen - 1] == '\n') {
       // AT 数据
       ATHandle(buff, recvLen);
     } else if (recvLen == 8) {

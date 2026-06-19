@@ -28,11 +28,10 @@
 
 #include "esp32c3.h"
 #include "toolkit.h"
+#include "usart.h"
 
 void ATHandle(const uint8_t *array, uint32_t len)
 {
-    SEGGER_RTT_printf_hex(array, len);
-    if (array == NULL) {
-        return;
-    }
+  SEGGER_RTT_printf_string(array, len);
+  Seria_SendArray(USART5, array, len);
 }

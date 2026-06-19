@@ -42,11 +42,11 @@ extern "C" {
 // 默认队列大小
 #define DEFAULT_QUEUE_SIZE 4
 // 默认队列缓冲区长度
-#define DEFAULT_QUEUE_BUF_LEN 64
+#define DEFAULT_QUEUE_BUF_LEN 255
 // USART5队列大小
 #define USART5_QUEUE_SIZE 8
 // USART5队列缓冲区长度
-#define USART5_QUEUE_BUF_LEN 512
+#define USART5_QUEUE_BUF_LEN 255
 // 默认队列接收延迟时间，单位：毫秒
 #define DEFAULT_QUEUE_REC_DELAY 5
 

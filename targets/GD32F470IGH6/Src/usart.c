@@ -249,25 +249,26 @@ void USART5_IRQHandler(void)
     {
         USART5_RX_BUF[USART5_RX_CNT] = usart_data_receive(USART5);
         // SEGGER_RTT_printf(0, "USART5_RX_BUF[%d] = %c\n", USART5_RX_CNT, USART5_RX_BUF[USART5_RX_CNT]);
-        if (USART5_RX_CNT > 2 && USART5_RX_BUF[USART5_RX_CNT-1] == 0x0D && USART5_RX_BUF[USART5_RX_CNT] == 0x0A) {
-            //分段接收AT指令
-            QueueSend(g_queueId_uart5,USART5_RX_BUF, USART5_RX_CNT);
-            // SEGGER_RTT_printf_string(USART5_RX_BUF, USART5_RX_CNT);
-            USART5_RX_CNT = 0;
-        }else if(USART5_RX_CNT >= USART5_QUEUE_BUF_LEN){
-            USART5_RX_CNT = 0;//环形缓冲区
-        }else{
-            USART5_RX_CNT++;
-        }        
+        if (USART5_RX_CNT > 2 && USART5_RX_BUF[USART5_RX_CNT - 1] == '\r' && USART5_RX_BUF[USART5_RX_CNT] == '\n') {
+          // 分段接收AT指令
+          QueueSend(g_queueId_uart5, USART5_RX_BUF, USART5_RX_CNT);
+          // SEGGER_RTT_printf_string(USART5_RX_BUF, USART5_RX_CNT);
+          USART5_RX_CNT = 0;
+        } else if (USART5_RX_CNT >= USART5_QUEUE_BUF_LEN) {
+          USART5_RX_CNT = 0; // 环形缓冲区
+        } else {
+          USART5_RX_CNT++;
+        }
     }
     else if (usart_interrupt_flag_get(USART5, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
-         QueueSend(g_queueId_uart5,USART5_RX_BUF, USART5_RX_CNT);
-        // SEGGER_RTT_printf(0, "USART_INT_FLAG_IDLE %d, ret = %d\n",USART5_RX_CNT, ret);
-        // SEGGER_RTT_printf_string(USART5_RX_BUF, USART5_RX_CNT);
-        USART5_RX_CNT = 0;                                                          /* 标记帧接收完成 */    
-        (void)USART_STAT0(USART5); 
-        (void)USART_DATA(USART5);   
+      QueueSend(g_queueId_uart5, USART5_RX_BUF, USART5_RX_CNT);
+      // SEGGER_RTT_printf(0, "USART_INT_FLAG_IDLE %d, ret =
+      // %d\n",USART5_RX_CNT, ret); SEGGER_RTT_printf_string(USART5_RX_BUF,
+      // USART5_RX_CNT);
+      USART5_RX_CNT = 0; /* 标记帧接收完成 */
+      (void)USART_STAT0(USART5);
+      (void)USART_DATA(USART5);   
     } 
 }
 /**
@@ -333,6 +334,9 @@ void usart0_init(uint32_t bound)
     // nvic_irq_enable(USART0_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
     Usart0Hwi();
 #endif
+    /* 清除接收缓冲区残留数据 */
+    (void)usart_data_receive(USART0);
+    usart_flag_clear(USART0, USART_FLAG_RBNE);
     usart_enable(USART0);	                                /* 使能串口 */
 }
 /**
@@ -375,6 +379,9 @@ void usart1_init(uint32_t bound)
     // nvic_irq_enable(USART1_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
     Usart1Hwi();
 #endif
+    /* 清除接收缓冲区残留数据 */
+    (void)usart_data_receive(USART1);
+    usart_flag_clear(USART1, USART_FLAG_RBNE);
     usart_enable(USART1);	                                /* 使能串口 */
 }
 /**
@@ -417,6 +424,9 @@ void usart2_init(uint32_t bound)
     // nvic_irq_enable(USART2_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
     Usart2Hwi();
 #endif
+    /* 清除接收缓冲区残留数据 */
+    (void)usart_data_receive(USART2);
+    usart_flag_clear(USART2, USART_FLAG_RBNE);
     usart_enable(USART2);	                                /* 使能串口 */
 }
 /**
@@ -459,6 +469,9 @@ void usart3_init(uint32_t bound)
     // nvic_irq_enable(UART3_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
     Usart3Hwi();
 #endif
+    /* 清除接收缓冲区残留数据 */
+    (void)usart_data_receive(UART3);
+    usart_flag_clear(UART3, USART_FLAG_RBNE);
     usart_enable(UART3);	                                /* 使能串口 */
 }
 /**
@@ -502,6 +515,9 @@ void usart4_init(uint32_t bound)
     // nvic_irq_enable(UART4_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
     Usart4Hwi();
 #endif
+    /* 清除接收缓冲区残留数据 */
+    (void)usart_data_receive(UART4);
+    usart_flag_clear(UART4, USART_FLAG_RBNE);
     usart_enable(UART4);	                                /* 使能串口 */
 }
 /**
@@ -544,6 +560,9 @@ void usart5_init(uint32_t bound)
     // nvic_irq_enable(USART5_IRQn, 3, 3);                   /* 抢占优先级3，子优先级3 */
     Usart5Hwi();
 #endif
+    /* 清除接收缓冲区残留数据 */
+    (void)usart_data_receive(USART5);
+    usart_flag_clear(USART5, USART_FLAG_RBNE);
     usart_enable(USART5);	                                /* 使能串口 */
 }
 /**
@@ -586,6 +605,10 @@ void usart6_init(uint32_t bound)
     // nvic_irq_enable(UART6_IRQn, 0, 0);                   /* 抢占优先级0，子优先级0 */
     Usart6Hwi();
 #endif
+    /* 清除接收缓冲区残留数据 */
+    (void)usart_data_receive(UART6);
+    usart_flag_clear(UART6, USART_FLAG_RBNE);
+
     usart_enable(UART6);	                                /* 使能串口 */
 }
 //串口发送单字节函数
