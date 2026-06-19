@@ -198,10 +198,14 @@ UINT32 RecvUsart4TaskEntry(VOID) {
   while (1) {
     recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
+    if (ret != 0) {
+      LOS_TaskDelay(TASK_DELAY);
+      continue;
+    }
       // SEGGER_RTT_printf_hex(buff, recvLen);
     if (recvLen >= 4 && buff[0] == 'A' && buff[1] == 'T' && buff[recvLen - 2] == '\r' && buff[recvLen - 1] == '\n') {
       // AT 数据
-      ATHandle(buff, recvLen);
+      ATReqHandle(buff, recvLen);
     } else if (recvLen == 8) {
       // Modbus 数据
       ModbusHandle(buff, &g_modbus_485);
@@ -219,13 +223,18 @@ UINT32 RecvUsart4TaskEntry(VOID) {
 
 UINT32 RecvUsart5TaskEntry(VOID) {
   UINT32 index = 0;
+  UINT8 buff[USART5_QUEUE_BUF_LEN];
   UINT32 recvLen = 0;
   UINT32 ret = 0;
   while (1) {
-    UINT8 buff[USART5_QUEUE_BUF_LEN];
     recvLen = USART5_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart5, buff, &recvLen);
-    SEGGER_RTT_printf_string(buff, recvLen);
+    if (ret != 0) {
+      LOS_TaskDelay(TASK_DELAY);
+      continue;
+    }
+    // SEGGER_RTT_printf_hex(buff, recvLen);
+    ATRespHandle(buff, recvLen);
     if (index % 60 == 0) {
       SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d\n", __func__, recvLen,
                         ret);
@@ -243,10 +252,14 @@ UINT32 RecvUsart6TaskEntry(VOID) {
   while (1) {
     recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
+    if (ret != 0) {
+      LOS_TaskDelay(TASK_DELAY);
+      continue;
+    }
     // SEGGER_RTT_printf_hex(buff, recvLen);
     if (recvLen >= 4 && buff[0] == 'A' && buff[1] == 'T' && buff[recvLen - 2] == '\r' && buff[recvLen - 1] == '\n') {
       // AT 数据
-      ATHandle(buff, recvLen);
+      ATReqHandle(buff, recvLen);
     } else if (recvLen == 8) {
       // Modbus 数据
       ModbusHandle(buff, &g_modbus);

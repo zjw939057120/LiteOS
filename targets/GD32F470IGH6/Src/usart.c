@@ -250,7 +250,7 @@ void USART5_IRQHandler(void)
         USART5_RX_BUF[USART5_RX_CNT] = usart_data_receive(USART5);
         // SEGGER_RTT_printf(0, "USART5_RX_BUF[%d] = %c\n", USART5_RX_CNT, USART5_RX_BUF[USART5_RX_CNT]);
         if (USART5_RX_CNT > 2 && USART5_RX_BUF[USART5_RX_CNT - 1] == '\r' && USART5_RX_BUF[USART5_RX_CNT] == '\n') {
-          // 分段接收AT指令
+          // 拆分AT响应数据
           QueueSend(g_queueId_uart5, USART5_RX_BUF, USART5_RX_CNT);
           // SEGGER_RTT_printf_string(USART5_RX_BUF, USART5_RX_CNT);
           USART5_RX_CNT = 0;

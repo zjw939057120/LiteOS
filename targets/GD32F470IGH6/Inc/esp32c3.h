@@ -39,8 +39,10 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-void ATHandle(const uint8_t *array, uint32_t len);
-
+// AT 数据请求处理函数
+void ATReqHandle(const uint8_t *array, uint32_t len);
+// AT 数据响应处理函数
+void ATRespHandle(const uint8_t *array, uint32_t len);
 #ifdef __cplusplus
 #if __cplusplus
 }
