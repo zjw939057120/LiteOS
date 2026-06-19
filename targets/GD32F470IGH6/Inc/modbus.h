@@ -64,7 +64,6 @@ typedef struct {
   // SWM34SMEU6-QFN80串口通讯
   uint8_t address;   // 设备地址
   uint8_t func_code; // 功能码
-  // uint8_t len = 0x0;          // 字节数
   uint16_t reg_addr;   // 寄存器地址
   uint16_t reg_number; // 寄存器数量
   uint16_t crc_sum;    // CRC校验码
@@ -77,6 +76,7 @@ extern Modbus g_modbus;
 void ResetModbus(Modbus *modbus);
 void DecodeModbusData(const uint8_t *array, Modbus *modbus);
 
+void ModbusHandle(const uint8_t *array, Modbus *modbus);
 void handleModbusData(const Modbus *modbus);
 void handleModbusDataByFuncCode00(const Modbus *modbus);
 void handleModbusDataByFuncCode01(const Modbus *modbus);

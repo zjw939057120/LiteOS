@@ -50,6 +50,10 @@ void DecodeModbusData(const uint8_t *array, Modbus *modbus) {
   modbus->crc_sum = toolkit_uint16_little(array + 6);
 }
 
+void ModbusHandle(const uint8_t *array, Modbus *modbus){
+  DecodeModbusData(array, modbus);
+  handleModbusData(modbus);
+}
 void handleModbusData(const Modbus *modbus) {
   switch (modbus->func_code) {
   case 0x00:

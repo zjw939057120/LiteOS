@@ -1,6 +1,6 @@
 /*----------------------------------------------------------------------------
  * Copyright (c) Huawei Technologies Co., Ltd. 2021-2021. All rights reserved.
- * Description: Timer Driver Initialization HeadFile
+ * Description: Timer Driver Initialization Implementation
  * Author: Huawei LiteOS Team
  * Create: 2021-03-20
  * Redistribution and use in source and binary forms, with or without modification,
@@ -26,31 +26,13 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * --------------------------------------------------------------------------- */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef _RTT_H
-#define _RTT_H
+#include "esp32c3.h"
+#include "toolkit.h"
 
-#include "los_typedef.h"
-#include "platform.h"
-
-#ifdef __cplusplus
-#if __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-#endif /* __cplusplus */
-
-void RTTHandle(void);
-void PassthroughUSART0(uint8_t *array, uint32_t length);
-void PassthroughUSART1(uint8_t *array, uint32_t length);
-void PassthroughUSART2(uint8_t *array, uint32_t length);
-void PassthroughUSART3(uint8_t *array, uint32_t length);
-void PassthroughUSART4(uint8_t *array, uint32_t length);
-void PassthroughUSART5(uint8_t *array, uint32_t length);
-void PassthroughUART6(uint8_t *array, uint32_t length);
-#ifdef __cplusplus
-#if __cplusplus
+void ATHandle(const uint8_t *array, uint32_t len)
+{
+    SEGGER_RTT_printf_hex(array, len);
+    if (array == NULL) {
+        return;
+    }
 }
-#endif /* __cplusplus */
-#endif /* __cplusplus */
-
-#endif /* _RTT_H */

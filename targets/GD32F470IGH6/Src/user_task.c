@@ -35,7 +35,7 @@
 #include "sensor.h"
 #include "usart.h"
 #include "dog.h"
-#include "rtt.h"
+#include "esp32c3.h"
 
 #define TASK_DELAY 1000
 
@@ -199,15 +199,15 @@ UINT32 RecvUsart4TaskEntry(VOID) {
     recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart4, buff, &recvLen);
     // SEGGER_RTT_printf_hex(buff, recvLen);
-    DecodeModbusData(buff, &g_modbus_485);
-    handleModbusData(&g_modbus_485);
+    if (recvLen == 8) {
+      // Modbus 数据
+      ModbusHandle(buff, &g_modbus_485);
+    }
     if (index % 60 == 0) {
       SEGGER_RTT_printf(
           0,
-          "%s recvLen = %d, ret = %d, address = 0x%02X, func_code = 0x%02X, "
-          "reg_addr = 0x%02X, reg_number = 0x%02X, crc_sum = 0x%02X\n",
-          __func__, recvLen, ret, g_modbus_485.address, g_modbus_485.func_code,
-          g_modbus_485.reg_addr, g_modbus_485.reg_number, g_modbus_485.crc_sum);
+          "%s recvLen = %d, ret = %d\n",
+          __func__, recvLen, ret);
       index++;
     }
     return 0;
@@ -241,23 +241,22 @@ UINT32 RecvUsart6TaskEntry(VOID) {
     recvLen = DEFAULT_QUEUE_BUF_LEN;
     ret = QueueRecv(g_queueId_uart6, buff, &recvLen);
     //   SEGGER_RTT_printf_hex(buff, recvLen);
-    DecodeModbusData(buff, &g_modbus);
-    handleModbusData(&g_modbus);
+    if (recvLen >= 4 && buff[0] == 'A' && buff[1] == 'T' && buff[recvLen - 1] == '\r' && buff[recvLen] == '\n') {
+      // AT 数据
+      ATHandle(buff, recvLen);
+    } else if (recvLen == 8) {
+      // Modbus 数据
+      ModbusHandle(buff, &g_modbus);
+    }
     if (index % 60 == 0) {
       SEGGER_RTT_printf(
           0,
-          "%s recvLen = %d, ret = %d, address = 0x%02X, func_code = 0x%02X, "
-          "reg_addr = 0x%02X, reg_number = 0x%02X, crc_sum = 0x%02X\n",
-          __func__, recvLen, ret, g_modbus.address, g_modbus.func_code,
-          g_modbus.reg_addr, g_modbus.reg_number, g_modbus.crc_sum);
+          "%s recvLen = %d, ret = %d\n",
+          __func__, recvLen, ret);
     }
     index++;
   }
   return 0;
-}
-
-VOID RTTTaskEntry(VOID) {
-  RTTHandle();
 }
 
 UINT32 SensorTaskCreate(VOID) {
@@ -389,22 +388,6 @@ UINT32 RecvUsart6Create(VOID) {
   uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
   return LOS_TaskCreate(&g_RecvUsart6TaskId, &uartTask);
 }
-UINT32 RTTTaskCreate(VOID) {
-  INT32 ret;
-  TSK_INIT_PARAM_S uartTask;
-
-  ret = memset_s(&uartTask, sizeof(TSK_INIT_PARAM_S), 0,
-                 sizeof(TSK_INIT_PARAM_S));
-  if (ret != EOK) {
-    return ret;
-  }
-  uartTask.pfnTaskEntry = (TSK_ENTRY_FUNC)RTTTaskEntry;
-  uartTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-  uartTask.pcName = "RTTTask";
-  uartTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
-  uartTask.uwResved = LOS_TASK_STATUS_DETACHED;
-  return LOS_TaskCreate(&g_RTTTaskId, &uartTask);
-}
 
 VOID app_init(VOID) {
   QueueInit();
@@ -416,7 +399,6 @@ VOID app_init(VOID) {
   RecvUsart4Create();
   RecvUsart5Create();
   RecvUsart6Create();
-  RTTTaskCreate();
   SEGGER_RTT_printf(0, "app init!\n");
   DemoEntry();
 }

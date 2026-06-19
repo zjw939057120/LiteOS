@@ -27,8 +27,8 @@
  * --------------------------------------------------------------------------- */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef _USER_TASK_H
-#define _USER_TASK_H
+#ifndef _ESP32C3_H
+#define _ESP32C3_H
 
 #include "los_typedef.h"
 #include "platform.h"
@@ -39,26 +39,7 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-
-UINT32 SensorTaskEntry(VOID);
-UINT32 RecvUsart0TaskEntry(VOID);
-UINT32 RecvUsart1TaskEntry(VOID);
-UINT32 RecvUsart2TaskEntry(VOID);
-UINT32 RecvUsart3TaskEntry(VOID);
-UINT32 RecvUsart4TaskEntry(VOID);
-UINT32 RecvUsart5TaskEntry(VOID);
-UINT32 RecvUsart6TaskEntry(VOID);
-
-UINT32 SensorTaskCreate(VOID);
-UINT32 RecvUsart0Create(VOID);
-UINT32 RecvUsart1Create(VOID);
-UINT32 RecvUsart2Create(VOID);
-UINT32 RecvUsart3Create(VOID);
-UINT32 RecvUsart4Create(VOID);
-UINT32 RecvUsart5Create(VOID);
-UINT32 RecvUsart6Create(VOID);
-
-VOID app_init(VOID);
+void ATHandle(const uint8_t *array, uint32_t len);
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -66,4 +47,4 @@ VOID app_init(VOID);
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-#endif /* _USER_TASK_H */
+#endif /* _ESP32C3_H */
