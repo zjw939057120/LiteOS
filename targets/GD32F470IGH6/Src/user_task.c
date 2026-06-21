@@ -234,7 +234,7 @@ UINT32 RecvUsart5TaskEntry(VOID) {
       continue;
     }
     // SEGGER_RTT_printf_hex(buff, recvLen);
-    ATRespHandle(buff, recvLen);
+    ATResHandle(buff, recvLen);
     if (index % 60 == 0) {
       SEGGER_RTT_printf(0, "%s recvLen = %d, ret = %d\n", __func__, recvLen,
                         ret);

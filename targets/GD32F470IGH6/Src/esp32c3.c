@@ -29,17 +29,37 @@
 #include "esp32c3.h"
 #include "toolkit.h"
 #include "usart.h"
+#include "los_task_pri.h"
+/* AT命令前缀宏定义 */
+#define AT_PREFIX_CWMODE    "+CWMODE="    /* WiFi模式设置 */
+#define AT_PREFIX_CWLAP     "+CWLAP"      /* 列出可用AP */
+#define AT_PREFIX_CWJAP_Q   "+CWJAP?"     /* 查询当前连接的AP */
+#define AT_PREFIX_CWJAP_E   "+CWJAP="     /* WiFi连接AP */
+#define AT_PREFIX_CWQAP     "+CWQAP"      /* WiFi断开连接 */
+#define AT_PREFIX_CIPSTA    "+CIPSTA"     /* 静态IP配置 */
+#define AT_PREFIX_CWDHCP    "+CWDHCP"     /* DHCP配置 */
+#define AT_PREFIX_CWSTATE   "+CWSTATE"    /* WiFi状态查询 */
+#define AT_PREFIX_BLEINIT   "+BLEINIT="   /* BLE初始化角色 */
+#define AT_PREFIX_BLESCAN   "+BLESCAN"    /* BLE扫描 */
+#define AT_PREFIX_CIPSTART  "+CIPSTART"   /* TCP连接 */
+#define AT_PREFIX_CIPSEND   "+CIPSEND"    /* TCP发送 */
+#define AT_PREFIX_CIPCLOSE  "+CIPCLOSE"   /* TCP关闭 */
+#define AT_PREFIX_CIPSTATUS "+CIPSTATUS"  /* TCP状态查询 */
+#define AT_PREFIX_CIPMODE   "+CIPMODE"    /* TCP透传模式 */
+#define AT_PREFIX_GMR       "+GMR"        /* 版本信息查询 */
 
 /* AT命令类型枚举 */
 typedef enum {
   AT_CMD_UNKNOWN = 0,
-  AT_CMD_WIFI_SCAN,          /* AT+CWLAP   WiFi扫描 */
+  AT_CMD_WIFI_MODE,          /* AT+CWMODE= WiFi模式设置 */
+  AT_CMD_WIFI_SCAN,          /* AT+CWLAP   列出可用AP */
   AT_CMD_WIFI_CUR_AP,        /* AT+CWJAP?  查询当前连接的AP */
-  AT_CMD_WIFI_CONNECT,       /* AT+CWJAP   WiFi连接 */
+  AT_CMD_WIFI_CONNECT,       /* AT+CWJAP=  WiFi连接 */
   AT_CMD_WIFI_DISCONNECT,    /* AT+CWQAP   WiFi断开 */
   AT_CMD_WIFI_STATUS,        /* AT+CWSTATE WiFi状态查询 */
   AT_CMD_NET_CONFIG,         /* AT+CIPSTA  静态IP配置 */
   AT_CMD_NET_DHCP,           /* AT+CWDHCP  DHCP配置 */
+  AT_CMD_BLE_INIT,           /* AT+BLEINIT= BLE初始化角色 */
   AT_CMD_BLE_SCAN_START,     /* AT+BLESCAN 蓝牙扫描启动 */
   AT_CMD_BLE_SCAN_STOP,      /* AT+BLESCAN=0 蓝牙扫描停止 */
   AT_CMD_BLE_SCAN_RESULT,    /* AT+BLESCAN=? 蓝牙扫描结果 */
@@ -64,6 +84,13 @@ typedef enum {
   ESP32_STATE_BLE_SCANNING,
 } ESP32_STATE;
 
+/* AT命令结构体 */
+typedef struct {
+  AT_CMD_TYPE type;
+  uint8_t cmd_buf[256];
+  uint32_t cmd_len;
+} AT_CMD;
+
 /* ESP32C3状态 */
 static volatile ESP32_STATE g_esp32_state = ESP32_STATE_IDLE;
 
@@ -72,6 +99,12 @@ static volatile uint8_t g_transparent_mode = 0;
 
 /* TCP连接ID */
 static volatile uint8_t g_tcp_link_id = 0;
+
+/* WiFi模式初始化标志 */
+static volatile uint8_t g_wifi_mode_inited = 0;
+
+/* BLE初始化标志 */
+static volatile uint8_t g_ble_init_done = 0;
 
 /* 内部函数：实际发送数据到ESP32C3 (USART5) */
 static void SendToESP32C3(const uint8_t *data, uint32_t len)
@@ -85,12 +118,12 @@ static int32_t StrStartsWith(const uint8_t *str, const char *prefix)
   if (str == NULL || prefix == NULL) {
     return 0;
   }
-  uint32_t i = 0;
-  while (prefix[i] != '\0') {
-    if (str[i] == '\0' || str[i] != (uint8_t)prefix[i]) {
+  while (*prefix != '\0') {
+    if (*str != *prefix) {
       return 0;
     }
-    i++;
+    str++;
+    prefix++;
   }
   return 1;
 }
@@ -98,17 +131,25 @@ static int32_t StrStartsWith(const uint8_t *str, const char *prefix)
 /* 查找子字符串 */
 static uint8_t *StrFind(const uint8_t *haystack, const char *needle)
 {
-  if (haystack == NULL || needle == NULL || needle[0] == '\0') {
+  if (haystack == NULL || needle == NULL) {
+    return NULL;
+  }
+  uint32_t needle_len = 0;
+  const char *p = needle;
+  while (*p != '\0') {
+    needle_len++;
+    p++;
+  }
+  if (needle_len == 0) {
     return (uint8_t *)haystack;
   }
   uint32_t i = 0;
   while (haystack[i] != '\0') {
     uint32_t j = 0;
-    while (haystack[i + j] != '\0' && needle[j] != '\0' &&
-           haystack[i + j] == (uint8_t)needle[j]) {
+    while (j < needle_len && haystack[i + j] == (uint8_t)needle[j]) {
       j++;
     }
-    if (needle[j] == '\0') {
+    if (j == needle_len) {
       return (uint8_t *)&haystack[i];
     }
     i++;
@@ -131,28 +172,34 @@ static AT_CMD_TYPE ParseATCommand(const uint8_t *cmd, uint32_t len)
     return AT_CMD_TEST;
   }
   /* 解析具体命令 */
-  if (len > 2 && StrStartsWith(&cmd[2], "+CWJAP?")) {
-    return AT_CMD_WIFI_CUR_AP;
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CWMODE)) {
+    return AT_CMD_WIFI_MODE;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CWLAP")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CWLAP)) {
     return AT_CMD_WIFI_SCAN;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CWJAP=")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CWJAP_Q)) {
+    return AT_CMD_WIFI_CUR_AP;
+  }
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CWJAP_E)) {
     return AT_CMD_WIFI_CONNECT;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CWQAP")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CWQAP)) {
     return AT_CMD_WIFI_DISCONNECT;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CIPSTA")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CIPSTA)) {
     return AT_CMD_NET_CONFIG;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CWDHCP")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CWDHCP)) {
     return AT_CMD_NET_DHCP;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CWSTATE")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CWSTATE)) {
     return AT_CMD_WIFI_STATUS;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+BLESCAN")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_BLEINIT)) {
+    return AT_CMD_BLE_INIT;
+  }
+  if (StrStartsWith(&cmd[2], AT_PREFIX_BLESCAN)) {
     if (StrFind(cmd, "=0") != NULL) {
       return AT_CMD_BLE_SCAN_STOP;
     }
@@ -161,22 +208,22 @@ static AT_CMD_TYPE ParseATCommand(const uint8_t *cmd, uint32_t len)
     }
     return AT_CMD_BLE_SCAN_START;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CIPSTART")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CIPSTART)) {
     return AT_CMD_TCP_CONNECT;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CIPSEND")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CIPSEND)) {
     return AT_CMD_TCP_SEND;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CIPCLOSE")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CIPCLOSE)) {
     return AT_CMD_TCP_CLOSE;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CIPSTATUS")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CIPSTATUS)) {
     return AT_CMD_TCP_STATUS;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+CIPMODE")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_CIPMODE)) {
     return AT_CMD_TCP_TRANSPARENT;
   }
-  if (len > 2 && StrStartsWith(&cmd[2], "+GMR")) {
+  if (StrStartsWith(&cmd[2], AT_PREFIX_GMR)) {
     return AT_CMD_GMR;
   }
   return AT_CMD_UNKNOWN;
@@ -185,6 +232,7 @@ static AT_CMD_TYPE ParseATCommand(const uint8_t *cmd, uint32_t len)
 /* 网络配置 - WiFi连接 */
 static void HandleWiFiConnect(const uint8_t *cmd, uint32_t len)
 {
+  /* 转发AT+CWJAP命令到ESP32C3 */
   /* 格式: AT+CWJAP="ssid","password" */
   SendToESP32C3(cmd, len);
   g_esp32_state = ESP32_STATE_WIFI_CONNECTING;
@@ -193,9 +241,28 @@ static void HandleWiFiConnect(const uint8_t *cmd, uint32_t len)
 /* 网络配置 - WiFi断开 */
 static void HandleWiFiDisconnect(const uint8_t *cmd, uint32_t len)
 {
-  /* 格式: AT+CWQAP */
   SendToESP32C3(cmd, len);
   g_esp32_state = ESP32_STATE_IDLE;
+}
+
+/* 网络配置 - 静态IP设置 */
+static void HandleNetConfig(const uint8_t *cmd, uint32_t len)
+{
+  /* 格式: AT+CIPSTA=<ip>[,<gateway>[,<netmask>]] */
+  SendToESP32C3(cmd, len);
+}
+
+/* 网络配置 - DHCP设置 */
+static void HandleNetDHCP(const uint8_t *cmd, uint32_t len)
+{
+  /* 格式: AT+CWDHCP=<mode>,<en> */
+  SendToESP32C3(cmd, len);
+}
+
+/* 网络配置 - WiFi状态查询 */
+static void HandleWiFiStatus(const uint8_t *cmd, uint32_t len)
+{
+  SendToESP32C3(cmd, len);
 }
 
 /* 蓝牙扫描 - 启动 */
@@ -209,7 +276,6 @@ static void HandleBLEScanStart(const uint8_t *cmd, uint32_t len)
 /* 蓝牙扫描 - 停止 */
 static void HandleBLEScanStop(const uint8_t *cmd, uint32_t len)
 {
-  /* 格式: AT+BLESCAN=0 */
   SendToESP32C3(cmd, len);
   g_esp32_state = ESP32_STATE_IDLE;
 }
@@ -220,20 +286,30 @@ static void HandleTCPConnect(const uint8_t *cmd, uint32_t len)
   /* 格式: AT+CIPSTART=<link_id>,"TCP","ip",<port> */
   SendToESP32C3(cmd, len);
   g_esp32_state = ESP32_STATE_TCP_CONNECTING;
-  for (uint32_t i = 0; i < len; i++) {
-    if (cmd[i] == '=' && i + 1 < len) {
-      g_tcp_link_id = cmd[i + 1] - '0';
-      break;
-    }
+  /* 解析link_id */
+  if (len > 12) {
+    g_tcp_link_id = cmd[12] - '0';
   }
+}
+
+/* TCP发送 */
+static void HandleTCPSend(const uint8_t *cmd, uint32_t len)
+{
+  /* 格式: AT+CIPSEND=<link_id>,<length> */
+  SendToESP32C3(cmd, len);
 }
 
 /* TCP关闭 */
 static void HandleTCPClose(const uint8_t *cmd, uint32_t len)
 {
-  /* 格式: AT+CIPCLOSE=<link_id> */
   SendToESP32C3(cmd, len);
   g_esp32_state = ESP32_STATE_WIFI_CONNECTED;
+}
+
+/* TCP状态查询 */
+static void HandleTCPStatus(const uint8_t *cmd, uint32_t len)
+{
+  SendToESP32C3(cmd, len);
 }
 
 /* TCP透传模式设置 */
@@ -241,6 +317,7 @@ static void HandleTCPTransparent(const uint8_t *cmd, uint32_t len)
 {
   /* 格式: AT+CIPMODE=<mode>  0:正常模式 1:透传模式 */
   SendToESP32C3(cmd, len);
+  /* 检查是否启用透传 */
   if (StrFind(cmd, "=1") != NULL) {
     g_transparent_mode = 1;
     g_esp32_state = ESP32_STATE_TCP_TRANSPARENT;
@@ -256,7 +333,7 @@ static void SendResponseToUSART6(const uint8_t *data, uint32_t len)
 }
 
 /* 处理ESP32C3的响应数据 */
-void ATRespHandle(const uint8_t *array, uint32_t len)
+void ATResHandle(const uint8_t *array, uint32_t len)
 {
   if (array == NULL || len == 0) {
     return;
@@ -285,16 +362,9 @@ void ATRespHandle(const uint8_t *array, uint32_t len)
     g_esp32_state = ESP32_STATE_IDLE;
     g_transparent_mode = 0;
   }
-  /* TCP连接成功检测: 需要排除WIFI CONNECTED的误匹配 */
-  if (g_esp32_state == ESP32_STATE_TCP_CONNECTING) {
-    uint8_t *connect_pos = StrFind(array, "CONNECT");
-    if (connect_pos != NULL) {
-      /* 检查不是"WIFI CONNECTED" */
-      if (connect_pos > array && *(connect_pos - 1) != ' ') {
-        g_esp32_state = ESP32_STATE_TCP_CONNECTED;
-      } else if (StrFind(array, "OK") != NULL && StrFind(array, "WIFI") == NULL) {
-        g_esp32_state = ESP32_STATE_TCP_CONNECTED;
-      }
+  if (StrFind(array, "CONNECT") != NULL && StrFind(array, "OK") != NULL) {
+    if (g_esp32_state == ESP32_STATE_TCP_CONNECTING) {
+      g_esp32_state = ESP32_STATE_TCP_CONNECTED;
     }
   }
   if (StrFind(array, "CLOSED") != NULL) {
@@ -310,6 +380,15 @@ void ATRespHandle(const uint8_t *array, uint32_t len)
   SendResponseToUSART6(array, len);
 }
 
+/* 处理透传数据发送 */
+static void HandleTransparentData(const uint8_t *data, uint32_t len)
+{
+  if (g_transparent_mode == 1 && g_esp32_state == ESP32_STATE_TCP_TRANSPARENT) {
+    /* 透传数据直接发送到ESP32C3 */
+    SendToESP32C3(data, len);
+  }
+}
+
 /* AT命令请求处理入口 */
 void ATReqHandle(const uint8_t *array, uint32_t len)
 {
@@ -317,29 +396,45 @@ void ATReqHandle(const uint8_t *array, uint32_t len)
     return;
   }
 
-  /* 在透传模式下，数据直接透传到ESP32C3 */
+  /* 在透传模式下，数据直接透传 */
   if (g_transparent_mode == 1 && g_esp32_state == ESP32_STATE_TCP_TRANSPARENT) {
-    SendToESP32C3(array, len);
+    HandleTransparentData(array, len);
     return;
   }
 
   /* 解析AT命令类型 */
   AT_CMD_TYPE cmd_type = ParseATCommand(array, len);
-  SEGGER_RTT_printf(0, "cmd_type: %d\n", cmd_type);
-
+  SEGGER_RTT_printf(0,"cmd_type = %d\n", cmd_type);
   /* 根据命令类型分发处理 */
   switch (cmd_type) {
     case AT_CMD_TEST:
+      /* AT测试命令，直接转发 */
+      SendToESP32C3(array, len);
+      break;
+
     case AT_CMD_GMR:
+      /* 版本信息查询，直接转发 */
+      SendToESP32C3(array, len);
+      break;
+
+    // case AT_CMD_WIFI_MODE:
+    //   /* WiFi模式设置，直接转发 */
+    //   SendToESP32C3(array, len);
+    //   break;
+
     case AT_CMD_WIFI_SCAN:
+      /* 开机首次扫描时切换WiFi模式为Station */
+      if (!g_wifi_mode_inited) {
+        SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
+        g_wifi_mode_inited = 1;
+        LOS_TaskDelay(100);
+      }
+      /* 列出可用AP，直接转发 */
+      SendToESP32C3(array, len);
+      break;
+
     case AT_CMD_WIFI_CUR_AP:
-    case AT_CMD_WIFI_STATUS:
-    case AT_CMD_NET_CONFIG:
-    case AT_CMD_NET_DHCP:
-    case AT_CMD_BLE_SCAN_RESULT:
-    case AT_CMD_TCP_SEND:
-    case AT_CMD_TCP_STATUS:
-      /* 简单命令，直接转发 */
+      /* 查询当前连接的AP，直接转发 */
       SendToESP32C3(array, len);
       break;
 
@@ -351,7 +446,30 @@ void ATReqHandle(const uint8_t *array, uint32_t len)
       HandleWiFiDisconnect(array, len);
       break;
 
+    case AT_CMD_WIFI_STATUS:
+      HandleWiFiStatus(array, len);
+      break;
+
+    case AT_CMD_NET_CONFIG:
+      HandleNetConfig(array, len);
+      break;
+
+    case AT_CMD_NET_DHCP:
+      HandleNetDHCP(array, len);
+      break;
+
+    // case AT_CMD_BLE_INIT:
+    //   /* BLE初始化角色，直接转发 */
+    //   SendToESP32C3(array, len);
+    //   break;
+
     case AT_CMD_BLE_SCAN_START:
+      /* 开机首次扫描时初始化BLE角色为Client */
+      if (!g_ble_init_done) {
+        SendToESP32C3((const uint8_t *)"AT+BLEINIT=1\r\n", 14);
+        g_ble_init_done = 1;
+        LOS_TaskDelay(100);
+      }
       HandleBLEScanStart(array, len);
       break;
 
@@ -359,16 +477,34 @@ void ATReqHandle(const uint8_t *array, uint32_t len)
       HandleBLEScanStop(array, len);
       break;
 
+    case AT_CMD_BLE_SCAN_RESULT:
+      /* 查询扫描结果，直接转发 */
+      SendToESP32C3(array, len);
+      break;
+
     case AT_CMD_TCP_CONNECT:
       HandleTCPConnect(array, len);
+      break;
+
+    case AT_CMD_TCP_SEND:
+      HandleTCPSend(array, len);
       break;
 
     case AT_CMD_TCP_CLOSE:
       HandleTCPClose(array, len);
       break;
 
+    case AT_CMD_TCP_STATUS:
+      HandleTCPStatus(array, len);
+      break;
+
     case AT_CMD_TCP_TRANSPARENT:
       HandleTCPTransparent(array, len);
+      break;
+
+    case AT_CMD_TCP_TRANSMIT:
+      /* 透传数据 */
+      HandleTransparentData(array, len);
       break;
 
     case AT_CMD_UNKNOWN:
