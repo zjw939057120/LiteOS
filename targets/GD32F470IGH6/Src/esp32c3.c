@@ -30,6 +30,7 @@
 #include "toolkit.h"
 #include "usart.h"
 #include "los_task_pri.h"
+#include <complex.h>
 /* AT命令前缀宏定义 */
 #define AT_PREFIX_CWMODE    "+CWMODE="    /* WiFi模式设置 */
 #define AT_PREFIX_CWLAP     "+CWLAP"      /* 列出可用AP */
@@ -62,7 +63,6 @@ typedef enum {
   AT_CMD_BLE_INIT,           /* AT+BLEINIT= BLE初始化角色 */
   AT_CMD_BLE_SCAN_START,     /* AT+BLESCAN 蓝牙扫描启动 */
   AT_CMD_BLE_SCAN_STOP,      /* AT+BLESCAN=0 蓝牙扫描停止 */
-  AT_CMD_BLE_SCAN_RESULT,    /* AT+BLESCAN=? 蓝牙扫描结果 */
   AT_CMD_TCP_CONNECT,        /* AT+CIPSTART TCP连接 */
   AT_CMD_TCP_SEND,           /* AT+CIPSEND TCP发送 */
   AT_CMD_TCP_CLOSE,          /* AT+CIPCLOSE TCP关闭 */
@@ -100,11 +100,10 @@ static volatile uint8_t g_transparent_mode = 0;
 /* TCP连接ID */
 static volatile uint8_t g_tcp_link_id = 0;
 
-/* WiFi模式初始化标志 */
-static volatile uint8_t g_wifi_mode_inited = 0;
+/* 初始化完成标志 */
+static volatile uint8_t g_init_done = 0;
 
-/* BLE初始化标志 */
-static volatile uint8_t g_ble_init_done = 0;
+
 
 /* 内部函数：实际发送数据到ESP32C3 (USART5) */
 static void SendToESP32C3(const uint8_t *data, uint32_t len)
@@ -202,9 +201,6 @@ static AT_CMD_TYPE ParseATCommand(const uint8_t *cmd, uint32_t len)
   if (StrStartsWith(&cmd[2], AT_PREFIX_BLESCAN)) {
     if (StrFind(cmd, "=0") != NULL) {
       return AT_CMD_BLE_SCAN_STOP;
-    }
-    if (StrFind(cmd, "=?") != NULL) {
-      return AT_CMD_BLE_SCAN_RESULT;
     }
     return AT_CMD_BLE_SCAN_START;
   }
@@ -337,7 +333,35 @@ void ATResHandle(const uint8_t *array, uint32_t len)
 {
   if (array == NULL || len == 0) {
     return;
+  } else if (array[0] == 0x00 || len == 1) {
+    return;
+  } else if (StrStartsWith(array, "\r\nOK") ||
+             StrStartsWith(array, "\r\nERROR") ||
+             StrStartsWith(array, "\r\nSEND OK") ||
+             StrStartsWith(array, "\r\nSEND FAIL") ||
+             StrStartsWith(array, "\r\nbusy p")) {
+    /* 过滤AT响应状态行 */
+    SEGGER_RTT_printf(0, "filter res = %s", &array[2]);
+    return;
+  } else if  ((StrStartsWith(array, "ATE0") || StrStartsWith(array, "ATE1"))) {
+    /* 过滤ATE0和ATE1命令 */
+    SEGGER_RTT_printf(0, "filter res = %s", array);
+    return;
+  } else if (StrStartsWith(array, "\r\nready")) {
+    /* 收到ready，每次都关闭AT回显 */
+    SendToESP32C3((const uint8_t *)"ATE0\r\n", 6);
+    LOS_TaskDelay(20);
+    /* 首次初始化WiFi和BLE */
+    if (!g_init_done) {
+      SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
+      LOS_TaskDelay(20);
+      SendToESP32C3((const uint8_t *)"AT+BLEINIT=1\r\n", 14);
+      LOS_TaskDelay(20);
+      g_init_done = 1;
+    }
+    return;
   }
+  SEGGER_RTT_printf(0, "res = %s", array);
 
   /* 在透传模式下，数据直接转发到USART6 */
   if (g_transparent_mode == 1 && g_esp32_state == ESP32_STATE_TCP_TRANSPARENT) {
@@ -357,12 +381,16 @@ void ATResHandle(const uint8_t *array, uint32_t len)
   if (StrFind(array, "WIFI CONNECTED") != NULL ||
       StrFind(array, "WIFI GOT IP") != NULL) {
     g_esp32_state = ESP32_STATE_WIFI_CONNECTED;
+    /* 查询WiFi状态 */
+    SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
   }
   if (StrFind(array, "WIFI DISCONNECTED") != NULL) {
     g_esp32_state = ESP32_STATE_IDLE;
     g_transparent_mode = 0;
+    /* 查询WiFi状态 */
+    SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
   }
-  if (StrFind(array, "CONNECT") != NULL && StrFind(array, "OK") != NULL) {
+  if (StrFind(array, "CONNECT") != NULL) {
     if (g_esp32_state == ESP32_STATE_TCP_CONNECTING) {
       g_esp32_state = ESP32_STATE_TCP_CONNECTED;
     }
@@ -423,12 +451,6 @@ void ATReqHandle(const uint8_t *array, uint32_t len)
     //   break;
 
     case AT_CMD_WIFI_SCAN:
-      /* 开机首次扫描时切换WiFi模式为Station */
-      if (!g_wifi_mode_inited) {
-        SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
-        g_wifi_mode_inited = 1;
-        LOS_TaskDelay(100);
-      }
       /* 列出可用AP，直接转发 */
       SendToESP32C3(array, len);
       break;
@@ -464,22 +486,11 @@ void ATReqHandle(const uint8_t *array, uint32_t len)
     //   break;
 
     case AT_CMD_BLE_SCAN_START:
-      /* 开机首次扫描时初始化BLE角色为Client */
-      if (!g_ble_init_done) {
-        SendToESP32C3((const uint8_t *)"AT+BLEINIT=1\r\n", 14);
-        g_ble_init_done = 1;
-        LOS_TaskDelay(100);
-      }
       HandleBLEScanStart(array, len);
       break;
 
     case AT_CMD_BLE_SCAN_STOP:
       HandleBLEScanStop(array, len);
-      break;
-
-    case AT_CMD_BLE_SCAN_RESULT:
-      /* 查询扫描结果，直接转发 */
-      SendToESP32C3(array, len);
       break;
 
     case AT_CMD_TCP_CONNECT:
