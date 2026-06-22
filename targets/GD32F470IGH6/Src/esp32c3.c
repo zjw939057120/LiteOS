@@ -73,16 +73,26 @@ typedef enum {
   AT_CMD_GMR,                /* AT+GMR 版本信息 */
 } AT_CMD_TYPE;
 
-/* ESP32C3工作状态 */
+/* WiFi状态 */
 typedef enum {
-  ESP32_STATE_IDLE = 0,
-  ESP32_STATE_WIFI_CONNECTING,
-  ESP32_STATE_WIFI_CONNECTED,
-  ESP32_STATE_TCP_CONNECTING,
-  ESP32_STATE_TCP_CONNECTED,
-  ESP32_STATE_TCP_TRANSPARENT,
-  ESP32_STATE_BLE_SCANNING,
-} ESP32_STATE;
+  ESP32_WIFI_IDLE = 0,
+  ESP32_WIFI_CONNECTING,
+  ESP32_WIFI_CONNECTED,
+} ESP32_WIFI_STATE;
+
+/* TCP状态 */
+typedef enum {
+  ESP32_TCP_IDLE = 0,
+  ESP32_TCP_CONNECTING,
+  ESP32_TCP_CONNECTED,
+  ESP32_TCP_TRANSPARENT,
+} ESP32_TCP_STATE;
+
+/* BLE状态 */
+typedef enum {
+  ESP32_BLE_IDLE = 0,
+  ESP32_BLE_SCANNING,
+} ESP32_BLE_STATE;
 
 /* AT命令结构体 */
 typedef struct {
@@ -92,16 +102,15 @@ typedef struct {
 } AT_CMD;
 
 /* ESP32C3状态 */
-static volatile ESP32_STATE g_esp32_state = ESP32_STATE_IDLE;
+static volatile ESP32_WIFI_STATE g_wifi_state = ESP32_WIFI_IDLE;
+static volatile ESP32_TCP_STATE g_tcp_state = ESP32_TCP_IDLE;
+static volatile ESP32_BLE_STATE g_ble_state = ESP32_BLE_IDLE;
 
 /* 透传模式标志 */
 static volatile uint8_t g_transparent_mode = 0;
 
 /* TCP连接ID */
 static volatile uint8_t g_tcp_link_id = 0;
-
-/* 初始化完成标志 */
-static volatile uint8_t g_init_done = 0;
 
 
 
@@ -231,14 +240,14 @@ static void HandleWiFiConnect(const uint8_t *cmd, uint32_t len)
   /* 转发AT+CWJAP命令到ESP32C3 */
   /* 格式: AT+CWJAP="ssid","password" */
   SendToESP32C3(cmd, len);
-  g_esp32_state = ESP32_STATE_WIFI_CONNECTING;
+  g_wifi_state = ESP32_WIFI_CONNECTING;
 }
 
 /* 网络配置 - WiFi断开 */
 static void HandleWiFiDisconnect(const uint8_t *cmd, uint32_t len)
 {
   SendToESP32C3(cmd, len);
-  g_esp32_state = ESP32_STATE_IDLE;
+  g_wifi_state = ESP32_WIFI_IDLE;
 }
 
 /* 网络配置 - 静态IP设置 */
@@ -266,14 +275,14 @@ static void HandleBLEScanStart(const uint8_t *cmd, uint32_t len)
 {
   /* 格式: AT+BLESCAN=<interval>,<window>,<duration> */
   SendToESP32C3(cmd, len);
-  g_esp32_state = ESP32_STATE_BLE_SCANNING;
+  g_ble_state = ESP32_BLE_SCANNING;
 }
 
 /* 蓝牙扫描 - 停止 */
 static void HandleBLEScanStop(const uint8_t *cmd, uint32_t len)
 {
   SendToESP32C3(cmd, len);
-  g_esp32_state = ESP32_STATE_IDLE;
+  g_ble_state = ESP32_BLE_IDLE;
 }
 
 /* TCP连接 */
@@ -281,7 +290,7 @@ static void HandleTCPConnect(const uint8_t *cmd, uint32_t len)
 {
   /* 格式: AT+CIPSTART=<link_id>,"TCP","ip",<port> */
   SendToESP32C3(cmd, len);
-  g_esp32_state = ESP32_STATE_TCP_CONNECTING;
+  g_tcp_state = ESP32_TCP_CONNECTING;
   /* 解析link_id */
   if (len > 12) {
     g_tcp_link_id = cmd[12] - '0';
@@ -299,7 +308,7 @@ static void HandleTCPSend(const uint8_t *cmd, uint32_t len)
 static void HandleTCPClose(const uint8_t *cmd, uint32_t len)
 {
   SendToESP32C3(cmd, len);
-  g_esp32_state = ESP32_STATE_WIFI_CONNECTED;
+  g_wifi_state = ESP32_WIFI_CONNECTED;
 }
 
 /* TCP状态查询 */
@@ -316,7 +325,7 @@ static void HandleTCPTransparent(const uint8_t *cmd, uint32_t len)
   /* 检查是否启用透传 */
   if (StrFind(cmd, "=1") != NULL) {
     g_transparent_mode = 1;
-    g_esp32_state = ESP32_STATE_TCP_TRANSPARENT;
+    g_tcp_state = ESP32_TCP_TRANSPARENT;
   } else {
     g_transparent_mode = 0;
   }
@@ -348,27 +357,23 @@ void ATResHandle(const uint8_t *array, uint32_t len)
     SEGGER_RTT_printf(0, "filter res = %s", array);
     return;
   } else if (StrStartsWith(array, "\r\nready")) {
-    /* 收到ready，每次都关闭AT回显 */
+    /* 收到ready，每次都重新初始化 */
     SendToESP32C3((const uint8_t *)"ATE0\r\n", 6);
     LOS_TaskDelay(20);
-    /* 首次初始化WiFi和BLE */
-    if (!g_init_done) {
-      SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
-      LOS_TaskDelay(20);
-      SendToESP32C3((const uint8_t *)"AT+BLEINIT=1\r\n", 14);
-      LOS_TaskDelay(20);
-      g_init_done = 1;
-    }
+    SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
+    LOS_TaskDelay(20);
+    SendToESP32C3((const uint8_t *)"AT+BLEINIT=1\r\n", 14);
+    LOS_TaskDelay(20);
     return;
   }
   SEGGER_RTT_printf(0, "res = %s", array);
 
   /* 在透传模式下，数据直接转发到USART6 */
-  if (g_transparent_mode == 1 && g_esp32_state == ESP32_STATE_TCP_TRANSPARENT) {
+  if (g_transparent_mode == 1 && g_tcp_state == ESP32_TCP_TRANSPARENT) {
     /* 检查是否是退出透传的特定序列 (+++) */
     if (len == 3 && array[0] == '+' && array[1] == '+' && array[2] == '+') {
       g_transparent_mode = 0;
-      g_esp32_state = ESP32_STATE_TCP_CONNECTED;
+      g_tcp_state = ESP32_TCP_CONNECTED;
       SendResponseToUSART6(array, len);
       return;
     }
@@ -378,30 +383,30 @@ void ATResHandle(const uint8_t *array, uint32_t len)
   }
 
   /* 检查连接状态变化 */
-  if (StrFind(array, "WIFI CONNECTED") != NULL ||
+  else if (StrFind(array, "WIFI CONNECTED") != NULL ||
       StrFind(array, "WIFI GOT IP") != NULL) {
-    g_esp32_state = ESP32_STATE_WIFI_CONNECTED;
+    g_wifi_state = ESP32_WIFI_CONNECTED;
     /* 查询WiFi状态 */
     SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
   }
-  if (StrFind(array, "WIFI DISCONNECTED") != NULL) {
-    g_esp32_state = ESP32_STATE_IDLE;
+  else if (StrFind(array, "WIFI DISCONNECTED") != NULL) {
+    g_wifi_state = ESP32_WIFI_IDLE;
+    g_tcp_state = ESP32_TCP_IDLE;
     g_transparent_mode = 0;
     /* 查询WiFi状态 */
     SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
   }
-  if (StrFind(array, "CONNECT") != NULL) {
-    if (g_esp32_state == ESP32_STATE_TCP_CONNECTING) {
-      g_esp32_state = ESP32_STATE_TCP_CONNECTED;
+  else if (StrFind(array, "CONNECT") != NULL) {
+    if (g_tcp_state == ESP32_TCP_CONNECTING) {
+      g_tcp_state = ESP32_TCP_CONNECTED;
     }
   }
-  if (StrFind(array, "CLOSED") != NULL) {
-    g_esp32_state = ESP32_STATE_WIFI_CONNECTED;
+  else if (StrFind(array, "CLOSED") != NULL) {
+    g_tcp_state = ESP32_TCP_IDLE;
     g_transparent_mode = 0;
   }
-  if (StrFind(array, "SCAN DONE") != NULL ||
-      StrFind(array, "+BLESCAN:END") != NULL) {
-    g_esp32_state = ESP32_STATE_IDLE;
+  else if (StrFind(array, "+BLESCANDONE") != NULL) {
+    g_ble_state = ESP32_BLE_IDLE;
   }
 
   /* 转发响应到USART6 */
@@ -411,7 +416,7 @@ void ATResHandle(const uint8_t *array, uint32_t len)
 /* 处理透传数据发送 */
 static void HandleTransparentData(const uint8_t *data, uint32_t len)
 {
-  if (g_transparent_mode == 1 && g_esp32_state == ESP32_STATE_TCP_TRANSPARENT) {
+  if (g_transparent_mode == 1 && g_tcp_state == ESP32_TCP_TRANSPARENT) {
     /* 透传数据直接发送到ESP32C3 */
     SendToESP32C3(data, len);
   }
@@ -425,7 +430,7 @@ void ATReqHandle(const uint8_t *array, uint32_t len)
   }
 
   /* 在透传模式下，数据直接透传 */
-  if (g_transparent_mode == 1 && g_esp32_state == ESP32_STATE_TCP_TRANSPARENT) {
+  if (g_transparent_mode == 1 && g_tcp_state == ESP32_TCP_TRANSPARENT) {
     HandleTransparentData(array, len);
     return;
   }

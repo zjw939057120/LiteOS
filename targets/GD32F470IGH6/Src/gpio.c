@@ -30,73 +30,42 @@
 #include "gd32f4xx.h"
 #include "los_task_pri.h"
 
-/**
- * @brief 初始化LCD与触摸屏控制引脚
- */
-void gpio_init_touch_lcd(void) 
+/* GPIO引脚宏定义 */
+#define TXC_OE_PORT         GPIOE
+#define TXC_OE_PIN          GPIO_PIN_2
+
+#define ESP_EN_PORT         GPIOA
+#define ESP_EN_PIN          GPIO_PIN_8
+
+#define RS485_EN_PORT       GPIOC
+#define RS485_EN_PIN        GPIO_PIN_13
+
+void gpio_en(void)
 {
-    rcu_periph_clock_enable(RCU_GPIOA);
-    rcu_periph_clock_enable(RCU_GPIOB);
-	rcu_periph_clock_enable(RCU_GPIOC);
-	rcu_periph_clock_enable(RCU_GPIOE);
-    rcu_periph_clock_enable(RCU_GPIOF);
-    rcu_periph_clock_enable(RCU_GPIOH);
+  /* 使能GPIO时钟 */
+  rcu_periph_clock_enable(RCU_GPIOA);
+  rcu_periph_clock_enable(RCU_GPIOC);
+  rcu_periph_clock_enable(RCU_GPIOE);
 
-    // LCD控制引脚：推挽输出
-	gpio_mode_set(LCD_PWR_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LCD_PWR_PIN);
-    gpio_output_options_set(LCD_PWR_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, LCD_PWR_PIN);
-	
-	gpio_mode_set(LCD_EN_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LCD_EN_PIN);
-    gpio_output_options_set(LCD_EN_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, LCD_EN_PIN);
-	
-    gpio_mode_set(LCD_CS_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LCD_CS_PIN);
-    gpio_output_options_set(LCD_CS_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, LCD_CS_PIN);
-    
-    gpio_mode_set(LCD_RST_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LCD_RST_PIN);
-    gpio_output_options_set(LCD_RST_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, LCD_RST_PIN);
-    
-    gpio_mode_set(LCD_BL_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LCD_BL_PIN);
-    gpio_output_options_set(LCD_BL_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, LCD_BL_PIN);
-	//I2C接口设置为开漏
-	gpio_mode_set(LCD_SCK_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, LCD_SCK_PIN);
-    gpio_output_options_set(LCD_SCK_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, LCD_SCK_PIN);
-	
-	gpio_mode_set(LCD_SDA_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, LCD_SDA_PIN);
-    gpio_output_options_set(LCD_SDA_PORT, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, LCD_SDA_PIN);
-	
-	gpio_mode_set(LCD_B2_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LCD_B2_PIN);
-    gpio_output_options_set(LCD_B2_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, LCD_B2_PIN);
-	
-	gpio_mode_set(LCD_R2_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LCD_R2_PIN);
-    gpio_output_options_set(LCD_R2_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, LCD_R2_PIN);
+  /* 配置TXC_OE为输出模式 */
+  gpio_mode_set(TXC_OE_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, TXC_OE_PIN);
+  gpio_output_options_set(TXC_OE_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, TXC_OE_PIN);
 
-    // 触摸屏控制引脚：INT（下拉输入）、RST（推挽输出）
-    gpio_mode_set(TOUCH_INT_PORT, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, TOUCH_INT_PIN);
-    
-    gpio_mode_set(TOUCH_RST_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, TOUCH_RST_PIN);
-    gpio_output_options_set(TOUCH_RST_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, TOUCH_RST_PIN);
-	
-	gpio_mode_set(GPIOE, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO_PIN_2);
-    gpio_output_options_set(GPIOE, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_2);
+  /* 配置ESP_EN为输出模式 */
+  gpio_mode_set(ESP_EN_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, ESP_EN_PIN);
+  gpio_output_options_set(ESP_EN_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, ESP_EN_PIN);
 
-    // 初始化电平
-	gpio_bit_set(LCD_PWR_PORT, LCD_PWR_PIN);  // 打开LCD背光电源
-	gpio_bit_set(LCD_EN_PORT, LCD_EN_PIN);  // 打开LCD电源
-    gpio_bit_set(LCD_CS_PORT, LCD_CS_PIN);    // LCD片选默认高（未选中）
-    gpio_bit_set(LCD_BL_PORT, LCD_BL_PIN);    // 开启背光
-    gpio_bit_reset(LCD_RST_PORT, LCD_RST_PIN); // 拉低复位LCD
-    gpio_bit_reset(TOUCH_RST_PORT, TOUCH_RST_PIN); // 拉低复位触摸屏
-	gpio_bit_reset(LCD_B2_PORT, LCD_B2_PIN); // 拉低B2
-	gpio_bit_reset(LCD_R2_PORT, LCD_R2_PIN); // 拉低R2
-    LOS_TaskDelay(20);
-    gpio_bit_set(LCD_RST_PORT, LCD_RST_PIN);  // 释放LCD复位
-    gpio_bit_set(TOUCH_RST_PORT, TOUCH_RST_PIN); // 释放触摸屏复位
-	gpio_bit_reset(TOUCH_INT_PORT, TOUCH_INT_PIN); // 拉低触摸屏INT
-    LOS_TaskDelay(50);
-	TXD_EN(1);
+  /* 配置RS485_EN为输出模式 */
+  gpio_mode_set(RS485_EN_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, RS485_EN_PIN);
+  gpio_output_options_set(RS485_EN_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, RS485_EN_PIN);
+
+  /* 拉高TXC_OE和ESP_EN，拉低RS485_EN */
+  gpio_bit_set(TXC_OE_PORT, TXC_OE_PIN);
+  gpio_bit_set(ESP_EN_PORT, ESP_EN_PIN);
+  gpio_bit_reset(RS485_EN_PORT, RS485_EN_PIN);
 }
 
 VOID GpioInit(VOID)
 {
-    gpio_init_touch_lcd();
+    gpio_en();
 }
