@@ -49,6 +49,14 @@
 #define AT_PREFIX_CIPMODE   "+CIPMODE"    /* TCP透传模式 */
 #define AT_PREFIX_GMR       "+GMR"        /* 版本信息查询 */
 
+/* AT响应前缀宏定义 */
+#define AT_RES_PREFIX_CWLAP     "+CWLAP:"      /* WiFi扫描结果 */
+#define AT_RES_PREFIX_CWJAP     "+CWJAP:"      /* 当前连接的AP */
+#define AT_RES_PREFIX_CWSTATE   "+CWSTATE:"    /* WiFi状态 */
+#define AT_RES_PREFIX_BLESCAN   "+BLESCAN:"    /* 蓝牙扫描结果 */
+#define AT_RES_PREFIX_CIPSTATUS "+CIPSTATUS:"  /* TCP状态 */
+#define AT_RES_PREFIX_GMR       "+GMR"         /* 版本信息 */
+
 /* AT命令类型枚举 */
 typedef enum {
   AT_CMD_UNKNOWN = 0,
@@ -337,80 +345,92 @@ static void SendResponseToUSART6(const uint8_t *data, uint32_t len)
   Seria_SendArray(UART6, data, len);
 }
 
+/* WiFi扫描结果计数 */
+static volatile uint8_t g_wifi_scan_count = 0;
+
 /* 处理ESP32C3的响应数据 */
-void ATResHandle(const uint8_t *array, uint32_t len)
-{
-  if (array == NULL || len == 0) {
+void ATResponseHandle(const uint8_t *res, uint32_t len) {
+  if (res == NULL || len == 0) {
     return;
-  } else if (array[0] == 0x00 || len == 1) {
+  } else if (res[0] == 0x00 || len == 1) {
     return;
-  } else if (StrStartsWith(array, "\r\nOK") ||
-             StrStartsWith(array, "\r\nERROR") ||
-             StrStartsWith(array, "\r\nSEND OK") ||
-             StrStartsWith(array, "\r\nSEND FAIL") ||
-             StrStartsWith(array, "\r\nbusy p")) {
+  } else if (StrStartsWith(res, "\r\nOK") || StrStartsWith(res, "\r\nERROR") ||
+             StrStartsWith(res, "\r\nSEND OK") ||
+             StrStartsWith(res, "\r\nSEND FAIL") ||
+             StrStartsWith(res, "\r\nbusy p")) {
     /* 过滤AT响应状态行 */
-    SEGGER_RTT_printf(0, "filter res = %s", &array[2]);
+    SEGGER_RTT_printf(0, "filter res = %s", &res[2]);
     return;
-  } else if  ((StrStartsWith(array, "ATE0") || StrStartsWith(array, "ATE1"))) {
-    /* 过滤ATE0和ATE1命令 */
-    SEGGER_RTT_printf(0, "filter res = %s", array);
-    return;
-  } else if (StrStartsWith(array, "\r\nready")) {
+  } else if (StrStartsWith(res, "\r\nready")) {
     /* 收到ready，每次都重新初始化 */
-    SendToESP32C3((const uint8_t *)"ATE0\r\n", 6);
-    LOS_TaskDelay(20);
+    // 设置 Wi-Fi 模式
     SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
     LOS_TaskDelay(20);
+    ;
+    // 设置 AT+CWLAP 命令扫描结果的属性
+    SendToESP32C3((const uint8_t *)"AT+CWLAPOPT=,7\r\n", 16);
+    LOS_TaskDelay(20);
+    // Bluetooth LE 初始化
     SendToESP32C3((const uint8_t *)"AT+BLEINIT=1\r\n", 14);
     LOS_TaskDelay(20);
     return;
   }
-  SEGGER_RTT_printf(0, "res = %s", array);
+
+  /* 解析AT命令类型，检测WiFi扫描开始 */
+  AT_CMD_TYPE cmd_type = ParseATCommand(res, len);
+  if (cmd_type == AT_CMD_WIFI_SCAN) {
+    /* WiFi扫描开始，重置计数 */
+    g_wifi_scan_count = 0;
+  }
+  /* WiFi扫描结果处理 - 只取前10条 */
+  else if (StrStartsWith(res, AT_RES_PREFIX_CWLAP)) {
+    g_wifi_scan_count++;
+    if (g_wifi_scan_count > 10) {
+      /* 超过10条，过滤不转发 */
+      SEGGER_RTT_printf(0, "filter wifi scan result #%d\n", g_wifi_scan_count);
+      return;
+    }
+  }
 
   /* 在透传模式下，数据直接转发到USART6 */
-  if (g_transparent_mode == 1 && g_tcp_state == ESP32_TCP_TRANSPARENT) {
+  else if (g_transparent_mode == 1 && g_tcp_state == ESP32_TCP_TRANSPARENT) {
     /* 检查是否是退出透传的特定序列 (+++) */
-    if (len == 3 && array[0] == '+' && array[1] == '+' && array[2] == '+') {
+    if (len == 3 && res[0] == '+' && res[1] == '+' && res[2] == '+') {
       g_transparent_mode = 0;
       g_tcp_state = ESP32_TCP_CONNECTED;
-      SendResponseToUSART6(array, len);
+      SendResponseToUSART6(res, len);
       return;
     }
     /* 透传数据直接转发 */
-    SendResponseToUSART6(array, len);
+    SendResponseToUSART6(res, len);
     return;
   }
 
   /* 检查连接状态变化 */
-  else if (StrFind(array, "WIFI CONNECTED") != NULL ||
-      StrFind(array, "WIFI GOT IP") != NULL) {
+  else if (StrFind(res, "WIFI CONNECTED") != NULL ||
+           StrFind(res, "WIFI GOT IP") != NULL) {
     g_wifi_state = ESP32_WIFI_CONNECTED;
     /* 查询WiFi状态 */
     SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
-  }
-  else if (StrFind(array, "WIFI DISCONNECTED") != NULL) {
+  } else if (StrFind(res, "WIFI DISCONNECTED") != NULL) {
     g_wifi_state = ESP32_WIFI_IDLE;
     g_tcp_state = ESP32_TCP_IDLE;
     g_transparent_mode = 0;
     /* 查询WiFi状态 */
     SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
-  }
-  else if (StrFind(array, "CONNECT") != NULL) {
+  } else if (StrFind(res, "CONNECT") != NULL) {
     if (g_tcp_state == ESP32_TCP_CONNECTING) {
       g_tcp_state = ESP32_TCP_CONNECTED;
     }
-  }
-  else if (StrFind(array, "CLOSED") != NULL) {
+  } else if (StrFind(res, "CLOSED") != NULL) {
     g_tcp_state = ESP32_TCP_IDLE;
     g_transparent_mode = 0;
-  }
-  else if (StrFind(array, "+BLESCANDONE") != NULL) {
+  } else if (StrFind(res, "+BLESCANDONE") != NULL) {
     g_ble_state = ESP32_BLE_IDLE;
   }
 
   /* 转发响应到USART6 */
-  SendResponseToUSART6(array, len);
+  SendResponseToUSART6(res, len);
 }
 
 /* 处理透传数据发送 */
@@ -423,110 +443,116 @@ static void HandleTransparentData(const uint8_t *data, uint32_t len)
 }
 
 /* AT命令请求处理入口 */
-void ATReqHandle(const uint8_t *array, uint32_t len)
+void ATRequestHandle(const uint8_t *req, uint32_t len)
 {
-  if (array == NULL || len == 0) {
+  if (req == NULL || len == 0) {
     return;
   }
 
   /* 在透传模式下，数据直接透传 */
   if (g_transparent_mode == 1 && g_tcp_state == ESP32_TCP_TRANSPARENT) {
-    HandleTransparentData(array, len);
+    HandleTransparentData(req, len);
     return;
   }
 
   /* 解析AT命令类型 */
-  AT_CMD_TYPE cmd_type = ParseATCommand(array, len);
-  SEGGER_RTT_printf(0,"cmd_type = %d\n", cmd_type);
+  AT_CMD_TYPE cmd_type = ParseATCommand(req, len);
+  // 过滤未知AT命令
+  if (cmd_type == AT_CMD_UNKNOWN) {
+    SEGGER_RTT_printf(0, "filter req = %s\n", req);
+    return;
+  } else {
+    SEGGER_RTT_printf(0, "req = %s, cmd_type = %d\n", req, cmd_type);
+  }
   /* 根据命令类型分发处理 */
   switch (cmd_type) {
     case AT_CMD_TEST:
       /* AT测试命令，直接转发 */
-      SendToESP32C3(array, len);
+      SendToESP32C3(req, len);
       break;
 
     case AT_CMD_GMR:
       /* 版本信息查询，直接转发 */
-      SendToESP32C3(array, len);
+      SendToESP32C3(req, len);
       break;
 
     // case AT_CMD_WIFI_MODE:
     //   /* WiFi模式设置，直接转发 */
-    //   SendToESP32C3(array, len);
+    //   SendToESP32C3(req, len);
     //   break;
 
     case AT_CMD_WIFI_SCAN:
       /* 列出可用AP，直接转发 */
-      SendToESP32C3(array, len);
+      SendToESP32C3(req, len);
       break;
 
     case AT_CMD_WIFI_CUR_AP:
       /* 查询当前连接的AP，直接转发 */
-      SendToESP32C3(array, len);
+      SendToESP32C3(req, len);
       break;
 
     case AT_CMD_WIFI_CONNECT:
-      HandleWiFiConnect(array, len);
+      HandleWiFiConnect(req, len);
       break;
 
     case AT_CMD_WIFI_DISCONNECT:
-      HandleWiFiDisconnect(array, len);
+      HandleWiFiDisconnect(req, len);
       break;
 
     case AT_CMD_WIFI_STATUS:
-      HandleWiFiStatus(array, len);
+      HandleWiFiStatus(req, len);
       break;
 
     case AT_CMD_NET_CONFIG:
-      HandleNetConfig(array, len);
+      HandleNetConfig(req, len);
       break;
 
     case AT_CMD_NET_DHCP:
-      HandleNetDHCP(array, len);
+      HandleNetDHCP(req, len);
       break;
 
     // case AT_CMD_BLE_INIT:
     //   /* BLE初始化角色，直接转发 */
-    //   SendToESP32C3(array, len);
+    //   SendToESP32C3(req, len);
     //   break;
 
     case AT_CMD_BLE_SCAN_START:
-      HandleBLEScanStart(array, len);
+      HandleBLEScanStart(req, len);
       break;
 
     case AT_CMD_BLE_SCAN_STOP:
-      HandleBLEScanStop(array, len);
+      HandleBLEScanStop(req, len);
       break;
 
     case AT_CMD_TCP_CONNECT:
-      HandleTCPConnect(array, len);
+      HandleTCPConnect(req, len);
       break;
 
     case AT_CMD_TCP_SEND:
-      HandleTCPSend(array, len);
+      HandleTCPSend(req, len);
       break;
 
     case AT_CMD_TCP_CLOSE:
-      HandleTCPClose(array, len);
+      HandleTCPClose(req, len);
       break;
 
     case AT_CMD_TCP_STATUS:
-      HandleTCPStatus(array, len);
+      HandleTCPStatus(req, len);
       break;
 
     case AT_CMD_TCP_TRANSPARENT:
-      HandleTCPTransparent(array, len);
+      HandleTCPTransparent(req, len);
       break;
 
     case AT_CMD_TCP_TRANSMIT:
       /* 透传数据 */
-      HandleTransparentData(array, len);
+      HandleTransparentData(req, len);
       break;
 
     case AT_CMD_UNKNOWN:
     default:
       /* 未知命令，直接转发到ESP32C3 */
-      SendToESP32C3(array, len);
+      SendToESP32C3(req, len);
       break;
   }
 }
