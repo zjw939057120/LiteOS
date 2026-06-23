@@ -357,16 +357,19 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
   } else if (StrStartsWith(res, "\r\nOK") || StrStartsWith(res, "\r\nERROR") ||
              StrStartsWith(res, "\r\nSEND OK") ||
              StrStartsWith(res, "\r\nSEND FAIL") ||
-             StrStartsWith(res, "\r\nbusy p")) {
-    /* 过滤AT响应状态行 */
-    SEGGER_RTT_printf(0, "filter res = %s", &res[2]);
+             StrStartsWith(res, "\r\nbusy p") ||
+             StrStartsWith(res, "ATE0")) {
+    /* 过滤AT响应状态行和回显命令 */
+    SEGGER_RTT_printf(0, "filter res = %s", res);
     return;
   } else if (StrStartsWith(res, "\r\nready")) {
     /* 收到ready，每次都重新初始化 */
+    // 关闭AT回显
+    SendToESP32C3((const uint8_t *)"ATE0\r\n", 6);
+    LOS_TaskDelay(20);
     // 设置 Wi-Fi 模式
     SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
     LOS_TaskDelay(20);
-    ;
     // 设置 AT+CWLAP 命令扫描结果的属性
     SendToESP32C3((const uint8_t *)"AT+CWLAPOPT=,7\r\n", 16);
     LOS_TaskDelay(20);
@@ -376,17 +379,14 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
     return;
   }
 
-  /* 解析AT命令类型，检测WiFi扫描开始 */
-  AT_CMD_TYPE cmd_type = ParseATCommand(res, len);
-  if (cmd_type == AT_CMD_WIFI_SCAN) {
-    /* WiFi扫描开始，重置计数 */
-    g_wifi_scan_count = 0;
-  }
-  /* WiFi扫描结果处理 - 只取前10条 */
-  else if (StrStartsWith(res, AT_RES_PREFIX_CWLAP)) {
+  SEGGER_RTT_printf(0, "res = %s", res);
+  /* WiFi扫描结果处理 */
+  if (StrStartsWith(res, AT_RES_PREFIX_CWLAP)) {
+    // 过滤空名称
+    if (res[10] == '"' && res[11] == '"')  return;
     g_wifi_scan_count++;
-    if (g_wifi_scan_count > 10) {
-      /* 超过10条，过滤不转发 */
+    if (g_wifi_scan_count > 20) {
+      /* 超过20条，过滤不转发 */
       SEGGER_RTT_printf(0, "filter wifi scan result #%d\n", g_wifi_scan_count);
       return;
     }
@@ -464,6 +464,12 @@ void ATRequestHandle(const uint8_t *req, uint32_t len)
   } else {
     SEGGER_RTT_printf(0, "req = %s, cmd_type = %d\n", req, cmd_type);
   }
+
+  /* WiFi扫描开始，重置计数 */
+  if (cmd_type == AT_CMD_WIFI_SCAN) {
+    g_wifi_scan_count = 0;
+  }
+
   /* 根据命令类型分发处理 */
   switch (cmd_type) {
     case AT_CMD_TEST:
