@@ -128,12 +128,10 @@ static void SendToESP32C3(const uint8_t *data, uint32_t len)
   Seria_SendArray(USART5, data, len);
 }
 
-/* 字符串比较辅助函数 */
+/* 检查字符串是否以指定前缀开头，返回0或1 */
 static int32_t StrStartsWith(const uint8_t *str, const char *prefix)
 {
-  if (str == NULL || prefix == NULL) {
-    return 0;
-  }
+  if (!str || !prefix) return 0;
   while (*prefix != '\0') {
     if (*str != *prefix) {
       return 0;
@@ -144,33 +142,34 @@ static int32_t StrStartsWith(const uint8_t *str, const char *prefix)
   return 1;
 }
 
-/* 查找子字符串 */
-static uint8_t *StrFind(const uint8_t *haystack, const char *needle)
+/* 查找子字符串，返回匹配位置索引，未找到返回-1 */
+static int32_t StrFind(const uint8_t *text, const char *pattern)
 {
-  if (haystack == NULL || needle == NULL) {
-    return NULL;
-  }
-  uint32_t needle_len = 0;
-  const char *p = needle;
+  if (!text || !pattern) return -1;
+
+  uint32_t text_len = 0;
+  const uint8_t *p = text;
   while (*p != '\0') {
-    needle_len++;
+    text_len++;
     p++;
   }
-  if (needle_len == 0) {
-    return (uint8_t *)haystack;
+  uint32_t pattern_len = 0;
+  const char *n = pattern;
+  while (*n != '\0') {
+    pattern_len++;
+    n++;
   }
-  uint32_t i = 0;
-  while (haystack[i] != '\0') {
-    uint32_t j = 0;
-    while (j < needle_len && haystack[i + j] == (uint8_t)needle[j]) {
-      j++;
+
+  /* 边界检查：模式串不能为空，且不能长于主串 */
+  if (pattern_len == 0 || pattern_len > text_len) return -1;
+
+  for (uint32_t i = 0; i <= text_len - pattern_len; i++) {
+    /* 使用 memcmp 进行内存块比较，通常比逐字符循环更快 */
+    if (memcmp(text + i, pattern, pattern_len) == 0) {
+      return (int)i;
     }
-    if (j == needle_len) {
-      return (uint8_t *)&haystack[i];
-    }
-    i++;
   }
-  return NULL;
+  return -1;
 }
 
 /* 解析AT命令类型 */
@@ -216,7 +215,7 @@ static AT_CMD_TYPE ParseATCommand(const uint8_t *cmd, uint32_t len)
     return AT_CMD_BLE_INIT;
   }
   if (StrStartsWith(&cmd[2], AT_PREFIX_BLESCAN)) {
-    if (StrFind(cmd, "=0") != NULL) {
+    if (StrFind(cmd, "=0") >= 0) {
       return AT_CMD_BLE_SCAN_STOP;
     }
     return AT_CMD_BLE_SCAN_START;
@@ -331,7 +330,7 @@ static void HandleTCPTransparent(const uint8_t *cmd, uint32_t len)
   /* 格式: AT+CIPMODE=<mode>  0:正常模式 1:透传模式 */
   SendToESP32C3(cmd, len);
   /* 检查是否启用透传 */
-  if (StrFind(cmd, "=1") != NULL) {
+  if (StrFind(cmd, "=1") >= 0) {
     g_transparent_mode = 1;
     g_tcp_state = ESP32_TCP_TRANSPARENT;
   } else {
@@ -371,7 +370,7 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
     SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
     LOS_TaskDelay(20);
     // 设置 AT+CWLAP 命令扫描结果的属性
-    SendToESP32C3((const uint8_t *)"AT+CWLAPOPT=,7\r\n", 16);
+    SendToESP32C3((const uint8_t *)"AT+CWLAPOPT=,15\r\n", 17);
     LOS_TaskDelay(20);
     // Bluetooth LE 初始化
     SendToESP32C3((const uint8_t *)"AT+BLEINIT=1\r\n", 14);
@@ -382,8 +381,24 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
   SEGGER_RTT_printf(0, "res = %s", res);
   /* WiFi扫描结果处理 */
   if (StrStartsWith(res, AT_RES_PREFIX_CWLAP)) {
-    // 过滤空名称
-    if (res[10] == '"' && res[11] == '"')  return;
+    /* 解析SSID: +CWLAP:(...,"ssid",...) */
+    int quote_start_idx = StrFind(res, ",\"");
+    if (quote_start_idx >= 0) {
+      int ssid_start_idx = quote_start_idx + 2;
+      int quote_end_idx = StrFind(res + ssid_start_idx, "\"");
+      if (quote_end_idx >= 0) {
+        int ssid_len = quote_end_idx;
+        /* 过滤空名称 */
+        if (ssid_len == 0) return;
+        /* 过滤非ASCII字符的SSID */
+        for (int i = 0; i < ssid_len; i++) {
+          if (res[ssid_start_idx + i] < 0x20 || res[ssid_start_idx + i] > 0x7E) {
+            SEGGER_RTT_printf(0, "filter non-ascii ssid: %s\n", res);
+            return;
+          }
+        }
+      }
+    }
     g_wifi_scan_count++;
     if (g_wifi_scan_count > 20) {
       /* 超过20条，过滤不转发 */
@@ -407,25 +422,25 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
   }
 
   /* 检查连接状态变化 */
-  else if (StrFind(res, "WIFI CONNECTED") != NULL ||
-           StrFind(res, "WIFI GOT IP") != NULL) {
+  else if (StrFind(res, "WIFI CONNECTED") >= 0 ||
+           StrFind(res, "WIFI GOT IP") >= 0) {
     g_wifi_state = ESP32_WIFI_CONNECTED;
     /* 查询WiFi状态 */
     SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
-  } else if (StrFind(res, "WIFI DISCONNECTED") != NULL) {
+  } else if (StrFind(res, "WIFI DISCONNECTED") >= 0) {
     g_wifi_state = ESP32_WIFI_IDLE;
     g_tcp_state = ESP32_TCP_IDLE;
     g_transparent_mode = 0;
     /* 查询WiFi状态 */
     SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
-  } else if (StrFind(res, "CONNECT") != NULL) {
+  } else if (StrFind(res, "CONNECT") >= 0) {
     if (g_tcp_state == ESP32_TCP_CONNECTING) {
       g_tcp_state = ESP32_TCP_CONNECTED;
     }
-  } else if (StrFind(res, "CLOSED") != NULL) {
+  } else if (StrFind(res, "CLOSED") >= 0) {
     g_tcp_state = ESP32_TCP_IDLE;
     g_transparent_mode = 0;
-  } else if (StrFind(res, "+BLESCANDONE") != NULL) {
+  } else if (StrFind(res, "+BLESCANDONE") >= 0) {
     g_ble_state = ESP32_BLE_IDLE;
   }
 
