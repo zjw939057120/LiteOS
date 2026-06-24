@@ -48,10 +48,10 @@ typedef struct __attribute__((packed)) // 结构体内存对齐
   uint16_t CH2O_Sonsor_data;  // CH2O传感器数据
   uint16_t TVOC_Sonsor_data;  // TVOC传感器数据
   uint16_t PM25_Sonsor_data;  // PM2.5传感器数据
-  uint16_t PM100_Sonsor_data; // PM1.0传感器数据
+  uint16_t PM100_Sonsor_data; // PM10传感器数据
   uint16_t TEMP_Sonsor_data;  // TEMP传感器数据
   uint16_t RH_Sonsor_data;    // RH传感器数据
-  uint16_t PM10_Sonsor_data;  // PM10传感器数据
+  uint16_t PM10_Sonsor_data;  // PM1.0传感器数据,未使用
   uint16_t Sonsor_Type;       // 传感器类型
   uint16_t crc_sum;           // CRC校验码
 } Sonsor_meter;

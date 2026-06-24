@@ -41,6 +41,15 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
+//传感器类型
+#define CO2_Sensor   0x01
+#define HH2O_Sensor  0x02
+#define TVOC_Sensor  0x04
+#define PM25_Sensor  0x08
+#define PM100_Sensor 0x10
+#define SHT_Sensor   0x20
+#define HMT_Sensor   0x40
+
 // 传感器数据头
 enum SensorDataHeader {
   TVOC_Sensor_Data_Header = 0xFF,
@@ -67,7 +76,7 @@ typedef struct {
   // 激光粉尘传感器PM2012SE
   uint16_t PM10;  // PM1.0 GRIMM
   uint16_t PM25;  // PM2.5 GRIMM
-  uint16_t PM100; // PM100 GRIMM
+  uint16_t PM100; // PM10 GRIMM
   // 湿度传感器
   uint16_t RH;
   // 温度传感器

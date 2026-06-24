@@ -32,6 +32,11 @@
 #include "gd32f4xx.h"
 #include "queue.h"
 
+bool USART0_Error_Flag = true;
+bool USART1_Error_Flag = true;
+bool USART2_Error_Flag = true;
+bool USART3_Error_Flag = true;
+
 /* 接收缓冲, 最大DEFAULT_QUEUE_BUF_LEN个字节. */
 uint8_t USART0_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
 uint8_t USART1_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
@@ -685,18 +690,22 @@ void Usart6Hwi(void){
 }
 void Usart0Req(void)
 {
+    USART0_Error_Flag = true;
 	Seria_SendArray(USART0,USART0_TX_BUF,sizeof(USART0_TX_BUF));
 }
 void Usart1Req(void)
 {
+    USART1_Error_Flag = true;
 	Seria_SendArray(USART1,USART1_TX_BUF,sizeof(USART1_TX_BUF));
 }
 void Usart2Req(void)
 {
+    USART2_Error_Flag = true;
 	Seria_SendArray(USART2,USART2_TX_BUF,sizeof(USART2_TX_BUF));
 }
 void Usart3Req(void)
 {
+    USART3_Error_Flag = true;
 	Seria_SendArray(UART3,USART3_TX_BUF,sizeof(USART3_TX_BUF));
 }
 void Usart4Req(void)
@@ -709,19 +718,19 @@ void Usart6Req(void)
 
 void UsartInit(void)
 {
-    // 空气质量传感器MS-VOC-V4
-    usart0_init(9600U);
-    //甲醛传感器SC11-CH2O
-    usart1_init(9600U);
-    //红外二氧化碳传感器CM1106
-    usart2_init(9600U);
-    //红外二氧化碳传感器CM1106
-    usart3_init(9600U);
-    //RS485串口通讯
-    usart4_init(9600U);
-    //esp32c3串口通讯
-    usart5_init(115200U);
-    //屏幕MCU串口通讯
-    usart6_init(115200U);
+  // 空气质量传感器MS-VOC-V4
+  usart0_init(9600U);
+  // 甲醛传感器SC11-CH2O
+  usart1_init(9600U);
+  // 红外二氧化碳传感器CM1106
+  usart2_init(9600U);
+  // 红外二氧化碳传感器CM1106
+  usart3_init(9600U);
+  // RS485串口通讯
+  usart4_init(9600U);
+  // esp32c3串口通讯
+  usart5_init(115200U);
+  // 屏幕MCU串口通讯
+  usart6_init(115200U);
 }
 

@@ -110,7 +110,7 @@ void handleModbusDataByFuncCode03(const Modbus *modbus) {
   Sonsor_meter.TEMP_Sonsor_data = toolkit_swap_uint16(g_sensor.TEMP);
   Sonsor_meter.RH_Sonsor_data = toolkit_swap_uint16(g_sensor.RH);
   Sonsor_meter.PM10_Sonsor_data = toolkit_swap_uint32(g_sensor.PM10);
-  Sonsor_meter.Sonsor_Type = toolkit_swap_uint16(0x7F);
+  Sonsor_meter.Sonsor_Type = toolkit_swap_uint16(g_sensor.TYPE);
   Sonsor_meter.crc_sum = toolkit_swap_uint16(
       Crc_Cal((uint8_t *)&Sonsor_meter,
               sizeof(Sonsor_meter) - sizeof(Sonsor_meter.crc_sum)));

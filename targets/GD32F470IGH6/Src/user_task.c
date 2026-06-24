@@ -101,6 +101,8 @@ UINT32 RecvUsart0TaskEntry(VOID) {
       LOS_TaskDelay(TASK_DELAY);
       continue;
     }
+    USART0_Error_Flag = false;
+    // SEGGER_RTT_printf_hex(buff, recvLen);
     DecodeSensorDataTVOC(buff, &g_sensor);
 
     if (index % 60 == 0) {
@@ -126,6 +128,7 @@ UINT32 RecvUsart1TaskEntry(VOID) {
       LOS_TaskDelay(TASK_DELAY);
       continue;
     }
+    USART1_Error_Flag = false;
     // SEGGER_RTT_printf_hex(buff, recvLen);
     DecodeSensorDataCH2O(buff, &g_sensor);
     if (index % 60 == 0) {
@@ -150,6 +153,7 @@ UINT32 RecvUsart2TaskEntry(VOID) {
       LOS_TaskDelay(TASK_DELAY);
       continue;
     }
+    USART2_Error_Flag = false;
     // SEGGER_RTT_printf_hex(buff, recvLen);
     DecodeSensorDataCO2(buff, &g_sensor);
     if (index % 60 == 0) {
@@ -174,6 +178,7 @@ UINT32 RecvUsart3TaskEntry(VOID) {
       LOS_TaskDelay(TASK_DELAY);
       continue;
     }
+    USART3_Error_Flag = false;
     // SEGGER_RTT_printf_hex(buff, recvLen);
     DecodeSensorDataPM10(buff, &g_sensor);
     DecodeSensorDataPM25(buff, &g_sensor);
