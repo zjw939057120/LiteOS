@@ -71,12 +71,6 @@ void Usart6Req(void);
 
 void UsartInit(void);
 
-//串口错误标识
-extern bool USART0_Error_Flag;
-extern bool USART1_Error_Flag;
-extern bool USART2_Error_Flag;
-extern bool USART3_Error_Flag;
-
 #ifdef __cplusplus
 #if __cplusplus
 }

@@ -363,18 +363,27 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
     return;
   } else if (StrStartsWith(res, "\r\nready")) {
     /* 收到ready，每次都重新初始化 */
-    // 关闭AT回显
-    SendToESP32C3((const uint8_t *)"ATE0\r\n", 6);
-    LOS_TaskDelay(20);
-    // 设置 Wi-Fi 模式
-    SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
-    LOS_TaskDelay(20);
-    // 设置 AT+CWLAP 命令扫描结果的属性
-    SendToESP32C3((const uint8_t *)"AT+CWLAPOPT=,15\r\n", 17);
-    LOS_TaskDelay(20);
+    // 断开与 AP 的连接
+    SendToESP32C3((const uint8_t *)"AT+CWQAP\r\n", 10);
+    LOS_TaskDelay(300);
     // Bluetooth LE 初始化
     SendToESP32C3((const uint8_t *)"AT+BLEINIT=1\r\n", 14);
-    LOS_TaskDelay(20);
+    LOS_TaskDelay(300);
+    // 设置 Bluetooth扫描参数
+    SendToESP32C3((const uint8_t *)"AT+BLESCANPARAM=1,0,0,100,99\r\n", 30);
+    LOS_TaskDelay(300);
+    // 关闭AT回显
+    SendToESP32C3((const uint8_t *)"ATE0\r\n", 6);
+    LOS_TaskDelay(300);
+    // 设置 Wi-Fi 模式
+    SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
+    LOS_TaskDelay(300);
+    // // 设置 AT+CWLAP 命令扫描结果的属性
+    SendToESP32C3((const uint8_t *)"AT+CWLAPOPT=,15\r\n", 17);
+    LOS_TaskDelay(300);
+    //连接至上次 Wi-Fi 配置中的 AP
+    SendToESP32C3((const uint8_t *)"AT+CWJAP\r\n", 10);
+    LOS_TaskDelay(300);
     return;
   }
 
@@ -422,8 +431,7 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
   }
 
   /* 检查连接状态变化 */
-  else if (StrFind(res, "WIFI CONNECTED") >= 0 ||
-           StrFind(res, "WIFI GOT IP") >= 0) {
+  else if (StrFind(res, "WIFI GOT IP") >= 0) {
     g_wifi_state = ESP32_WIFI_CONNECTED;
     /* 查询WiFi状态 */
     SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);

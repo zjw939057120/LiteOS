@@ -32,10 +32,6 @@
 #include "gd32f4xx.h"
 #include "queue.h"
 
-bool USART0_Error_Flag = true;
-bool USART1_Error_Flag = true;
-bool USART2_Error_Flag = true;
-bool USART3_Error_Flag = true;
 
 /* 接收缓冲, 最大DEFAULT_QUEUE_BUF_LEN个字节. */
 uint8_t USART0_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
@@ -690,22 +686,18 @@ void Usart6Hwi(void){
 }
 void Usart0Req(void)
 {
-    USART0_Error_Flag = true;
 	Seria_SendArray(USART0,USART0_TX_BUF,sizeof(USART0_TX_BUF));
 }
 void Usart1Req(void)
 {
-    USART1_Error_Flag = true;
 	Seria_SendArray(USART1,USART1_TX_BUF,sizeof(USART1_TX_BUF));
 }
 void Usart2Req(void)
 {
-    USART2_Error_Flag = true;
 	Seria_SendArray(USART2,USART2_TX_BUF,sizeof(USART2_TX_BUF));
 }
 void Usart3Req(void)
 {
-    USART3_Error_Flag = true;
 	Seria_SendArray(UART3,USART3_TX_BUF,sizeof(USART3_TX_BUF));
 }
 void Usart4Req(void)

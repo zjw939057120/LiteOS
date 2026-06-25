@@ -189,7 +189,7 @@ UINT8 Aht30Read(float *temperature, float *humidity)
     g_sensor.TEMP = *temperature;
     //传感器类型
     g_sensor.TYPE |= SHT_Sensor;
-    g_sensor.TYPE |= SHT_Sensor;
+    g_sensor.TYPE |= HMT_Sensor;
 
     return 0;
 }
