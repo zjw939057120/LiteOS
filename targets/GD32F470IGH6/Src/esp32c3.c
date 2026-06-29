@@ -351,6 +351,13 @@ static volatile uint8_t g_wifi_scan_count = 0;
 void ATResponseHandle(const uint8_t *res, uint32_t len) {
   if (res == NULL || len == 0) {
     return;
+  } else {
+    SendResponseToUSART6(res, len);
+    SEGGER_RTT_printf(0, "res = %s\n", res);
+    return;
+  }
+  if (res == NULL || len == 0) {
+    return;
   } else if (res[0] == 0x00 || len == 1) {
     return;
   } else if (StrStartsWith(res, "\r\nOK") || StrStartsWith(res, "\r\nERROR") ||
@@ -469,6 +476,10 @@ static void HandleTransparentData(const uint8_t *data, uint32_t len)
 void ATRequestHandle(const uint8_t *req, uint32_t len)
 {
   if (req == NULL || len == 0) {
+    return;
+  } else {
+    SendToESP32C3(req, len);
+    SEGGER_RTT_printf(0, "req = %s\n", req);
     return;
   }
 
