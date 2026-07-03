@@ -32,6 +32,7 @@
 
 #include "los_typedef.h"
 #include "platform.h"
+#include "sensor.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -39,23 +40,46 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-typedef struct __attribute__((packed)) // 结构体内存对齐
+typedef struct __attribute__((packed)) // 结构体内存紧凑
 {
-  uint8_t DeVadd;             // 设备地址
-  uint8_t Functioncode;       // 功能码
-  uint8_t len;                // 字节数
-  uint16_t CO2_Sonsor_data;   // CO2传感器数据
-  uint16_t CH2O_Sonsor_data;  // CH2O传感器数据
-  uint16_t TVOC_Sonsor_data;  // TVOC传感器数据
-  uint16_t PM25_Sonsor_data;  // PM2.5传感器数据
-  uint16_t PM100_Sonsor_data; // PM10传感器数据
-  uint16_t TEMP_Sonsor_data;  // TEMP传感器数据
-  uint16_t RH_Sonsor_data;    // RH传感器数据
-  uint16_t PM10_Sonsor_data;  // PM1.0传感器数据,未使用
-  uint16_t Sonsor_Type;       // 传感器类型
-  uint16_t crc_sum;           // CRC校验码
+  uint8_t DeVadd;               // 设备地址
+  uint8_t Functioncode;         // 功能码
+  uint8_t len;                  // 字节数
+  uint16_t CO2_Sonsor_data;     // CO2传感器数据
+  uint16_t CH2O_Sonsor_data;    // CH2O传感器数据
+  uint16_t TVOC_Sonsor_data;    // TVOC传感器数据
+  uint16_t PM25_Sonsor_data;    // PM2.5传感器数据
+  uint16_t PM100_Sonsor_data;   // PM10传感器数据
+  uint16_t TEMP_Sonsor_data;    // TEMP传感器数据
+  uint16_t RH_Sonsor_data;      // RH传感器数据
+  uint16_t PM10_Sonsor_data;    // PM1.0传感器数据
+  uint16_t Sonsor_Type;         // 传感器类型
+  uint16_t TEMP_Sonsor_data_1;  // 1 号传感器温度(×10 → 0.1℃)
+  uint16_t RH_Sonsor_data_1;    // 1 号传感器湿度(×10 → 0.1%)
+  uint16_t TEMP_Sonsor_data_2;  // 2 号传感器温度
+  uint16_t RH_Sonsor_data_2;    // 2 号传感器湿度
+  uint16_t TEMP_Sonsor_data_3;  // 3 号传感器温度
+  uint16_t RH_Sonsor_data_3;    // 3 号传感器湿度
+  uint16_t TEMP_Sonsor_data_4;  // 4 号传感器温度
+  uint16_t RH_Sonsor_data_4;    // 4 号传感器湿度
+  uint16_t TEMP_Sonsor_data_5;  // 5 号传感器温度
+  uint16_t RH_Sonsor_data_5;    // 5 号传感器湿度
+  uint16_t TEMP_Sonsor_data_6;  // 6 号传感器温度
+  uint16_t RH_Sonsor_data_6;    // 6 号传感器湿度
+  uint16_t TEMP_Sonsor_data_7;  // 7 号传感器温度
+  uint16_t RH_Sonsor_data_7;    // 7 号传感器湿度
+  uint16_t TEMP_Sonsor_data_8;  // 8 号传感器温度
+  uint16_t RH_Sonsor_data_8;    // 8 号传感器湿度
+  uint16_t TEMP_Sonsor_data_9;  // 9 号传感器温度
+  uint16_t RH_Sonsor_data_9;    // 9 号传感器湿度
+  uint16_t TEMP_Sonsor_data_10; // 10 号传感器温度
+  uint16_t RH_Sonsor_data_10;   // 10 号传感器湿度
+  uint16_t wifi_status; // wifi状态位
+  uint16_t wifi_rssi;   // wifi信号强度
+  uint16_t crc_sum;     // CRC校验和
 } Sonsor_meter;
 
+extern Sonsor_meter g_sonsor_meter;
 // RS485串口通讯
 
 // esp32c3串口通讯

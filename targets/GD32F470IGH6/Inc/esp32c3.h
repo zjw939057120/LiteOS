@@ -39,8 +39,20 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
+#define BLE_SENSOR_COUNT 10
+
+typedef struct {
+  int16_t temp[BLE_SENSOR_COUNT];
+  int16_t humi[BLE_SENSOR_COUNT];
+  int16_t wifi_status;
+  int16_t wifi_rssi;
+} BLESensorData;
+
+extern BLESensorData g_ble_sensor_data;
+
+int32_t parseBLESensor(const uint8_t *data, uint32_t len, BLESensorData *sensor_data);
+
 void ATRequestHandle(const uint8_t *req, uint32_t len);
-// AT 数据响应处理函数
 void ATResponseHandle(const uint8_t *res, uint32_t len);
 
 #ifdef __cplusplus

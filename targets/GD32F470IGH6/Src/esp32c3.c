@@ -31,6 +31,7 @@
 #include "usart.h"
 #include "los_task_pri.h"
 #include <complex.h>
+#include "modbus.h"
 /* AT命令前缀宏定义 */
 #define AT_PREFIX_CWMODE    "+CWMODE="    /* WiFi模式设置 */
 #define AT_PREFIX_CWLAP     "+CWLAP"      /* 列出可用AP */
@@ -56,6 +57,7 @@
 #define AT_RES_PREFIX_BLESCAN   "+BLESCAN:"    /* 蓝牙扫描结果 */
 #define AT_RES_PREFIX_CIPSTATUS "+CIPSTATUS:"  /* TCP状态 */
 #define AT_RES_PREFIX_GMR       "+GMR"         /* 版本信息 */
+#define AT_RES_PREFIX_SENSOR    "+SENSOR:"     /* BLE传感器数据 */
 
 /* AT命令类型枚举 */
 typedef enum {
@@ -120,7 +122,7 @@ static volatile uint8_t g_transparent_mode = 0;
 /* TCP连接ID */
 static volatile uint8_t g_tcp_link_id = 0;
 
-
+BLESensorData g_ble_sensor_data = {0};
 
 /* 内部函数：实际发送数据到ESP32C3 (USART5) */
 static void SendToESP32C3(const uint8_t *data, uint32_t len)
@@ -170,6 +172,70 @@ static int32_t StrFind(const uint8_t *text, const char *pattern)
     }
   }
   return -1;
+}
+
+static int32_t StrToInt(const uint8_t *str, uint32_t *consumed) {
+  if (!str || !consumed) return 0;
+  *consumed = 0;
+  int32_t result = 0;
+  int8_t sign = 1;
+  if (*str == '-') {
+    sign = -1;
+    str++;
+    (*consumed)++;
+  } else if (*str == '+') {
+    str++;
+    (*consumed)++;
+  }
+  while (*str >= '0' && *str <= '9') {
+    result = result * 10 + (*str - '0');
+    str++;
+    (*consumed)++;
+  }
+  return result * sign;
+}
+
+int32_t parseBLESensor(const uint8_t *data, uint32_t len, BLESensorData *sensor_data) {
+  if (!data || !sensor_data || len == 0) {
+    return -1;
+  }
+
+  uint32_t i = 0;
+  if (!StrStartsWith(data, AT_RES_PREFIX_SENSOR)) {
+    return -1;
+  }
+  i += 8;
+
+  for (int32_t j = 0; j < BLE_SENSOR_COUNT; j++) {
+    while (i < len && data[i] == ',') i++;
+    if (i >= len) return -1;
+    uint32_t consumed = 0;
+    sensor_data->temp[j] = (int16_t)StrToInt(&data[i], &consumed);
+    if (consumed == 0) return -1;
+    i += consumed;
+
+    while (i < len && data[i] == ',') i++;
+    if (i >= len) return -1;
+    consumed = 0;
+    sensor_data->humi[j] = (int16_t)StrToInt(&data[i], &consumed);
+    if (consumed == 0) return -1;
+    i += consumed;
+  }
+
+  while (i < len && data[i] == ',') i++;
+  if (i >= len) return -1;
+  uint32_t consumed = 0;
+  sensor_data->wifi_status = (int8_t)StrToInt(&data[i], &consumed);
+  if (consumed == 0) return -1;
+  i += consumed;
+
+  while (i < len && data[i] == ',') i++;
+  if (i >= len) return -1;
+  consumed = 0;
+  sensor_data->wifi_rssi = (int8_t)StrToInt(&data[i], &consumed);
+  if (consumed == 0) return -1;
+
+  return 0;
 }
 
 /* 解析AT命令类型 */
@@ -351,47 +417,6 @@ static volatile uint8_t g_wifi_scan_count = 0;
 void ATResponseHandle(const uint8_t *res, uint32_t len) {
   if (res == NULL || len == 0) {
     return;
-  } else {
-    SendResponseToUSART6(res, len);
-    SEGGER_RTT_printf(0, "res = %s\n", res);
-    return;
-  }
-  if (res == NULL || len == 0) {
-    return;
-  } else if (res[0] == 0x00 || len == 1) {
-    return;
-  } else if (StrStartsWith(res, "\r\nOK") || StrStartsWith(res, "\r\nERROR") ||
-             StrStartsWith(res, "\r\nSEND OK") ||
-             StrStartsWith(res, "\r\nSEND FAIL") ||
-             StrStartsWith(res, "\r\nbusy p") ||
-             StrStartsWith(res, "ATE0")) {
-    /* 过滤AT响应状态行和回显命令 */
-    SEGGER_RTT_printf(0, "filter res = %s", res);
-    return;
-  } else if (StrStartsWith(res, "\r\nready")) {
-    /* 收到ready，每次都重新初始化 */
-    // 断开与 AP 的连接
-    SendToESP32C3((const uint8_t *)"AT+CWQAP\r\n", 10);
-    LOS_TaskDelay(300);
-    // Bluetooth LE 初始化
-    SendToESP32C3((const uint8_t *)"AT+BLEINIT=1\r\n", 14);
-    LOS_TaskDelay(300);
-    // 设置 Bluetooth扫描参数
-    SendToESP32C3((const uint8_t *)"AT+BLESCANPARAM=1,0,0,100,99\r\n", 30);
-    LOS_TaskDelay(300);
-    // 关闭AT回显
-    SendToESP32C3((const uint8_t *)"ATE0\r\n", 6);
-    LOS_TaskDelay(300);
-    // 设置 Wi-Fi 模式
-    SendToESP32C3((const uint8_t *)"AT+CWMODE=1\r\n", 13);
-    LOS_TaskDelay(300);
-    // // 设置 AT+CWLAP 命令扫描结果的属性
-    SendToESP32C3((const uint8_t *)"AT+CWLAPOPT=,15\r\n", 17);
-    LOS_TaskDelay(300);
-    //连接至上次 Wi-Fi 配置中的 AP
-    SendToESP32C3((const uint8_t *)"AT+CWJAP\r\n", 10);
-    LOS_TaskDelay(300);
-    return;
   }
 
   SEGGER_RTT_printf(0, "res = %s", res);
@@ -423,6 +448,21 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
     }
   }
 
+  // 传感器数据处理
+  else if (StrStartsWith(res, AT_RES_PREFIX_SENSOR)) {
+    int32_t ret = parseBLESensor(res, len, &g_ble_sensor_data);
+    if (ret == 0) {
+      // 传感器类型
+      g_sensor.TYPE |= SHT_Sensor;
+      g_sensor.TYPE |= HMT_Sensor;
+      for (int32_t i = 0; i < BLE_SENSOR_COUNT; i++) {
+        SEGGER_RTT_printf(0, "T%d=%d,H%d=%d ", i, g_ble_sensor_data.temp[i], i, g_ble_sensor_data.humi[i]);
+      }
+      // 传感器数据
+      SEGGER_RTT_printf(0, "wifi=%d,rssi=%d\n", g_ble_sensor_data.wifi_status, g_ble_sensor_data.wifi_rssi);
+    }
+  }
+
   /* 在透传模式下，数据直接转发到USART6 */
   else if (g_transparent_mode == 1 && g_tcp_state == ESP32_TCP_TRANSPARENT) {
     /* 检查是否是退出透传的特定序列 (+++) */
@@ -435,28 +475,6 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
     /* 透传数据直接转发 */
     SendResponseToUSART6(res, len);
     return;
-  }
-
-  /* 检查连接状态变化 */
-  else if (StrFind(res, "WIFI GOT IP") >= 0) {
-    g_wifi_state = ESP32_WIFI_CONNECTED;
-    /* 查询WiFi状态 */
-    SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
-  } else if (StrFind(res, "WIFI DISCONNECTED") >= 0) {
-    g_wifi_state = ESP32_WIFI_IDLE;
-    g_tcp_state = ESP32_TCP_IDLE;
-    g_transparent_mode = 0;
-    /* 查询WiFi状态 */
-    SendToESP32C3((const uint8_t *)"AT+CWSTATE?\r\n", 13);
-  } else if (StrFind(res, "CONNECT") >= 0) {
-    if (g_tcp_state == ESP32_TCP_CONNECTING) {
-      g_tcp_state = ESP32_TCP_CONNECTED;
-    }
-  } else if (StrFind(res, "CLOSED") >= 0) {
-    g_tcp_state = ESP32_TCP_IDLE;
-    g_transparent_mode = 0;
-  } else if (StrFind(res, "+BLESCANDONE") >= 0) {
-    g_ble_state = ESP32_BLE_IDLE;
   }
 
   /* 转发响应到USART6 */
