@@ -134,7 +134,7 @@ void handleModbusDataByFuncCode03(const Modbus *modbus) {
   g_sonsor_meter.TEMP_Sonsor_data_10 = toolkit_swap_uint16(g_ble_sensor_data.temp[9]);
   g_sonsor_meter.RH_Sonsor_data_10 = toolkit_swap_uint16(g_ble_sensor_data.humi[9]);
   g_sonsor_meter.wifi_status = toolkit_swap_uint16(g_ble_sensor_data.wifi_status);
-  g_sonsor_meter.wifi_rssi = toolkit_swap_uint16(g_ble_sensor_data.wifi_rssi);
+  g_sonsor_meter.wifi_rssi = toolkit_swap_uint16(abs(g_ble_sensor_data.wifi_rssi));
   g_sonsor_meter.crc_sum = toolkit_swap_uint16(
       Crc_Cal((uint8_t *)&g_sonsor_meter,
               sizeof(g_sonsor_meter) - sizeof(g_sonsor_meter.crc_sum)));
