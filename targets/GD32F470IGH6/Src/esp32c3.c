@@ -276,9 +276,6 @@ static void SendResponseToUSART6(const uint8_t *data, uint32_t len)
   Seria_SendArray(UART6, data, len);
 }
 
-/* WiFi扫描结果计数 */
-static volatile uint8_t g_wifi_scan_count = 0;
-
 /* 处理ESP32C3的响应数据 */
 void ATResponseHandle(const uint8_t *res, uint32_t len) {
   if (res == NULL || len == 0) {
@@ -286,46 +283,17 @@ void ATResponseHandle(const uint8_t *res, uint32_t len) {
   }
 
   SEGGER_RTT_printf(0, "res = %s", res);
-  /* WiFi扫描结果处理 */
-  if (StrStartsWith(res, AT_RES_PREFIX_CWLAP)) {
-    /* 解析SSID: +CWLAP:(...,"ssid",...) */
-    int quote_start_idx = StrFind(res, ",\"");
-    if (quote_start_idx >= 0) {
-      int ssid_start_idx = quote_start_idx + 2;
-      int quote_end_idx = StrFind(res + ssid_start_idx, "\"");
-      if (quote_end_idx >= 0) {
-        int ssid_len = quote_end_idx;
-        /* 过滤空名称 */
-        if (ssid_len == 0) return;
-        /* 过滤非ASCII字符的SSID */
-        for (int i = 0; i < ssid_len; i++) {
-          if (res[ssid_start_idx + i] < 0x20 || res[ssid_start_idx + i] > 0x7E) {
-            SEGGER_RTT_printf(0, "filter non-ascii ssid: %s\n", res);
-            return;
-          }
-        }
-      }
-    }
-    g_wifi_scan_count++;
-    if (g_wifi_scan_count > 20) {
-      /* 超过20条，过滤不转发 */
-      SEGGER_RTT_printf(0, "filter wifi scan result #%d\n", g_wifi_scan_count);
-      return;
-    }
-  }
-
-  // 传感器数据处理
-  else if (StrStartsWith(res, AT_RES_PREFIX_SENSOR)) {
+  if (StrStartsWith(res, AT_RES_PREFIX_SENSOR)) {
     int32_t ret = parseBLESensor(res, len, &g_ble_sensor_data);
     if (ret == 0) {
       // 传感器类型
       g_sensor.TYPE |= SHT_Sensor;
       g_sensor.TYPE |= HMT_Sensor;
-      for (int32_t i = 0; i < BLE_SENSOR_COUNT; i++) {
-        SEGGER_RTT_printf(0, "T%d=%d,H%d=%d ", i, g_ble_sensor_data.temp[i], i, g_ble_sensor_data.humi[i]);
-      }
-      // 传感器数据
-      SEGGER_RTT_printf(0, "wifi=%d,rssi=%d\n", g_ble_sensor_data.wifi_status, g_ble_sensor_data.wifi_rssi);
+      // BLE传感器数据
+      // for (int32_t i = 0; i < BLE_SENSOR_COUNT; i++) {
+      //   SEGGER_RTT_printf(0, "T%d=%d,H%d=%d ", i, g_ble_sensor_data.temp[i], i, g_ble_sensor_data.humi[i]);
+      // }
+      // SEGGER_RTT_printf(0, "wifi=%d,rssi=%d\n", g_ble_sensor_data.wifi_status, g_ble_sensor_data.wifi_rssi);
     }
     return;
   }
@@ -353,8 +321,6 @@ void ATRequestHandle(const uint8_t *req, uint32_t len)
       break;
 
     case AT_CMD_WIFI_SCAN:
-  /* WiFi扫描开始，重置计数 */
-    g_wifi_scan_count = 0;
       break;
 
     case AT_CMD_WIFI_CUR_AP:
