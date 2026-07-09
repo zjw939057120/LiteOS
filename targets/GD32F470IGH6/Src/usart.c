@@ -608,6 +608,45 @@ void usart6_init(uint32_t bound)
 
     usart_enable(UART6);	                                /* 使能串口 */
 }
+
+void usart4_reconfig(uint32_t bound, uint32_t dataBits, uint32_t stopBits, uint32_t parity){
+  // 1. 先禁用 UART4，防止在修改参数时破坏正在进行的通信帧
+  usart_disable(UART4);
+  // 设置波特率
+  usart_baudrate_set(UART4, bound);
+
+  // 设置数据位
+  if (dataBits == 8)
+    usart_word_length_set(UART4, USART_WL_8BIT); /* 8bit */
+  else if (dataBits == 9)
+    usart_word_length_set(UART4, USART_WL_9BIT); /* 9bit */
+  else
+    usart_word_length_set(UART4, USART_WL_8BIT); /* 8bit*/
+
+  // 停止位
+  if (stopBits == 1)
+    usart_stop_bit_set(UART4, USART_STB_1BIT); /* 1bit */
+  else if (stopBits == 2)
+    usart_stop_bit_set(UART4, USART_STB_1_5BIT); /* 1.5bit */
+  else if (stopBits == 3)
+    usart_stop_bit_set(UART4, USART_STB_2BIT); /* 2bit */
+  else
+    usart_stop_bit_set(UART4, USART_STB_1BIT); /* 1bit */
+
+  // 设置校验位
+  if (parity == 0)
+    usart_parity_config(UART4, USART_PM_NONE); /* None */
+  else if (parity == 1)
+    usart_parity_config(UART4, USART_PM_ODD); /* ODD */
+  else if (parity == 2)
+    usart_parity_config(UART4, USART_PM_EVEN); /* Even */
+  else
+    usart_parity_config(UART4, USART_PM_NONE); /* None */
+
+  // 3. 重新使能 UART4
+  usart_enable(UART4);
+}
+
 //串口发送单字节函数
 void Seria_SendByte(uint32_t USARTx,uint8_t Byte)
 {

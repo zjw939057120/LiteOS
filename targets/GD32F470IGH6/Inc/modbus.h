@@ -96,11 +96,11 @@ typedef struct {
 } Modbus;
 
 typedef struct {
-  int baud;
-  int dataBits;
-  int stopBits;
-  int parity;
-  int addr;
+  int baud;     // 波特率80~5000000
+  int dataBits; // 数据位5;5bit,6:6bit,7:7bit,8:8bit,9:9bit
+  int stopBits; // 停止位1:1bit,2:1.5bit,3:2bit
+  int parity;   // 校验位0:None,1:Odd,2:Even
+  int addr;     // 设备地址 0~255
 } UartConfig_t;
 
 extern UartConfig_t g_uart_config;

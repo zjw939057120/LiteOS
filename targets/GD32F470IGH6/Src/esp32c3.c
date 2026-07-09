@@ -227,6 +227,8 @@ void ATRequestHandle(uint8_t *req, uint32_t len)
         g_uart_config.stopBits = stopBits;
         g_uart_config.parity = parity;
         g_uart_config.addr = addr;
+        //重新配置RS485
+        usart4_reconfig(baud, dataBits, stopBits, parity);
       }
     } break;
     case AT_CMD_UNKNOWN:
@@ -285,8 +287,8 @@ bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, 
 
   // Validation: ESP32-C3 ranges and requested numeric encoding
   if (*baud < 80 || *baud > 5000000) return false;
-  if (*dataBits < 5 || *dataBits > 8) return false;
-  if (*stopBits < 1 || *stopBits > 3) return false; // 1=1,2=1.5,3=2
+  if (*dataBits < 5 || *dataBits > 9) return false; // 5bit,6bit,7bit,8bit,9bit
+  if (*stopBits < 1 || *stopBits > 3) return false; // 1=1bit,2=1.5bit,3=2bit
   if (*parity < 0 || *parity > 2) return false; // 0=None,1=Odd,2=Even
   if (*addr < 0 || *addr > 255) return false;
 
