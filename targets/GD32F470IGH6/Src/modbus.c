@@ -27,14 +27,13 @@
  * --------------------------------------------------------------------------- */
 
  #include "modbus.h"
-#include "sensor.h"
 #include "usart.h"
-#include <string.h> 
+#include "gpio.h"
 #include "esp32c3.h"
 
 
-Modbus g_modbus_485 = {0, 0, 0, 0, 0, UART4};
-Modbus g_modbus = {0, 0, 0, 0, 0, UART6};
+Modbus g_modbus_485 = {0, 0, 0, 0, 0, true};
+Modbus g_modbus = {0, 0, 0, 0, 0, false};
 Sonsor_meter g_sonsor_meter = {0};
 
 void ResetModbus(Modbus *modbus) {
@@ -139,7 +138,7 @@ void handleModbusDataByFuncCode03(const Modbus *modbus) {
       Crc_Cal((uint8_t *)&g_sonsor_meter,
               sizeof(g_sonsor_meter) - sizeof(g_sonsor_meter.crc_sum)));
   // SEGGER_RTT_printf_hex((uint8_t *)&g_sonsor_meter, sizeof(g_sonsor_meter));
-  Seria_SendArray(modbus->uart, (uint8_t *)&g_sonsor_meter, sizeof(g_sonsor_meter));
+  sendModbusData(modbus->is_485, (uint8_t *)&g_sonsor_meter, sizeof(g_sonsor_meter));
 }
 void handleModbusDataByFuncCode04(const Modbus *modbus) {
   // 写入寄存器数据
@@ -153,3 +152,18 @@ void handleModbusDataByFuncCode06(const Modbus *modbus) {
   // 写入寄存器数据
   SEGGER_RTT_printf(0, "%s %d\n", __func__, modbus->func_code);
 }
+void sendModbusData(bool is_485, const uint8_t *Array, uint16_t Length) {
+  if (is_485) {
+    rs485_en(true);
+    LOS_TaskDelay(5);
+    Seria_SendArray(UART4, Array, Length);
+    LOS_TaskDelay(5);
+    rs485_en(false);
+    return;
+  }
+  Seria_SendArray(UART6, Array, Length);
+}
+void rs485_en(bool enable) {
+  gpio_bit_write(RS485_EN_PORT, RS485_EN_PIN, enable ? SET : RESET);
+}
+

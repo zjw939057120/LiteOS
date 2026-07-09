@@ -32,6 +32,7 @@
 
 #include "los_typedef.h"
 #include "platform.h"
+#include "los_task_pri.h"
 #include "sensor.h"
 
 #ifdef __cplusplus
@@ -91,7 +92,7 @@ typedef struct {
   uint16_t reg_addr;   // 寄存器地址
   uint16_t reg_number; // 寄存器数量
   uint16_t crc_sum;    // CRC校验码
-  uint32_t uart;       // 串口外设
+  bool is_485;       // 是否485模式
 } Modbus;
 
 extern Modbus g_modbus_485;
@@ -109,6 +110,8 @@ void handleModbusDataByFuncCode03(const Modbus *modbus);
 void handleModbusDataByFuncCode04(const Modbus *modbus);
 void handleModbusDataByFuncCode05(const Modbus *modbus);
 void handleModbusDataByFuncCode06(const Modbus *modbus);
+void sendModbusData(bool is_485, const uint8_t *Array, uint16_t Length);
+void rs485_en(bool enable);
 
 #ifdef __cplusplus
 #if __cplusplus

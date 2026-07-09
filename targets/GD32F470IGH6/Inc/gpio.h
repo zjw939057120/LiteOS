@@ -37,6 +37,18 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
+// TTL通讯转换芯片使能引脚
+#define TXC_OE_PORT         GPIOE
+#define TXC_OE_PIN          GPIO_PIN_2
+
+// ESP使能引脚
+#define ESP_EN_PORT         GPIOA
+#define ESP_EN_PIN          GPIO_PIN_8
+
+// RS485使能引脚
+#define RS485_EN_PORT       GPIOC
+#define RS485_EN_PIN        GPIO_PIN_13
+
 void gpio_en(void);
 
 VOID GpioInit(VOID);

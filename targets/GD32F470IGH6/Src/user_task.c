@@ -26,7 +26,6 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * --------------------------------------------------------------------------- */
 
-#include "demo_entry.h"
 #include "gpio.h"
 #include "i2c.h"
 #include "los_task_pri.h"
@@ -424,5 +423,4 @@ VOID app_init(VOID) {
   RecvUsart5Create();
   RecvUsart6Create();
   SEGGER_RTT_printf(0, "app init!\n");
-  DemoEntry();
 }

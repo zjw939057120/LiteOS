@@ -30,16 +30,6 @@
 #include "gd32f4xx.h"
 #include "los_task_pri.h"
 
-/* GPIO引脚宏定义 */
-#define TXC_OE_PORT         GPIOE
-#define TXC_OE_PIN          GPIO_PIN_2
-
-#define ESP_EN_PORT         GPIOA
-#define ESP_EN_PIN          GPIO_PIN_8
-
-#define RS485_EN_PORT       GPIOC
-#define RS485_EN_PIN        GPIO_PIN_13
-
 void gpio_en(void)
 {
   /* 使能GPIO时钟 */
