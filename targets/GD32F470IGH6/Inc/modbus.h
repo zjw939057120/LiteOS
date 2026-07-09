@@ -95,11 +95,20 @@ typedef struct {
   bool is_485;       // 是否485模式
 } Modbus;
 
+typedef struct {
+  int baud;
+  int dataBits;
+  int stopBits;
+  int parity;
+  int addr;
+} UartConfig_t;
+
+extern UartConfig_t g_uart_config;
 extern Modbus g_modbus_485;
 extern Modbus g_modbus;
 
 void ResetModbus(Modbus *modbus);
-void DecodeModbusData(const uint8_t *array, Modbus *modbus);
+bool DecodeModbusData(const uint8_t *array, Modbus *modbus);
 
 void ModbusHandle(const uint8_t *array, Modbus *modbus);
 void handleModbusData(const Modbus *modbus);

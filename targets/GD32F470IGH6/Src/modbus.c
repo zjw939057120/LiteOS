@@ -31,29 +31,39 @@
 #include "gpio.h"
 #include "esp32c3.h"
 
+// Modbus地址
+UartConfig_t g_uart_config = {9600, 8, 1, 0, 0};
 
 Modbus g_modbus_485 = {0, 0, 0, 0, 0, true};
 Modbus g_modbus = {0, 0, 0, 0, 0, false};
 Sonsor_meter g_sonsor_meter = {0};
 
 void ResetModbus(Modbus *modbus) {
-  //   modbus->address = 0;
+  // modbus->address = g_modbus_address;
   modbus->func_code = 0;
   modbus->reg_addr = 0;
   modbus->reg_number = 0;
   modbus->crc_sum = 0;
 }
 
-void DecodeModbusData(const uint8_t *array, Modbus *modbus) {
+bool DecodeModbusData(const uint8_t *array, Modbus *modbus) {
+  // 检查地址是否匹配
+  if (array[0] != g_uart_config.addr) {
+    return false;
+  }
   modbus->address = array[0];
   modbus->func_code = array[1];
   modbus->reg_addr = toolkit_uint16_little(array + 2);
   modbus->reg_number = toolkit_uint16_little(array + 4);
   modbus->crc_sum = toolkit_uint16_little(array + 6);
+  return true;
 }
 
 void ModbusHandle(const uint8_t *array, Modbus *modbus){
-  DecodeModbusData(array, modbus);
+  // 解码Modbus数据
+  if (!DecodeModbusData(array, modbus)) {
+    return;
+   }
   handleModbusData(modbus);
 }
 void handleModbusData(const Modbus *modbus) {
