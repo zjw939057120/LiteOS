@@ -37,6 +37,7 @@
 #include "esp32c3.h"
 
 #define TASK_DELAY 1000
+#define TASK_USART_DELAY 500
 
 UINT32 g_UartTaskId = 0;
 UINT32 g_RecvUsart0TaskId = 0;
@@ -55,14 +56,19 @@ UINT32 SensorTaskEntry(VOID) {
   float humidity = 0.0f;
   int tempInt = 0;
   int humiInt = 0;
-  
+  // 初始化看门狗
   FwdgtInit();
+  // 初始化GPIO
   GpioInit();
+  // 初始化UART
   UsartInit();
+  // 初始化I2C
   I2cInit();
+  // 初始化AHT30温度湿度传感器
   Aht30Init();
 
-  while (1) {
+  while (true) {
+    // 读取温度湿度传感器数据
     if (Aht30Read(&temperature, &humidity) == 0) {
       tempInt = (int)(temperature * 10);
       humiInt = (int)(humidity * 10);
@@ -72,15 +78,21 @@ UINT32 SensorTaskEntry(VOID) {
       }
     }
 
+    LOS_TaskDelay(TASK_USART_DELAY);
+    // 空气质量传感器MS-VOC-V4
     Usart0Req();
+    LOS_TaskDelay(TASK_USART_DELAY);
+    // 甲醛传感器SC11-CH2O
     Usart1Req();
+    LOS_TaskDelay(TASK_USART_DELAY);
+    // 红外二氧化碳传感器CM1106S
     Usart2Req();
+    LOS_TaskDelay(TASK_USART_DELAY);
+    // 激光粉尘传感器PM2012SE
     Usart3Req();
-    Usart4Req();
-    Usart5Req();
-    Usart6Req();
+    LOS_TaskDelay(TASK_USART_DELAY);
+    // 看门狗喂狗
     FwdgtReload();
-    LOS_TaskDelay(TASK_DELAY);
     index++;
   }
   return 0;

@@ -43,9 +43,13 @@ uint8_t USART5_RX_BUF[USART5_QUEUE_BUF_LEN] = {0};
 uint8_t USART6_RX_BUF[DEFAULT_QUEUE_BUF_LEN] = {0};
 
 /* 发送缓冲 */
+// 空气质量传感器MS-VOC-V4
 uint8_t USART0_TX_BUF[] = {0xFF, 0x61, 0x02, 0x01, 0x9C};
+// 甲醛传感器SC11-CH2O
 uint8_t USART1_TX_BUF[] = {0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
+// 红外二氧化碳传感器CM1106S
 uint8_t USART2_TX_BUF[] = {0x11, 0x01, 0x01, 0xED};
+// 激光粉尘传感器PM2012SE
 uint8_t USART3_TX_BUF[] = {0x11, 0x02, 0x0B, 0x07, 0xDB};
 
 uint16_t USART0_RX_CNT = 0;			//接收的字节数
@@ -664,61 +668,72 @@ void Seria_SendArray(uint32_t USARTx, const uint8_t *Array, uint16_t Length)
 }
 
 void Usart0Hwi(void){
-    nvic_irq_enable(USART0_IRQn, 0, 0);
-    usart_flag_clear(USART0, USART_INT_RBNE);
-    usart_flag_clear(USART0, USART_INT_IDLE);
-    LOS_HwiCreate((USART0_IRQn + 16), 0, 0, USART0_IRQHandler, NULL);
-    usart_interrupt_enable(USART0, USART_INT_RBNE);
-    usart_interrupt_enable(USART0, USART_INT_IDLE);
+  // 1. 底层硬件 NVIC 优先级调低（数值调大）
+  nvic_irq_enable(USART0_IRQn, 3, 3);
+  // 清除残留标志位
+  usart_flag_clear(USART0, USART_INT_RBNE);
+  usart_flag_clear(USART0, USART_INT_IDLE);
+  // 2. LiteOS 内核优先级必须与上面保持一致！（同样改为 3）
+  LOS_HwiCreate((USART0_IRQn + 16), 3, 0, USART0_IRQHandler, NULL);
+  usart_interrupt_enable(USART0, USART_INT_RBNE);
+  usart_interrupt_enable(USART0, USART_INT_IDLE);
 }
 void Usart1Hwi(void){
-    nvic_irq_enable(USART1_IRQn, 0, 0);
-    usart_flag_clear(USART1, USART_INT_RBNE);
-    usart_flag_clear(USART1, USART_INT_IDLE);
-    LOS_HwiCreate((USART1_IRQn + 16), 0, 0, USART1_IRQHandler, NULL);
-    usart_interrupt_enable(USART1, USART_INT_RBNE);
-    usart_interrupt_enable(USART1, USART_INT_IDLE);
+  // 1. 底层硬件 NVIC 优先级调低（数值调大）
+  nvic_irq_enable(USART1_IRQn, 3, 3);
+  usart_flag_clear(USART1, USART_INT_RBNE);
+  usart_flag_clear(USART1, USART_INT_IDLE);
+  // 2. LiteOS 内核优先级必须与上面保持一致！（同样改为 3）
+  LOS_HwiCreate((USART1_IRQn + 16), 3, 0, USART1_IRQHandler, NULL);
+  usart_interrupt_enable(USART1, USART_INT_RBNE);
+  usart_interrupt_enable(USART1, USART_INT_IDLE);
 }
 void Usart2Hwi(void){
-    nvic_irq_enable(USART2_IRQn, 0, 0);
-    usart_flag_clear(USART2, USART_INT_RBNE);
-    usart_flag_clear(USART2, USART_INT_IDLE);
-    LOS_HwiCreate((USART2_IRQn + 16), 0, 0, USART2_IRQHandler, NULL);
-    usart_interrupt_enable(USART2, USART_INT_RBNE);
-    usart_interrupt_enable(USART2, USART_INT_IDLE);
+  // 1. 底层硬件 NVIC 优先级调低（数值调大）
+  nvic_irq_enable(USART2_IRQn, 3, 3);
+  // 清除残留标志位
+  usart_flag_clear(USART2, USART_INT_RBNE);
+  usart_flag_clear(USART2, USART_INT_IDLE);
+  // 2. LiteOS 内核优先级必须与上面保持一致！（同样改为 3）
+  LOS_HwiCreate((USART2_IRQn + 16), 3, 0, USART2_IRQHandler, NULL);
+  usart_interrupt_enable(USART2, USART_INT_RBNE);
+  usart_interrupt_enable(USART2, USART_INT_IDLE);
 }
 void Usart3Hwi(void){
-    nvic_irq_enable(UART3_IRQn, 0, 0);
-    usart_flag_clear(UART3, USART_INT_RBNE);
-    usart_flag_clear(UART3, USART_INT_IDLE);
-    LOS_HwiCreate((UART3_IRQn + 16), 0, 0, UART3_IRQHandler, NULL);
-    usart_interrupt_enable(UART3, USART_INT_RBNE);
-    usart_interrupt_enable(UART3, USART_INT_IDLE);
+  // 1. 底层硬件 NVIC 优先级调低（数值调大）
+  nvic_irq_enable(UART3_IRQn, 3, 3);
+  // 清除残留标志位
+  usart_flag_clear(UART3, USART_INT_RBNE);
+  usart_flag_clear(UART3, USART_INT_IDLE);
+  // 2. LiteOS 内核优先级必须与上面保持一致！（同样改为 3）
+  LOS_HwiCreate((UART3_IRQn + 16), 3, 0, UART3_IRQHandler, NULL);
+  usart_interrupt_enable(UART3, USART_INT_RBNE);
+  usart_interrupt_enable(UART3, USART_INT_IDLE);
 }
 
 void Usart4Hwi(void){
-    nvic_irq_enable(UART4_IRQn, 0, 0);
-    usart_flag_clear(UART4, USART_INT_RBNE);
-    usart_flag_clear(UART4, USART_INT_IDLE);
-    LOS_HwiCreate((UART4_IRQn + 16), 0, 0, UART4_IRQHandler, NULL);
-    usart_interrupt_enable(UART4, USART_INT_RBNE);
-    usart_interrupt_enable(UART4, USART_INT_IDLE);
+  nvic_irq_enable(UART4_IRQn, 0, 0);
+  usart_flag_clear(UART4, USART_INT_RBNE);
+  usart_flag_clear(UART4, USART_INT_IDLE);
+  LOS_HwiCreate((UART4_IRQn + 16), 0, 0, UART4_IRQHandler, NULL);
+  usart_interrupt_enable(UART4, USART_INT_RBNE);
+  usart_interrupt_enable(UART4, USART_INT_IDLE);
 }
 void Usart5Hwi(void){
-    nvic_irq_enable(USART5_IRQn, 0, 0);
-    usart_flag_clear(USART5, USART_INT_RBNE);
-    usart_flag_clear(USART5, USART_INT_IDLE);
-    LOS_HwiCreate((USART5_IRQn + 16), 0, 0, USART5_IRQHandler, NULL);
-    usart_interrupt_enable(USART5, USART_INT_RBNE);
-    usart_interrupt_enable(USART5, USART_INT_IDLE);
+  nvic_irq_enable(USART5_IRQn, 0, 0);
+  usart_flag_clear(USART5, USART_INT_RBNE);
+  usart_flag_clear(USART5, USART_INT_IDLE);
+  LOS_HwiCreate((USART5_IRQn + 16), 0, 0, USART5_IRQHandler, NULL);
+  usart_interrupt_enable(USART5, USART_INT_RBNE);
+  usart_interrupt_enable(USART5, USART_INT_IDLE);
 }
 void Usart6Hwi(void){
-    nvic_irq_enable(UART6_IRQn, 0, 0);
-    usart_flag_clear(UART6, USART_INT_RBNE);
-    usart_flag_clear(UART6, USART_INT_IDLE);
-    LOS_HwiCreate((UART6_IRQn + 16), 0, 0, UART6_IRQHandler, NULL);
-    usart_interrupt_enable(UART6, USART_INT_RBNE);
-    usart_interrupt_enable(UART6, USART_INT_IDLE);
+  nvic_irq_enable(UART6_IRQn, 0, 0);
+  usart_flag_clear(UART6, USART_INT_RBNE);
+  usart_flag_clear(UART6, USART_INT_IDLE);
+  LOS_HwiCreate((UART6_IRQn + 16), 0, 0, UART6_IRQHandler, NULL);
+  usart_interrupt_enable(UART6, USART_INT_RBNE);
+  usart_interrupt_enable(UART6, USART_INT_IDLE);
 }
 void Usart0Req(void)
 {
