@@ -46,9 +46,12 @@ void ResetModbus(Modbus *modbus) {
   modbus->crc_sum = 0;
 }
 
-bool DecodeModbusData(const uint8_t *array, Modbus *modbus) {
-  // 检查地址是否匹配
+bool DecodeModbusData(const uint8_t *array, uint32_t len, Modbus *modbus) {
   if (array[0] != g_uart_config.addr) {
+    // 地址不匹配
+    return false;
+  }else if (len < 8) {
+    // 数据长度不足
     return false;
   }
   modbus->address = array[0];
@@ -59,9 +62,9 @@ bool DecodeModbusData(const uint8_t *array, Modbus *modbus) {
   return true;
 }
 
-void ModbusHandle(const uint8_t *array, Modbus *modbus){
+void ModbusHandle(const uint8_t *array, uint32_t len, Modbus *modbus){
   // 解码Modbus数据
-  if (!DecodeModbusData(array, modbus)) {
+  if (!DecodeModbusData(array, len, modbus)) {
     return;
    }
   handleModbusData(modbus);

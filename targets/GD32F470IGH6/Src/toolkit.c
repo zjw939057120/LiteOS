@@ -30,7 +30,7 @@
 
 void SEGGER_RTT_printf_hex(const uint8_t *array, uint32_t length) {
   for (uint32_t i = 0; i < length; i++) {
-    SEGGER_RTT_printf(0, "%02X,", array[i]);
+    SEGGER_RTT_printf(0, "%02X ", array[i]);
     // 每32字节换行
     if ((i + 1) % 32 == 0) {
       SEGGER_RTT_printf(0, "\n");
@@ -41,7 +41,7 @@ void SEGGER_RTT_printf_hex(const uint8_t *array, uint32_t length) {
 
 void SEGGER_RTT_printf_dec(const uint8_t *array, uint32_t length) {
   for (uint32_t i = 0; i < length; i++) {
-    SEGGER_RTT_printf(0, "%d,", array[i]);
+    SEGGER_RTT_printf(0, "%d ", array[i]);
     // 每32字节换行
     if ((i + 1) % 32 == 0) {
       SEGGER_RTT_printf(0, "\n");

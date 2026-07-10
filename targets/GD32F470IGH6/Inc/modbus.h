@@ -108,9 +108,9 @@ extern Modbus g_modbus_485;
 extern Modbus g_modbus;
 
 void ResetModbus(Modbus *modbus);
-bool DecodeModbusData(const uint8_t *array, Modbus *modbus);
+bool DecodeModbusData(const uint8_t *array, uint32_t len, Modbus *modbus);
 
-void ModbusHandle(const uint8_t *array, Modbus *modbus);
+void ModbusHandle(const uint8_t *array, uint32_t len, Modbus *modbus);
 void handleModbusData(const Modbus *modbus);
 void handleModbusDataByFuncCode00(const Modbus *modbus);
 void handleModbusDataByFuncCode01(const Modbus *modbus);
