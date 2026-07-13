@@ -230,14 +230,18 @@ void ATRequestHandle(uint8_t *req, uint32_t len)
         //重新配置RS485
         usart4_reconfig(baud, dataBits, stopBits, parity);
       }
-    } break;
-    case AT_CMD_UNKNOWN:
+    }
+    break;
+    case AT_CMD_UNKNOWN: {
       // 发送命令到ESP32C3
       SendToESP32C3(req, len);
-    default:
+    }
+    break;
+    default: {
       // 发送命令到ESP32C3
       SendToESP32C3(req, len);
-      break;
+    }
+    break;
     }
 }
 
