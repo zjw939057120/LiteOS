@@ -273,27 +273,40 @@ void USART5_IRQHandler(void)
     } 
 }
 /**
- * @brief       串口6中断服务函数
+ * @brief       串口6中断服务函数 (DMA+空闲中断模式)
  * @param       无
  * @retval      无
  */
 void UART6_IRQHandler(void)
 {
-    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_RBNE) != RESET)         /* UART接收中断 */
+    uint32_t recv_len = 0;
+
+    if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
     {
-        USART6_RX_BUF[USART6_RX_CNT] = usart_data_receive(UART6);
-        // SEGGER_RTT_printf(0, "RBNE UART6_RX_BUF[%d] = 0x%02X\n", USART6_RX_CNT, USART6_RX_BUF[USART6_RX_CNT]);
-        USART6_RX_CNT >= DEFAULT_QUEUE_BUF_LEN ? USART6_RX_CNT = 0 : USART6_RX_CNT++;
+        /* 清除空闲中断标志位 */
+        (void)USART_STAT0(UART6);
+        (void)USART_DATA(UART6);
+
+        /* 停止DMA接收 */
+        dma_channel_disable(DMA0, DMA_CH3);
+
+        /* 计算接收到的数据长度 */
+        recv_len = DEFAULT_QUEUE_BUF_LEN - dma_transfer_number_get(DMA0, DMA_CH3);
+
+        if (recv_len > 0 && recv_len <= DEFAULT_QUEUE_BUF_LEN)
+        {
+            /* 发送数据到队列 */
+            QueueSend(g_queueId_uart6, USART6_RX_BUF, recv_len);
+            // SEGGER_RTT_printf_hex(USART6_RX_BUF, recv_len);
+        }
+
+        /* 清除DMA传输完成标志 */
+        dma_flag_clear(DMA0, DMA_CH3, DMA_FLAG_FTF);
+
+        /* 重新设置DMA传输数量并启动DMA */
+        dma_transfer_number_config(DMA0, DMA_CH3, DEFAULT_QUEUE_BUF_LEN);
+        dma_channel_enable(DMA0, DMA_CH3);
     }
-    else if (usart_interrupt_flag_get(UART6, USART_INT_FLAG_IDLE) != RESET)        /* UART总线空闲中断 */
-    {
-         QueueSend(g_queueId_uart6,USART6_RX_BUF, USART6_RX_CNT);
-        // SEGGER_RTT_printf(0, "IDLE USART6_RX_CNT %d\n",USART6_RX_CNT);
-        // SEGGER_RTT_printf_hex(USART6_RX_BUF, USART6_RX_CNT);
-        USART6_RX_CNT = 0;                                                          /* 标记帧接收完成 */
-        (void)USART_STAT0(UART6); 
-        (void)USART_DATA(UART6);   
-    } 
 }
 /**
  * @brief       串口0初始化函数,空气质量传感器MS-VOC-V4
@@ -567,7 +580,7 @@ void usart5_init(uint32_t bound)
     usart_enable(USART5);	                                /* 使能串口 */
 }
 /**
- * @brief       串口6初始化函数,屏幕MCU串口通讯
+ * @brief       串口6初始化函数,屏幕MCU串口通讯 (DMA+空闲中断模式)
  * @param       bound: 波特率, 根据自己需要设置波特率值
  * @retval      无
  */
@@ -575,7 +588,8 @@ void usart6_init(uint32_t bound)
 {
     /* IO 及 时钟配置 */
     rcu_periph_clock_enable(RCU_GPIOF);     /* 使能GPIOF时钟 */
-    rcu_periph_clock_enable(RCU_UART6);    /* 使能串口时钟 */
+    rcu_periph_clock_enable(RCU_UART6);     /* 使能串口时钟 */
+    rcu_periph_clock_enable(RCU_DMA0);      /* 使能DMA0时钟 */
 
     /* 设置UART6_Tx的复用功能选择 */
     gpio_af_set(GPIOF, GPIO_AF_8, GPIO_PIN_7);
@@ -600,17 +614,15 @@ void usart6_init(uint32_t bound)
     usart_transmit_config(UART6, USART_TRANSMIT_ENABLE); /* 使能发送 */
 #if USART_EN_RX  /* 如果使能了接收 */
     usart_receive_config(UART6, USART_RECEIVE_ENABLE);   /* 使能接收 */
-    // usart_interrupt_enable(UART6, USART_INT_RBNE);       /* 使能接收缓冲区非空中断 */
-	// usart_interrupt_enable(UART6, USART_INT_IDLE);       /* 使能空闲线中断 */    
-    // /* 配置NVIC，并设置中断优先级 */
-    // nvic_irq_enable(UART6_IRQn, 0, 0);                   /* 抢占优先级0，子优先级0 */
-    Usart6Hwi();
+    usart_dma_receive_config(UART6, USART_DENR_ENABLE);  /* 使能UART6 DMA接收 */
 #endif
-    /* 清除接收缓冲区残留数据 */
-    (void)usart_data_receive(UART6);
-    usart_flag_clear(UART6, USART_FLAG_RBNE);
 
     usart_enable(UART6);	                                /* 使能串口 */
+
+#if USART_EN_RX  /* 如果使能了接收 */
+    /* 配置DMA和中断 */
+    Usart6Hwi();
+#endif
 }
 
 void usart4_reconfig(uint32_t bound, uint32_t dataBits, uint32_t stopBits, uint32_t parity){
@@ -728,12 +740,34 @@ void Usart5Hwi(void){
   usart_interrupt_enable(USART5, USART_INT_IDLE);
 }
 void Usart6Hwi(void){
+  dma_single_data_parameter_struct dma_init_struct;
+
+  /* 初始化DMA结构体 */
+  dma_single_data_para_struct_init(&dma_init_struct);
+
+  /* 配置DMA0 CH3用于UART6 RX */
+  dma_deinit(DMA0, DMA_CH3);
+  dma_init_struct.direction = DMA_PERIPH_TO_MEMORY;
+  dma_init_struct.memory0_addr = (uint32_t)USART6_RX_BUF;
+  dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;
+  dma_init_struct.periph_memory_width = DMA_PERIPH_WIDTH_8BIT;
+  dma_init_struct.number = DEFAULT_QUEUE_BUF_LEN;
+  dma_init_struct.periph_addr = (uint32_t)&USART_DATA(UART6);
+  dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;
+  dma_init_struct.priority = DMA_PRIORITY_ULTRA_HIGH;
+  dma_single_data_mode_init(DMA0, DMA_CH3, &dma_init_struct);
+
+  /* 配置DMA模式 */
+  dma_circulation_disable(DMA0, DMA_CH3);
+  dma_channel_subperipheral_select(DMA0, DMA_CH3, DMA_SUBPERI5);
+
+  /* 配置NVIC和中断处理 */
   nvic_irq_enable(UART6_IRQn, 0, 0);
-  usart_flag_clear(UART6, USART_INT_RBNE);
-  usart_flag_clear(UART6, USART_INT_IDLE);
   LOS_HwiCreate((UART6_IRQn + 16), 0, 0, UART6_IRQHandler, NULL);
-  usart_interrupt_enable(UART6, USART_INT_RBNE);
-  usart_interrupt_enable(UART6, USART_INT_IDLE);
+  usart_interrupt_enable(UART6, USART_INT_IDLE);  /* 使能空闲中断 */
+
+  /* 使能DMA通道 */
+  dma_channel_enable(DMA0, DMA_CH3);
 }
 void Usart0Req(void)
 {
