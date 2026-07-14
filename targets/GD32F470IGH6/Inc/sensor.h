@@ -67,20 +67,21 @@ enum SensorDataLength {
 };
 
 typedef struct {
-  // 空气质量传感器MS-VOC-V4
-  uint16_t TVOC; // TVOC
-  // 甲醛传感器SC11-CH2O
-  uint16_t CH2O; // CH2O
   // 红外二氧化碳传感器CM1106S
   uint16_t CO2; // CO2
+  // 甲醛传感器SC11-CH2O
+  uint16_t CH2O; // CH2O
+  // 空气质量传感器MS-VOC-V4
+  uint16_t TVOC; // TVOC
   // 激光粉尘传感器PM2012SE
-  uint16_t PM10;  // PM1.0 GRIMM
   uint16_t PM25;  // PM2.5 GRIMM
   uint16_t PM100; // PM10 GRIMM
-  // 湿度传感器
-  uint16_t RH;
   // 温度传感器
   uint16_t TEMP;
+  // 湿度传感器
+  uint16_t RH;
+  // 激光粉尘传感器PM2012SE
+  uint16_t PM10;  // PM1.0 GRIMM
   // 传感器类型
   uint8_t TYPE;
 } Sensor;

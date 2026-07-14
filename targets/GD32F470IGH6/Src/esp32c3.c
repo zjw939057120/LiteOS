@@ -36,7 +36,7 @@
 #define AT_PREFIX_UART_DEF  "AT+UART_DEF="    /* UART默认配置 */
 
 /* AT响应前缀宏定义 */
-#define AT_RES_PREFIX_SENSOR    "+SENSOR:"     /* BLE传感器数据 */
+#define AT_RES_PREFIX_BLE_SENSOR    "+BLE_SENSOR:"     /* BLE传感器数据 */
 
 /* AT命令类型枚举 */
 typedef enum {
@@ -44,14 +44,8 @@ typedef enum {
   AT_CMD_UART_DEF,           /* AT+UART_DEF= UART默认配置 */
 } AT_CMD_TYPE;
 
-/* AT命令结构体 */
-typedef struct {
-  AT_CMD_TYPE type;
-  uint8_t cmd_buf[256];
-  uint32_t cmd_len;
-} AT_CMD;
-
 BLESensorData g_ble_sensor_data = {0};
+char cmd_buf[DEFAULT_QUEUE_BUF_LEN] = {0};
 
 /* 内部函数：实际发送数据到ESP32C3 (USART5) */
 static void SendToESP32C3(const uint8_t *data, uint32_t len)
@@ -125,7 +119,7 @@ static int32_t StrToInt(const uint8_t *str, uint32_t *consumed) {
 }
 
 int32_t parseBLESensor(const uint8_t *data, uint32_t len, BLESensorData *sensor_data) {
-  uint32_t i = strlen(AT_RES_PREFIX_SENSOR);
+  uint32_t i = strlen(AT_RES_PREFIX_BLE_SENSOR);
 
   for (int32_t j = 0; j < BLE_SENSOR_COUNT; j++) {
     while (i < len && data[i] == ',') i++;
@@ -188,7 +182,7 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
   }
 
   SEGGER_RTT_printf(0, "res = %s", res);
-  if (StrStartWith(res, AT_RES_PREFIX_SENSOR)) {
+  if (StrStartWith(res, AT_RES_PREFIX_BLE_SENSOR)) {
     int32_t ret = parseBLESensor(res, len, &g_ble_sensor_data);
     if (ret == 0) {
       // 传感器类型
@@ -299,3 +293,7 @@ bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, 
   return true;
 }
 
+void SendSensorToESPC3(void) {
+  snprintf(cmd_buf, DEFAULT_QUEUE_BUF_LEN, "AT+SENSOR=%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", g_sensor.CO2, g_sensor.CH2O, g_sensor.TVOC, g_sensor.PM25, g_sensor.PM100, g_sensor.TEMP, g_sensor.RH, g_sensor.PM10, g_sensor.TYPE);
+  SendToESP32C3((uint8_t*)cmd_buf, strlen(cmd_buf));
+}

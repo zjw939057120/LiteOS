@@ -57,6 +57,8 @@ void ATResponseHandle(uint8_t *res, uint32_t len);
 
 bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, int* parity, int* addr);
 
+void SendSensorToESPC3(void);
+
 #ifdef __cplusplus
 #if __cplusplus
 }

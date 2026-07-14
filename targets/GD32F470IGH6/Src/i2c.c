@@ -157,8 +157,10 @@ void Aht30Init(void)
     LOS_TaskDelay(10);
 }
 
-UINT8 Aht30Read(float *temperature, float *humidity)
+UINT8 Aht30Read(void)
 {
+    float temperature = 0.0f;
+    float humidity = 0.0f;
     UINT8 cmd[4] = {AHT30_CMD_TRIGGER, 0x33, 0x00};
     UINT8 buf[6];
     UINT32 rawHum = 0, rawTemp = 0;
@@ -176,17 +178,16 @@ UINT8 Aht30Read(float *temperature, float *humidity)
     rawHum = ((UINT32)buf[1] << 12) | ((UINT32)buf[2] << 4) | ((UINT32)buf[3] >> 4);
     rawTemp = (((UINT32)buf[3] & 0x0F) << 16) | ((UINT32)buf[4] << 8) | (UINT32)buf[5];
 
-    *humidity = (float)rawHum / 1048576.0f * 100.0f;
-    *temperature = (float)rawTemp / 1048576.0f * 200.0f - 50.0f;
+    humidity = (float)rawHum / 1048576.0f * 100.0f;
+    temperature = (float)rawTemp / 1048576.0f * 200.0f - 50.0f;
     
-    if (*temperature >= 20.0f) {
-      *temperature = *temperature - 10.0f;
+    // 温度校准
+    if (temperature >= 20.0f) {
+      temperature = temperature - 10.0f;
     }
     //放大10倍，方便后续计算
-    *humidity = *humidity * 10;
-    *temperature = *temperature * 10;
-    g_sensor.RH = *humidity;
-    g_sensor.TEMP = *temperature;
+    g_sensor.RH = humidity * 10;;
+    g_sensor.TEMP = temperature * 10;;
     //传感器类型
     g_sensor.TYPE |= SHT_Sensor;
     g_sensor.TYPE |= HMT_Sensor;

@@ -59,7 +59,7 @@ void I2cInit(void);
 void I2c1Write(UINT8 devAddr, UINT8 *data, UINT8 len);
 void I2c1Read(UINT8 devAddr, UINT8 *buf, UINT8 len);
 void Aht30Init(void);
-UINT8 Aht30Read(float *temperature, float *humidity);
+UINT8 Aht30Read(void);
 
 #ifdef __cplusplus
 #if __cplusplus
