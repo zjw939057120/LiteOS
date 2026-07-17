@@ -41,6 +41,7 @@ extern "C" {
 
 #define USART_EN_RX 1 /* 使能（1）/禁止（0）串口0接收 */
 
+//CRC16-MODBUS校验函数
 uint16_t Crc_Cal(uint8_t * Data_Buff,uint16_t Data_Length);
 
 void usart0_init(uint32_t bound);                /* 串口初始化函数,空气质量传感器MS-VOC-V4 */

@@ -33,15 +33,14 @@
 #include <complex.h>
 #include "modbus.h"
 /* AT命令前缀宏定义 */
-#define AT_PREFIX_UART_DEF  "AT+UART_DEF="    /* UART默认配置 */
 
 /* AT响应前缀宏定义 */
 #define AT_RES_PREFIX_BLE_SENSOR    "+BLE_SENSOR:"     /* BLE传感器数据 */
+#define AT_RES_PREFIX_UART_DEF    "+UART_DEF:"     /* UART默认配置 */
 
 /* AT命令类型枚举 */
 typedef enum {
   AT_CMD_UNKNOWN = 0,
-  AT_CMD_UART_DEF,           /* AT+UART_DEF= UART默认配置 */
 } AT_CMD_TYPE;
 
 BLESensorData g_ble_sensor_data = {0};
@@ -163,9 +162,6 @@ static AT_CMD_TYPE ParseATCommand(const uint8_t *cmd, uint32_t len)
   else if (cmd[0] != 'A' || cmd[1] != 'T') {
     return AT_CMD_UNKNOWN;
   }
-  else if (StrStartWith(cmd, AT_PREFIX_UART_DEF)) {
-    return AT_CMD_UART_DEF;
-  }
   return AT_CMD_UNKNOWN;
 }
 
@@ -194,7 +190,23 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
       // }
       // SEGGER_RTT_printf(0, "wifi=%d,rssi=%d\n", g_ble_sensor_data.wifi_status, g_ble_sensor_data.wifi_rssi);
     }
+    // BLE传感器数据不转发
     return;
+  }else if (StrStartWith(res, AT_RES_PREFIX_UART_DEF)) {
+      // 解析UART配置命令
+      int baud = 0, dataBits = 0, stopBits = 0, parity = 0, addr = 0;
+      if (parseUartConfigCommand((char*)res, &baud, &dataBits, &stopBits, &parity, &addr)) {
+        // 配置成功
+        g_uart_config.baud = baud;
+        g_uart_config.dataBits = dataBits;
+        g_uart_config.stopBits = stopBits;
+        g_uart_config.parity = parity;
+        g_uart_config.addr = addr;
+        //重新配置RS485
+        usart4_reconfig(baud, dataBits, stopBits, parity);
+      }
+      // UART默认配置不转发
+      return;
   }
 
   /* 转发响应到USART6 */
@@ -209,23 +221,6 @@ void ATRequestHandle(uint8_t *req, uint32_t len)
   SEGGER_RTT_printf(0, "req = %s, cmd_type = %d\n", req, cmd_type);
   /* 根据命令类型分发处理 */
   switch (cmd_type) {
-    case AT_CMD_UART_DEF: {
-      // 发送命令到ESP32C3
-      SendToESP32C3(req, len);
-      // 解析UART配置命令
-      int baud = 0, dataBits = 0, stopBits = 0, parity = 0, addr = 0;
-      if (parseUartConfigCommand((char*)req, &baud, &dataBits, &stopBits, &parity, &addr)) {
-        // 配置成功
-        g_uart_config.baud = baud;
-        g_uart_config.dataBits = dataBits;
-        g_uart_config.stopBits = stopBits;
-        g_uart_config.parity = parity;
-        g_uart_config.addr = addr;
-        //重新配置RS485
-        usart4_reconfig(baud, dataBits, stopBits, parity);
-      }
-    }
-    break;
     case AT_CMD_UNKNOWN: {
       // 发送命令到ESP32C3
       SendToESP32C3(req, len);
@@ -240,7 +235,7 @@ void ATRequestHandle(uint8_t *req, uint32_t len)
 }
 
 bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, int* parity, int* addr) {
-  char* paramStart = cmd + strlen(AT_PREFIX_UART_DEF);
+  char* paramStart = cmd + strlen(AT_RES_PREFIX_UART_DEF);
   char* next = strchr(paramStart, ',');
   if (next == NULL) {
     return false;
