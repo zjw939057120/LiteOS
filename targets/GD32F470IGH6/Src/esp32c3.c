@@ -205,8 +205,6 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
         //重新配置RS485
         usart4_reconfig(baud, dataBits, stopBits, parity);
       }
-      // UART默认配置不转发
-      return;
   }
 
   /* 转发响应到USART6 */
