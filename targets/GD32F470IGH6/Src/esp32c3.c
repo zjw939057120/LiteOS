@@ -186,25 +186,29 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
       g_sensor.TYPE |= HMT_Sensor;
       // BLE传感器数据
       // for (int32_t i = 0; i < BLE_SENSOR_COUNT; i++) {
-      //   SEGGER_RTT_printf(0, "T%d=%d,H%d=%d ", i, g_ble_sensor_data.temp[i], i, g_ble_sensor_data.humi[i]);
+      //   SEGGER_RTT_printf(0, "T%d=%d,H%d=%d ", i, g_ble_sensor_data.temp[i],
+      //   i, g_ble_sensor_data.humi[i]);
       // }
-      // SEGGER_RTT_printf(0, "wifi=%d,rssi=%d\n", g_ble_sensor_data.wifi_status, g_ble_sensor_data.wifi_rssi);
+      // SEGGER_RTT_printf(0, "wifi=%d,rssi=%d\n",
+      // g_ble_sensor_data.wifi_status, g_ble_sensor_data.wifi_rssi);
     }
-    // BLE传感器数据不转发
     return;
-  }else if (StrStartWith(res, AT_RES_PREFIX_UART_DEF)) {
-      // 解析UART配置命令
-      int baud = 0, dataBits = 0, stopBits = 0, parity = 0, addr = 0;
-      if (parseUartConfigCommand((char*)res, &baud, &dataBits, &stopBits, &parity, &addr)) {
-        // 配置成功
-        g_uart_config.baud = baud;
-        g_uart_config.dataBits = dataBits;
-        g_uart_config.stopBits = stopBits;
-        g_uart_config.parity = parity;
-        g_uart_config.addr = addr;
-        //重新配置RS485
-        usart4_reconfig(baud, dataBits, stopBits, parity);
-      }
+  } else if (StrStartWith(res, AT_RES_PREFIX_UART_DEF)) {
+    SendResponseToUSART6(res, len);// 发送UART配置命令到USART6
+    // 解析UART配置命令
+    int baud = 0, dataBits = 0, stopBits = 0, parity = 0, addr = 0;
+    if (parseUartConfigCommand((char *)res, &baud, &dataBits, &stopBits,
+                               &parity, &addr)) {
+      // 配置成功
+      g_uart_config.baud = baud;
+      g_uart_config.dataBits = dataBits;
+      g_uart_config.stopBits = stopBits;
+      g_uart_config.parity = parity;
+      g_uart_config.addr = addr;
+      // 重新配置RS485
+      usart4_reconfig(baud, dataBits, stopBits, parity);
+    }
+    return;
   }
 
   /* 转发响应到USART6 */
@@ -215,10 +219,10 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
 void ATRequestHandle(uint8_t *req, uint32_t len)
 {
   /* 解析AT命令类型 */
-  AT_CMD_TYPE cmd_type = ParseATCommand(req, len);
-  SEGGER_RTT_printf(0, "req = %s, cmd_type = %d\n", req, cmd_type);
+  AT_CMD_TYPE type = ParseATCommand(req, len);
+  SEGGER_RTT_printf(0, "req = %s, type = %d\n", req, type);
   /* 根据命令类型分发处理 */
-  switch (cmd_type) {
+  switch (type) {
     case AT_CMD_UNKNOWN: {
       // 发送命令到ESP32C3
       SendToESP32C3(req, len);
