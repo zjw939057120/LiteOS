@@ -92,7 +92,7 @@ typedef struct {
   uint16_t reg_addr;   // 寄存器地址
   uint16_t reg_number; // 寄存器数量
   uint16_t crc_sum;    // CRC校验码
-  bool is_485;       // 是否485模式
+  bool is_hmi;       // 是否HMI请求
 } Modbus;
 
 typedef struct {
@@ -104,7 +104,7 @@ typedef struct {
 } UartConfig_t;
 
 extern UartConfig_t g_uart_config;
-extern Modbus g_modbus_485;
+extern Modbus g_modbus_hmi;
 extern Modbus g_modbus;
 
 void ResetModbus(Modbus *modbus);
@@ -119,7 +119,7 @@ void handleModbusDataByFuncCode03(const Modbus *modbus);
 void handleModbusDataByFuncCode04(const Modbus *modbus);
 void handleModbusDataByFuncCode05(const Modbus *modbus);
 void handleModbusDataByFuncCode06(const Modbus *modbus);
-void sendModbusData(bool is_485, const uint8_t *Array, uint16_t Length);
+void sendModbusData(const uint8_t *Array, uint16_t Length, bool is_hmi);
 void rs485_en(bool enable);
 
 #ifdef __cplusplus

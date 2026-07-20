@@ -52,7 +52,8 @@ extern BLESensorData g_ble_sensor_data;
 
 int32_t parseBLESensor(const uint8_t *data, uint32_t len, BLESensorData *sensor_data);
 
-void ATRequestHandle(uint8_t *req, uint32_t len);
+void ATRequestHandle(uint8_t *req, uint32_t len, bool is_hmi);
+
 void ATResponseHandle(uint8_t *res, uint32_t len);
 
 bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, int* parity, int* addr);

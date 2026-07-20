@@ -38,16 +38,16 @@
 #define AT_RES_PREFIX_BLE_SENSOR    "+BLE_SENSOR:"     /* BLE传感器数据 */
 #define AT_RES_PREFIX_UART_DEF    "+UART_DEF:"     /* UART默认配置 */
 
-/* AT命令类型枚举 */
-typedef enum {
-  AT_CMD_UNKNOWN = 0,
-} AT_CMD_TYPE;
+
+
+// 是否是HMI请求
+bool is_hmi_request = true;
 
 BLESensorData g_ble_sensor_data = {0};
 char cmd_buf[DEFAULT_QUEUE_BUF_LEN] = {0};
 
 /* 内部函数：实际发送数据到ESP32C3 (USART5) */
-static void SendToESP32C3(const uint8_t *data, uint32_t len)
+static void SendATRequest(const uint8_t *data, uint32_t len)
 {
   Seria_SendArray(USART5, data, len);
 }
@@ -152,23 +152,21 @@ int32_t parseBLESensor(const uint8_t *data, uint32_t len, BLESensorData *sensor_
   return 0;
 }
 
-/* 解析AT命令类型 */
-static AT_CMD_TYPE ParseATCommand(const uint8_t *cmd, uint32_t len)
+/* 发送AT响应到USART4或USART6 */
+static void SendATResponse(const uint8_t *data, uint32_t len)
 {
-  if (cmd == NULL || len < 2) {
-    return AT_CMD_UNKNOWN;
-  }
-  /* 检查是否是AT开头 */
-  else if (cmd[0] != 'A' || cmd[1] != 'T') {
-    return AT_CMD_UNKNOWN;
-  }
-  return AT_CMD_UNKNOWN;
-}
 
-/* 发送AT响应到USART6 */
-static void SendResponseToUSART6(const uint8_t *data, uint32_t len)
-{
-  Seria_SendArray(UART6, data, len);
+  // HMI请求，发送到USART6
+  if (is_hmi_request) {
+    Seria_SendArray(UART6, data, len);
+    return;
+  }
+  // 非HMI请求，发送到USART4
+  rs485_en(true);
+  LOS_TaskDelay(5);
+  Seria_SendArray(UART4, data, len);
+  rs485_en(false);
+  LOS_TaskDelay(5);
 }
 
 /* 处理ESP32C3的响应数据 */
@@ -194,7 +192,7 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
     }
     return;
   } else if (StrStartWith(res, AT_RES_PREFIX_UART_DEF)) {
-    SendResponseToUSART6(res, len);// 发送UART配置命令到USART6
+    SendATResponse(res, len);// 发送UART配置命令到USART6
     // 解析UART配置命令
     int baud = 0, dataBits = 0, stopBits = 0, parity = 0, addr = 0;
     if (parseUartConfigCommand((char *)res, &baud, &dataBits, &stopBits,
@@ -212,28 +210,21 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
   }
 
   /* 转发响应到USART6 */
-  SendResponseToUSART6(res, len);
+  SendATResponse(res, len);
 }
 
 /* AT命令请求处理入口 */
-void ATRequestHandle(uint8_t *req, uint32_t len)
+void ATRequestHandle(uint8_t *req, uint32_t len, bool is_hmi)
 {
-  /* 解析AT命令类型 */
-  AT_CMD_TYPE type = ParseATCommand(req, len);
-  SEGGER_RTT_printf(0, "req = %s, type = %d\n", req, type);
-  /* 根据命令类型分发处理 */
-  switch (type) {
-    case AT_CMD_UNKNOWN: {
-      // 发送命令到ESP32C3
-      SendToESP32C3(req, len);
-    }
-    break;
-    default: {
-      // 发送命令到ESP32C3
-      SendToESP32C3(req, len);
-    }
-    break;
-    }
+  if (req == NULL || len == 0) {
+    return;
+  }
+  // 标记是否是HMI请求
+  is_hmi_request = is_hmi;
+  SEGGER_RTT_printf(0, "req = %s, is_hmi = %d\n", req, is_hmi);
+
+  // 发送命令到ESP32C3
+  SendATRequest(req, len);
 }
 
 bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, int* parity, int* addr) {
@@ -292,5 +283,5 @@ bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, 
 
 void SendSensorToESPC3(void) {
   snprintf(cmd_buf, DEFAULT_QUEUE_BUF_LEN, "AT+SENSOR=%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", g_sensor.CO2, g_sensor.CH2O, g_sensor.TVOC, g_sensor.PM25, g_sensor.PM100, g_sensor.TEMP, g_sensor.RH, g_sensor.PM10, g_sensor.TYPE);
-  SendToESP32C3((uint8_t*)cmd_buf, strlen(cmd_buf));
+  SendATRequest((uint8_t*)cmd_buf, strlen(cmd_buf));
 }
