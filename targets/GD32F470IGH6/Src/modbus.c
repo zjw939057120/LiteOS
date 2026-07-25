@@ -148,10 +148,16 @@ void handleModbusDataByFuncCode03(const Modbus *modbus) {
   g_sonsor_meter.wifi_status = toolkit_swap_uint16(g_ble_sensor_data.wifi_status);
   g_sonsor_meter.wifi_rssi = toolkit_swap_uint16(abs(g_ble_sensor_data.wifi_rssi));
   g_sonsor_meter.crc_sum = toolkit_swap_uint16(
-      Crc_Cal((uint8_t *)&g_sonsor_meter,
-              sizeof(g_sonsor_meter) - sizeof(g_sonsor_meter.crc_sum)));
-  // SEGGER_RTT_printf_hex((uint8_t *)&g_sonsor_meter, sizeof(g_sonsor_meter));
-  sendModbusData((uint8_t *)&g_sonsor_meter, sizeof(g_sonsor_meter), modbus->is_hmi);
+      Crc_Cal((uint8_t *)&g_sonsor_meter, g_sonsor_meter.len + 3));
+  // 构建Modbus数据包
+  // DeVadd + Functioncode + len + len * 2 + crc_sum
+  uint8_t *array = (uint8_t *)&g_sonsor_meter;
+  // 写入校验和
+  memcpy(array + g_sonsor_meter.len + 3, &g_sonsor_meter.crc_sum, sizeof(g_sonsor_meter.crc_sum));
+  // SEGGER_RTT_printf_hex(array, g_sonsor_meter.len + 5);
+  sendModbusData(array, g_sonsor_meter.len + 5, modbus->is_hmi);
+  // 清空数据结构体
+  memset(&g_sonsor_meter, 0, sizeof(g_sonsor_meter));
 }
 void handleModbusDataByFuncCode04(const Modbus *modbus) {
   // 写入寄存器数据
