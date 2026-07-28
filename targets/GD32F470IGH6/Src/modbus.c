@@ -156,8 +156,6 @@ void handleModbusDataByFuncCode03(const Modbus *modbus) {
   memcpy(array + g_sonsor_meter.len + 3, &g_sonsor_meter.crc_sum, sizeof(g_sonsor_meter.crc_sum));
   // SEGGER_RTT_printf_hex(array, g_sonsor_meter.len + 5);
   sendModbusData(array, g_sonsor_meter.len + 5, modbus->is_hmi);
-  // 清空数据结构体
-  memset(&g_sonsor_meter, 0, sizeof(g_sonsor_meter));
 }
 void handleModbusDataByFuncCode04(const Modbus *modbus) {
   // 写入寄存器数据

@@ -42,10 +42,11 @@ extern "C" {
 #define BLE_SENSOR_COUNT 10
 
 typedef struct {
-  int16_t temp[BLE_SENSOR_COUNT];
-  int16_t humi[BLE_SENSOR_COUNT];
-  int16_t wifi_status;
-  int16_t wifi_rssi;
+  int16_t count;//传感器数量
+  int16_t temp[BLE_SENSOR_COUNT];//温度
+  int16_t humi[BLE_SENSOR_COUNT];//湿度
+  int16_t wifi_status;//WiFi状态
+  int16_t wifi_rssi;//WiFi信号强度
 } BLESensorData;
 
 extern BLESensorData g_ble_sensor_data;

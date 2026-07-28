@@ -120,10 +120,18 @@ static int32_t StrToInt(const uint8_t *str, uint32_t *consumed) {
 int32_t parseBLESensor(const uint8_t *data, uint32_t len, BLESensorData *sensor_data) {
   uint32_t i = strlen(AT_RES_PREFIX_BLE_SENSOR);
 
+  // 解析传感器数量
+  while (i < len && data[i] == ',') i++;
+  if (i >= len) return -1;
+  uint32_t consumed = 0;
+  sensor_data->count = (int8_t)StrToInt(&data[i], &consumed);
+  if (consumed == 0) return -1;
+  i += consumed;
+
   for (int32_t j = 0; j < BLE_SENSOR_COUNT; j++) {
     while (i < len && data[i] == ',') i++;
     if (i >= len) return -1;
-    uint32_t consumed = 0;
+    consumed = 0;
     sensor_data->temp[j] = (int16_t)StrToInt(&data[i], &consumed);
     if (consumed == 0) return -1;
     i += consumed;
@@ -136,13 +144,15 @@ int32_t parseBLESensor(const uint8_t *data, uint32_t len, BLESensorData *sensor_
     i += consumed;
   }
 
+  // 解析WiFi状态
   while (i < len && data[i] == ',') i++;
   if (i >= len) return -1;
-  uint32_t consumed = 0;
+  consumed = 0;
   sensor_data->wifi_status = (int8_t)StrToInt(&data[i], &consumed);
   if (consumed == 0) return -1;
   i += consumed;
 
+  // 解析WiFi信号强度
   while (i < len && data[i] == ',') i++;
   if (i >= len) return -1;
   consumed = 0;
@@ -180,15 +190,17 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
     int32_t ret = parseBLESensor(res, len, &g_ble_sensor_data);
     if (ret == 0) {
       // 传感器类型
-      g_sensor.TYPE |= SHT_Sensor;
-      g_sensor.TYPE |= HMT_Sensor;
+      if (g_ble_sensor_data.count > 0) {
+        g_sensor.TYPE |= SHT_Sensor;
+        g_sensor.TYPE |= HMT_Sensor;
+      }
       // BLE传感器数据
       // for (int32_t i = 0; i < BLE_SENSOR_COUNT; i++) {
       //   SEGGER_RTT_printf(0, "T%d=%d,H%d=%d ", i, g_ble_sensor_data.temp[i],
       //   i, g_ble_sensor_data.humi[i]);
       // }
-      // SEGGER_RTT_printf(0, "wifi=%d,rssi=%d\n",
-      // g_ble_sensor_data.wifi_status, g_ble_sensor_data.wifi_rssi);
+      // SEGGER_RTT_printf(0, "count=%d,wifi=%d,rssi=%d\n",
+      // g_ble_sensor_data.count, g_ble_sensor_data.wifi_status, g_ble_sensor_data.wifi_rssi);
     }
     return;
   } else if (StrStartWith(res, AT_RES_PREFIX_UART_DEF)) {
