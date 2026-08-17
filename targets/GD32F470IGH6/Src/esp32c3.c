@@ -66,100 +66,51 @@ static int32_t StrStartWith(const uint8_t *str, const char *prefix)
   return 1;
 }
 
-/* 查找子字符串，返回匹配位置索引，未找到返回-1 */
-int32_t StrWith(const uint8_t *text, const char *pattern)
-{
-  if (!text || !pattern) return -1;
-
-  uint32_t text_len = 0;
-  const uint8_t *p = text;
-  while (*p != '\0') {
-    text_len++;
-    p++;
+bool parseBLESensor(char* cmd, BLESensorData *sensor_data) {
+  char* token = cmd + strlen(AT_RES_PREFIX_BLE_SENSOR);
+  char* next = strchr(token, ',');
+  if (next == NULL) {
+    return false;
   }
-  uint32_t pattern_len = 0;
-  const char *n = pattern;
-  while (*n != '\0') {
-    pattern_len++;
-    n++;
-  }
+  *next = '\0';
+  sensor_data->count = atoi(token);
 
-  /* 边界检查：模式串不能为空，且不能长于主串 */
-  if (pattern_len == 0 || pattern_len > text_len) return -1;
-
-  for (uint32_t i = 0; i <= text_len - pattern_len; i++) {
-    /* 使用 memcmp 进行内存块比较，通常比逐字符循环更快 */
-    if (memcmp(text + i, pattern, pattern_len) == 0) {
-      return (int)i;
+  for (int32_t i = 0; i < BLE_SENSOR_COUNT; i++) {
+    // 温度
+    token = next + 1;
+    next = strchr(token, ',');
+    if (next == NULL) {
+      return false;
     }
-  }
-  return -1;
-}
-
-static int32_t StrToInt(const uint8_t *str, uint32_t *consumed) {
-  if (!str || !consumed) return 0;
-  *consumed = 0;
-  int32_t result = 0;
-  int8_t sign = 1;
-  if (*str == '-') {
-    sign = -1;
-    str++;
-    (*consumed)++;
-  } else if (*str == '+') {
-    str++;
-    (*consumed)++;
-  }
-  while (*str >= '0' && *str <= '9') {
-    result = result * 10 + (*str - '0');
-    str++;
-    (*consumed)++;
-  }
-  return result * sign;
-}
-
-int32_t parseBLESensor(const uint8_t *data, uint32_t len, BLESensorData *sensor_data) {
-  uint32_t i = strlen(AT_RES_PREFIX_BLE_SENSOR);
-
-  // 解析传感器数量
-  while (i < len && data[i] == ',') i++;
-  if (i >= len) return -1;
-  uint32_t consumed = 0;
-  sensor_data->count = (int8_t)StrToInt(&data[i], &consumed);
-  if (consumed == 0) return -1;
-  i += consumed;
-
-  for (int32_t j = 0; j < BLE_SENSOR_COUNT; j++) {
-    while (i < len && data[i] == ',') i++;
-    if (i >= len) return -1;
-    consumed = 0;
-    sensor_data->temp[j] = (int16_t)StrToInt(&data[i], &consumed);
-    if (consumed == 0) return -1;
-    i += consumed;
-
-    while (i < len && data[i] == ',') i++;
-    if (i >= len) return -1;
-    consumed = 0;
-    sensor_data->humi[j] = (int16_t)StrToInt(&data[i], &consumed);
-    if (consumed == 0) return -1;
-    i += consumed;
+    *next = '\0';
+    sensor_data->temp[i] = atoi(token);
+    // 湿度
+    token = next + 1;
+    next = strchr(token, ',');
+    if (next == NULL) {
+      return false;
+    }
+    *next = '\0';
+    sensor_data->humi[i] = atoi(token);
   }
 
   // 解析WiFi状态
-  while (i < len && data[i] == ',') i++;
-  if (i >= len) return -1;
-  consumed = 0;
-  sensor_data->wifi_status = (int8_t)StrToInt(&data[i], &consumed);
-  if (consumed == 0) return -1;
-  i += consumed;
-
+  token = next + 1;
+  next = strchr(token, ',');
+  if (next == NULL) {
+    return false;
+  }
+  *next = '\0';
+  sensor_data->wifi_status = atoi(token);
   // 解析WiFi信号强度
-  while (i < len && data[i] == ',') i++;
-  if (i >= len) return -1;
-  consumed = 0;
-  sensor_data->wifi_rssi = (int8_t)StrToInt(&data[i], &consumed);
-  if (consumed == 0) return -1;
-
-  return 0;
+  token = next + 1;
+  next = strchr(token, ',');
+  if (next == NULL) {
+    return false;
+  }
+  *next = '\0';
+  sensor_data->wifi_rssi = atoi(token);
+  return true;
 }
 
 /* 发送AT响应到USART4或USART6 */
@@ -187,7 +138,7 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
 
   SEGGER_RTT_printf(0, "res = %s", res);
   if (StrStartWith(res, AT_RES_PREFIX_BLE_SENSOR)) {
-    int32_t ret = parseBLESensor(res, len, &g_ble_sensor_data);
+    int32_t ret = parseBLESensor((char *)res, &g_ble_sensor_data);
     if (ret == 0) {
       // 传感器类型
       if (g_ble_sensor_data.count > 0) {
@@ -240,15 +191,15 @@ void ATRequestHandle(uint8_t *req, uint32_t len, bool is_hmi)
 }
 
 bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, int* parity, int* addr) {
-  char* paramStart = cmd + strlen(AT_RES_PREFIX_UART_DEF);
-  char* next = strchr(paramStart, ',');
+  char* token = cmd + strlen(AT_RES_PREFIX_UART_DEF);
+  char* next = strchr(token, ',');
   if (next == NULL) {
     return false;
   }
   *next = '\0';
-  *baud = atoi(paramStart);
+  *baud = atoi(token);
 
-  char* token = next + 1;
+  token = next + 1;
   next = strchr(token, ',');
   if (next == NULL) {
     return false;
