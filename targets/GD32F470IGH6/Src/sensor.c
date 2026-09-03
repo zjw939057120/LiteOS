@@ -35,21 +35,21 @@ Sensor g_sensor = {0};
 
 void DecodeSensorDataTVOC(const uint8_t *array, Sensor *sensor) {
   // TVOC(ug/m3) = Data[8]*256+Data[9]
-  sensor->TVOC = toolkit_uint16_little(array + 8);
+  sensor->TVOC = swap_uint16_array(array + 8);
   // 传感器类型
   sensor->TYPE |= TVOC_Sensor;
 }
 
 void DecodeSensorDataCH2O(const uint8_t *array, Sensor *sensor) {
   // CH2O = (Data[2]*256+Data[3]),PPM= PPB/1000
-  sensor->CH2O = toolkit_uint16_little(array + 2);
+  sensor->CH2O = swap_uint16_array(array + 2);
   // 传感器类型
   sensor->TYPE |= HH2O_Sensor;
 }
 
 void DecodeSensorDataCO2(const uint8_t *array, Sensor *sensor) {
   // CO2 = (Data[3]*256+Data[4])
-  sensor->CO2 = toolkit_uint16_little(array + 3);
+  sensor->CO2 = swap_uint16_array(array + 3);
   // 传感器类型
   sensor->TYPE |= CO2_Sensor;
 }
@@ -57,19 +57,19 @@ void DecodeSensorDataCO2(const uint8_t *array, Sensor *sensor) {
 void DecodeSensorDataPM10(const uint8_t *array, Sensor *sensor) {
   // PM1.0 GRIMM = DF1*256^3 + DF2*256^2 + DF3*256^1 + DF4
   // 传感器类型
-  sensor->PM10 = toolkit_uint32_little(array + 3);
+  sensor->PM10 = swap_uint32_array(array + 3);
 }
 
 void DecodeSensorDataPM25(const uint8_t *array, Sensor *sensor) {
   // PM2.5 GRIMM = DF5*256^3 + DF6*256^2 + DF7*256^1 + DF8
-  sensor->PM25 = toolkit_uint32_little(array + 7);
+  sensor->PM25 = swap_uint32_array(array + 7);
   // 传感器类型
   sensor->TYPE |= PM25_Sensor;
 }
 
 void DecodeSensorDataPM100(const uint8_t *array, Sensor *sensor) {
   // PM10 GRIMM = DF9*256^3 + DF10*256^2 + DF11*256^1 + DF12
-  sensor->PM100 = toolkit_uint32_little(array + 11);
+  sensor->PM100 = swap_uint32_array(array + 11);
   // 传感器类型
   sensor->TYPE |= PM100_Sensor;
 }

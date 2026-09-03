@@ -56,9 +56,9 @@ bool DecodeModbusData(const uint8_t *array, uint32_t len, Modbus *modbus) {
   }
   modbus->address = array[0];
   modbus->func_code = array[1];
-  modbus->reg_addr = toolkit_uint16_little(array + 2);
-  modbus->reg_number = toolkit_uint16_little(array + 4);
-  modbus->crc_sum = toolkit_uint16_little(array + 6);
+  modbus->reg_addr = swap_uint16_array(array + 2);
+  modbus->reg_number = swap_uint16_array(array + 4);
+  modbus->crc_sum = swap_uint16_array(array + 6);
   return true;
 }
 
@@ -109,53 +109,76 @@ void handleModbusDataByFuncCode02(const Modbus *modbus) {
   SEGGER_RTT_printf(0, "%s %d\n", __func__, modbus->func_code);
 }
 
-// 0x01, 0x03, 0x12, 0x08, 0x2E, 0x00, 0x0D, 0x00,
-// 0xFD, 0x00, 0x05, 0x00, 0x05, 0x00, 0xE7, 0x01,
-// 0x6D, 0x00, 0x05, 0x00, 0x7F, 0xD7, 0x9B
+  // 头部固定 3 字节: DeVadd + Functioncode + len
+  const uint16_t head_size = 3;
+  // CRC固定 2 字节
+  const uint16_t crc_size = 2;
+  // 数据区可读寄存器数: sizeof(Sonsor_meter) 减去头部与 crc_sum
+  const uint16_t data_regs = (sizeof(Sonsor_meter) - head_size - crc_size) / 2;
+
 void handleModbusDataByFuncCode03(const Modbus *modbus) {
+  // 边界校验：限定 reg_addr / reg_number 不越界
+  uint16_t start = modbus->reg_addr;
+  uint16_t count = modbus->reg_number;
+  if (start >= data_regs) {
+    start = 0;
+    count = data_regs;
+  }
+  if (count == 0 || count > data_regs - start) {
+    count = data_regs - start;
+  }
   g_sonsor_meter.DeVadd = modbus->address;
   g_sonsor_meter.Functioncode = modbus->func_code;
-  g_sonsor_meter.len = modbus->reg_number * 2;
-  g_sonsor_meter.CO2_Sonsor_data = toolkit_swap_uint16(g_sensor.CO2);
-  g_sonsor_meter.CH2O_Sonsor_data = toolkit_swap_uint16(g_sensor.CH2O);
-  g_sonsor_meter.TVOC_Sonsor_data = toolkit_swap_uint16(g_sensor.TVOC);
-  g_sonsor_meter.PM25_Sonsor_data = toolkit_swap_uint32(g_sensor.PM25);
-  g_sonsor_meter.PM100_Sonsor_data = toolkit_swap_uint32(g_sensor.PM100);
-  g_sonsor_meter.TEMP_Sonsor_data = toolkit_swap_uint16(g_sensor.TEMP);
-  g_sonsor_meter.RH_Sonsor_data = toolkit_swap_uint16(g_sensor.RH);
-  g_sonsor_meter.PM10_Sonsor_data = toolkit_swap_uint32(g_sensor.PM10);
-  g_sonsor_meter.Sonsor_Type = toolkit_swap_uint16(g_sensor.TYPE);
-  g_sonsor_meter.TEMP_Sonsor_data_1 = toolkit_swap_uint16(g_ble_sensor_data.temp[0]);
-  g_sonsor_meter.RH_Sonsor_data_1 = toolkit_swap_uint16(g_ble_sensor_data.humi[0]);
-  g_sonsor_meter.TEMP_Sonsor_data_2 = toolkit_swap_uint16(g_ble_sensor_data.temp[1]);
-  g_sonsor_meter.RH_Sonsor_data_2 = toolkit_swap_uint16(g_ble_sensor_data.humi[1]);
-  g_sonsor_meter.TEMP_Sonsor_data_3 = toolkit_swap_uint16(g_ble_sensor_data.temp[2]);
-  g_sonsor_meter.RH_Sonsor_data_3 = toolkit_swap_uint16(g_ble_sensor_data.humi[2]);
-  g_sonsor_meter.TEMP_Sonsor_data_4 = toolkit_swap_uint16(g_ble_sensor_data.temp[3]);
-  g_sonsor_meter.RH_Sonsor_data_4 = toolkit_swap_uint16(g_ble_sensor_data.humi[3]);
-  g_sonsor_meter.TEMP_Sonsor_data_5 = toolkit_swap_uint16(g_ble_sensor_data.temp[4]);
-  g_sonsor_meter.RH_Sonsor_data_5 = toolkit_swap_uint16(g_ble_sensor_data.humi[4]);
-  g_sonsor_meter.TEMP_Sonsor_data_6 = toolkit_swap_uint16(g_ble_sensor_data.temp[5]);
-  g_sonsor_meter.RH_Sonsor_data_6 = toolkit_swap_uint16(g_ble_sensor_data.humi[5]);
-  g_sonsor_meter.TEMP_Sonsor_data_7 = toolkit_swap_uint16(g_ble_sensor_data.temp[6]);
-  g_sonsor_meter.RH_Sonsor_data_7 = toolkit_swap_uint16(g_ble_sensor_data.humi[6]);
-  g_sonsor_meter.TEMP_Sonsor_data_8 = toolkit_swap_uint16(g_ble_sensor_data.temp[7]);
-  g_sonsor_meter.RH_Sonsor_data_8 = toolkit_swap_uint16(g_ble_sensor_data.humi[7]);
-  g_sonsor_meter.TEMP_Sonsor_data_9 = toolkit_swap_uint16(g_ble_sensor_data.temp[8]);
-  g_sonsor_meter.RH_Sonsor_data_9 = toolkit_swap_uint16(g_ble_sensor_data.humi[8]);
-  g_sonsor_meter.TEMP_Sonsor_data_10 = toolkit_swap_uint16(g_ble_sensor_data.temp[9]);
-  g_sonsor_meter.RH_Sonsor_data_10 = toolkit_swap_uint16(g_ble_sensor_data.humi[9]);
-  g_sonsor_meter.wifi_status = toolkit_swap_uint16(g_ble_sensor_data.wifi_status);
-  g_sonsor_meter.wifi_rssi = toolkit_swap_uint16(abs(g_ble_sensor_data.wifi_rssi));
-  g_sonsor_meter.crc_sum = toolkit_swap_uint16(
-      Crc_Cal((uint8_t *)&g_sonsor_meter, g_sonsor_meter.len + 3));
-  // 构建Modbus数据包
-  // DeVadd + Functioncode + len + len * 2 + crc_sum
+  g_sonsor_meter.len = count * 2;
+  // 准备全部寄存器值(按结构体顺序)
+  uint16_t regs[data_regs];
+  regs[0]  = swap_uint16(g_sensor.CO2);
+  regs[1]  = swap_uint16(g_sensor.CH2O);
+  regs[2]  = swap_uint16(g_sensor.TVOC);
+  regs[3]  = swap_uint32(g_sensor.PM25);
+  regs[4]  = swap_uint32(g_sensor.PM100);
+  regs[5]  = swap_uint16(g_sensor.TEMP);
+  regs[6]  = swap_uint16(g_sensor.RH);
+  regs[7]  = swap_uint32(g_sensor.PM10);
+  regs[8]  = swap_uint16(g_sensor.TYPE);
+  regs[9]  = swap_uint16(g_ble_sensor_data.temp[0]);
+  regs[10] = swap_uint16(g_ble_sensor_data.humi[0]);
+  regs[11] = swap_uint16(g_ble_sensor_data.temp[1]);
+  regs[12] = swap_uint16(g_ble_sensor_data.humi[1]);
+  regs[13] = swap_uint16(g_ble_sensor_data.temp[2]);
+  regs[14] = swap_uint16(g_ble_sensor_data.humi[2]);
+  regs[15] = swap_uint16(g_ble_sensor_data.temp[3]);
+  regs[16] = swap_uint16(g_ble_sensor_data.humi[3]);
+  regs[17] = swap_uint16(g_ble_sensor_data.temp[4]);
+  regs[18] = swap_uint16(g_ble_sensor_data.humi[4]);
+  regs[19] = swap_uint16(g_ble_sensor_data.temp[5]);
+  regs[20] = swap_uint16(g_ble_sensor_data.humi[5]);
+  regs[21] = swap_uint16(g_ble_sensor_data.temp[6]);
+  regs[22] = swap_uint16(g_ble_sensor_data.humi[6]);
+  regs[23] = swap_uint16(g_ble_sensor_data.temp[7]);
+  regs[24] = swap_uint16(g_ble_sensor_data.humi[7]);
+  regs[25] = swap_uint16(g_ble_sensor_data.temp[8]);
+  regs[26] = swap_uint16(g_ble_sensor_data.humi[8]);
+  regs[27] = swap_uint16(g_ble_sensor_data.temp[9]);
+  regs[28] = swap_uint16(g_ble_sensor_data.humi[9]);
+  regs[29] = swap_uint16(g_ble_sensor_data.wifi_status);
+  regs[30] = swap_uint16(abs(g_ble_sensor_data.wifi_rssi));
+  // 根据 reg_addr 写入起始位置，连续写入 count 个寄存器
+  uint16_t *data_ptr = (uint16_t *)((uint8_t *)&g_sonsor_meter + head_size);
+  for (uint16_t i = 0; i < count; i++) {
+    data_ptr[i] = regs[start + i];
+  }
+  // 响应帧: DeVadd + Functioncode + len + 数据区 + crc_sum
   uint8_t *array = (uint8_t *)&g_sonsor_meter;
-  // 写入校验和
-  memcpy(array + g_sonsor_meter.len + 3, &g_sonsor_meter.crc_sum, sizeof(g_sonsor_meter.crc_sum));
-  // SEGGER_RTT_printf_hex(array, g_sonsor_meter.len + 5);
-  sendModbusData(array, g_sonsor_meter.len + 5, modbus->is_hmi);
+  // CRC 只覆盖头部 + 数据区，不包含 crc_sum 自身
+  g_sonsor_meter.crc_sum = swap_uint16(
+      Crc_Cal(array, head_size + g_sonsor_meter.len));
+  // 写入校验和(尾部 2 字节)
+  *(uint16_t *)(array + head_size + g_sonsor_meter.len) = g_sonsor_meter.crc_sum;
+  // 发送Modbus数据包
+  //  if(!modbus->is_hmi)
+  //  SEGGER_RTT_printf_hex(array, head_size + g_sonsor_meter.len + 2);
+  sendModbusData(array, head_size + g_sonsor_meter.len + 2, modbus->is_hmi);
 }
 void handleModbusDataByFuncCode04(const Modbus *modbus) {
   // 写入寄存器数据

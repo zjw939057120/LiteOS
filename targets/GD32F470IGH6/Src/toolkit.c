@@ -57,16 +57,16 @@ void SEGGER_RTT_printf_string(const uint8_t *array, uint32_t length) {
   SEGGER_RTT_printf(0, "\n");
 }
 
-uint16_t toolkit_uint16_little(const uint8_t *array) {
+uint16_t swap_uint16_array(const uint8_t *array) {
   return (array[0] << 8) | array[1];
 }
 
-uint32_t toolkit_uint32_little(const uint8_t *array) {
+uint32_t swap_uint32_array(const uint8_t *array) {
   return (array[0] << 24) | (array[1] << 16) | (array[2] << 8) | array[3];
 }
-uint16_t toolkit_swap_uint16(uint16_t val){
+uint16_t swap_uint16(uint16_t val){
   return (val << 8) | (val >> 8);
 }
-uint32_t toolkit_swap_uint32(uint32_t val){
+uint32_t swap_uint32(uint32_t val){
   return (val << 24) | (val << 8) | (val >> 8) | (val >> 24);
 }
