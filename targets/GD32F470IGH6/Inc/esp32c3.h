@@ -41,7 +41,8 @@ extern "C" {
 
 #define BLE_SENSOR_COUNT 10
 
-typedef struct {
+typedef struct __attribute__((packed)) // 结构体内存紧凑
+{
   int16_t count;//传感器数量
   int16_t temp[BLE_SENSOR_COUNT];//温度
   int16_t humi[BLE_SENSOR_COUNT];//湿度
@@ -60,6 +61,10 @@ void ATResponseHandle(uint8_t *res, uint32_t len);
 bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, int* parity, int* addr);
 
 void SendSensorToESPC3(void);
+
+void SendVersionToESPC3(void);
+
+bool parseVersionCommand(char* cmd, uint16_t* screen_version, uint16_t* system_version, uint16_t* network_version);
 
 #ifdef __cplusplus
 #if __cplusplus

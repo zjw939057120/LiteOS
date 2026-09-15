@@ -163,6 +163,9 @@ void handleModbusDataByFuncCode03(const Modbus *modbus) {
   regs[28] = swap_uint16(g_ble_sensor_data.humi[9]);
   regs[29] = swap_uint16(g_ble_sensor_data.wifi_status);
   regs[30] = swap_uint16(abs(g_ble_sensor_data.wifi_rssi));
+  regs[31] = swap_uint16(g_sonsor_meter.screen_version);
+  regs[32] = swap_uint16(g_sonsor_meter.system_version);
+  regs[33] = swap_uint16(g_sonsor_meter.network_version);
   // 根据 reg_addr 写入起始位置，连续写入 count 个寄存器
   uint16_t *data_ptr = (uint16_t *)((uint8_t *)&g_sonsor_meter + head_size);
   for (uint16_t i = 0; i < count; i++) {

@@ -41,6 +41,9 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
+/* 系统版本 */
+#define FW_VERSION 1
+
 //传感器类型
 #define CO2_Sensor   0x01
 #define HH2O_Sensor  0x02
@@ -66,7 +69,8 @@ enum SensorDataLength {
   PM_Sensor_Data_Length = 56,
 };
 
-typedef struct {
+typedef struct __attribute__((packed)) // 结构体内存紧凑
+{
   // 红外二氧化碳传感器CM1106S
   uint16_t CO2; // CO2
   // 甲醛传感器SC11-CH2O

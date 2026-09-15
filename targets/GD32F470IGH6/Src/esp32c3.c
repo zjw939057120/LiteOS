@@ -35,8 +35,10 @@
 /* AT命令前缀宏定义 */
 
 /* AT响应前缀宏定义 */
+#define AT_RES_READ "read"
 #define AT_RES_PREFIX_BLE_SENSOR    "+BLE_SENSOR:"     /* BLE传感器数据 */
 #define AT_RES_PREFIX_UART_DEF    "+UART_DEF:"     /* UART默认配置 */
+#define AT_RES_PREFIX_VERSION    "+VERSION:"     /* 版本信息 */
 
 
 
@@ -50,20 +52,6 @@ char cmd_buf[DEFAULT_QUEUE_BUF_LEN] = {0};
 static void SendATRequest(const uint8_t *data, uint32_t len)
 {
   Seria_SendArray(USART5, data, len);
-}
-
-/* 检查字符串是否以指定前缀开头，返回0或1 */
-static int32_t StrStartWith(const uint8_t *str, const char *prefix)
-{
-  if (!str || !prefix) return 0;
-  while (*prefix != '\0') {
-    if (*str != *prefix) {
-      return 0;
-    }
-    str++;
-    prefix++;
-  }
-  return 1;
 }
 
 bool parseBLESensor(char* cmd, BLESensorData *sensor_data) {
@@ -105,10 +93,9 @@ bool parseBLESensor(char* cmd, BLESensorData *sensor_data) {
   // 解析WiFi信号强度
   token = next + 1;
   next = strchr(token, ',');
-  if (next == NULL) {
+  if (next != NULL) {
     return false;
   }
-  *next = '\0';
   sensor_data->wifi_rssi = atoi(token);
   return true;
 }
@@ -137,9 +124,11 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
   }
 
   SEGGER_RTT_printf(0, "res = %s", res);
-  if (StrStartWith(res, AT_RES_PREFIX_BLE_SENSOR)) {
-    int32_t ret = parseBLESensor((char *)res, &g_ble_sensor_data);
-    if (ret == 0) {
+  if (strncmp((char *)res, AT_RES_READ, strlen(AT_RES_READ)) == 0) {
+    SendVersionToESPC3();
+  }
+  else if (strncmp((char *)res, AT_RES_PREFIX_BLE_SENSOR, strlen(AT_RES_PREFIX_BLE_SENSOR)) == 0) {
+    if (parseBLESensor((char *)res, &g_ble_sensor_data)) {
       // 传感器类型
       if (g_ble_sensor_data.count > 0) {
         g_sensor.TYPE |= SHT_Sensor;
@@ -154,12 +143,11 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
       // g_ble_sensor_data.count, g_ble_sensor_data.wifi_status, g_ble_sensor_data.wifi_rssi);
     }
     return;
-  } else if (StrStartWith(res, AT_RES_PREFIX_UART_DEF)) {
+  } else if (strncmp((char *)res, AT_RES_PREFIX_UART_DEF, strlen(AT_RES_PREFIX_UART_DEF)) == 0) {
     SendATResponse(res, len);// 发送UART配置命令到USART6
     // 解析UART配置命令
     int baud = 0, dataBits = 0, stopBits = 0, parity = 0, addr = 0;
-    if (parseUartConfigCommand((char *)res, &baud, &dataBits, &stopBits,
-                               &parity, &addr)) {
+    if (parseUartConfigCommand((char *)res, &baud, &dataBits, &stopBits, &parity, &addr)) {
       // 配置成功
       g_uart_config.baud = baud;
       g_uart_config.dataBits = dataBits;
@@ -168,6 +156,19 @@ void ATResponseHandle(uint8_t *res, uint32_t len) {
       g_uart_config.addr = addr;
       // 重新配置RS485
       usart4_reconfig(baud, dataBits, stopBits, parity);
+    }
+    return;
+  } else if (strncmp((char *)res, AT_RES_PREFIX_VERSION, strlen(AT_RES_PREFIX_VERSION)) == 0) {
+    SendATResponse(res, len);// 发送版本信息到USART6
+    // 解析版本信息
+      uint16_t screen_version;  // 屏幕版本号
+      uint16_t system_version;  // 系统版本号
+      uint16_t network_version;  // 网络版本号
+    if (parseVersionCommand((char *)res, &screen_version, &system_version, &network_version)) {
+      // 解析成功
+      g_sonsor_meter.screen_version = screen_version;
+      g_sonsor_meter.system_version = system_version;
+      g_sonsor_meter.network_version = network_version;
     }
     return;
   }
@@ -197,6 +198,7 @@ bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, 
     return false;
   }
   *next = '\0';
+  // 波特率
   *baud = atoi(token);
 
   token = next + 1;
@@ -205,6 +207,7 @@ bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, 
     return false;
   }
   *next = '\0';
+  // 数据位
   *dataBits = atoi(token);
 
   token = next + 1;
@@ -213,26 +216,23 @@ bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, 
     return false;
   }
   *next = '\0';
+  // 停止位
   *stopBits = atoi(token);
-
   token = next + 1;
-  if (token == NULL || *token == '\0') {
-    return false;
-  }
-
   next = strchr(token, ',');
   if (next == NULL) {
-    *parity = atoi(token);
-    *addr = 0;
-  } else {
-    *next = '\0';
-    *parity = atoi(token);
-    token = next + 1;
-    if (token == NULL || *token == '\0') {
-      return false;
-    }
-    *addr = atoi(token);
+    return false;
   }
+  *next = '\0';
+  // 校验位
+  *parity = atoi(token);
+  token = next + 1;
+  next = strchr(token, ',');
+  if (next != NULL) {
+    return false;
+  }
+  // 地址
+  *addr = atoi(token);
 
   // Validation: ESP32-C3 ranges and requested numeric encoding
   if (*baud < 80 || *baud > 5000000) return false;
@@ -244,7 +244,42 @@ bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, 
   return true;
 }
 
+bool parseVersionCommand(char* cmd, uint16_t* screen_version, uint16_t* system_version, uint16_t* network_version) {
+  char* token = cmd + strlen(AT_RES_PREFIX_VERSION);
+  char* next = strchr(token, ',');
+  if (next == NULL) {
+    return false;
+  }
+  *next = '\0';
+  // 屏幕版本号
+  *screen_version = atoi(token);
+
+  token = next + 1;
+  next = strchr(token, ',');
+  if (next == NULL) {
+    return false;
+  }
+  *next = '\0';
+  // 系统版本号
+  *system_version = atoi(token);
+
+  token = next + 1;
+  next = strchr(token, ',');
+  if (next != NULL) {
+    return false;
+  }
+  // 网络版本号
+  *network_version = atoi(token);
+  return true;
+}
+
 void SendSensorToESPC3(void) {
   snprintf(cmd_buf, DEFAULT_QUEUE_BUF_LEN, "AT+SENSOR=%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", g_sensor.CO2, g_sensor.CH2O, g_sensor.TVOC, g_sensor.PM25, g_sensor.PM100, g_sensor.TEMP, g_sensor.RH, g_sensor.PM10, g_sensor.TYPE);
+  SendATRequest((uint8_t*)cmd_buf, strlen(cmd_buf));
+}
+
+void SendVersionToESPC3(void) {
+  //版本类型0屏幕1系统2网络
+  snprintf(cmd_buf, DEFAULT_QUEUE_BUF_LEN, "AT+VERSION=1,%d\r\n", FW_VERSION);
   SendATRequest((uint8_t*)cmd_buf, strlen(cmd_buf));
 }

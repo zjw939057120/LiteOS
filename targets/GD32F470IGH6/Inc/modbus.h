@@ -77,7 +77,11 @@ typedef struct __attribute__((packed)) // 结构体内存紧凑
   uint16_t RH_Sonsor_data_10;   // 10 号传感器湿度
   uint16_t wifi_status; // wifi状态位
   uint16_t wifi_rssi;   // wifi信号强度
+  uint16_t screen_version;  // 屏幕版本号
+  uint16_t system_version;  // 系统版本号
+  uint16_t network_version;  // 网络版本号
   uint16_t crc_sum;     // CRC校验和
+
 } Sonsor_meter;
 
 extern Sonsor_meter g_sonsor_meter;
@@ -85,7 +89,8 @@ extern Sonsor_meter g_sonsor_meter;
 
 // esp32c3串口通讯
 
-typedef struct {
+typedef struct __attribute__((packed)) // 结构体内存紧凑
+{
   // SWM34SMEU6-QFN80串口通讯
   uint8_t address;   // 设备地址
   uint8_t func_code; // 功能码
@@ -95,7 +100,8 @@ typedef struct {
   bool is_hmi;       // 是否HMI请求
 } Modbus;
 
-typedef struct {
+typedef struct __attribute__((packed)) // 结构体内存紧凑
+{
   int baud;     // 波特率80~5000000
   int dataBits; // 数据位5;5bit,6:6bit,7:7bit,8:8bit,9:9bit
   int stopBits; // 停止位1:1bit,2:1.5bit,3:2bit
