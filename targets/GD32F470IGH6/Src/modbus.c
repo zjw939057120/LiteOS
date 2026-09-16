@@ -34,11 +34,11 @@
 // Modbus地址
 UartConfig_t g_uart_config = {9600, 8, 1, 0, 0};
 
-Modbus g_modbus_hmi = {0, 0, 0, 0, 0, true};
-Modbus g_modbus = {0, 0, 0, 0, 0, false};
+ModbusReq g_modbus_hmi = {0, 0, 0, 0, 0, true};
+ModbusReq g_modbus = {0, 0, 0, 0, 0, false};
 Sonsor_meter g_sonsor_meter = {0};
 
-void ResetModbus(Modbus *modbus) {
+void ResetModbus(ModbusReq *modbus) {
   // modbus->address = g_modbus_address;
   modbus->func_code = 0;
   modbus->reg_addr = 0;
@@ -46,7 +46,7 @@ void ResetModbus(Modbus *modbus) {
   modbus->crc_sum = 0;
 }
 
-bool DecodeModbusData(const uint8_t *array, uint32_t len, Modbus *modbus) {
+bool DecodeModbusData(const uint8_t *array, uint32_t len, ModbusReq *modbus) {
   if (array[0] != g_uart_config.addr) {
     // 地址不匹配
     return false;
@@ -62,14 +62,14 @@ bool DecodeModbusData(const uint8_t *array, uint32_t len, Modbus *modbus) {
   return true;
 }
 
-void ModbusHandle(const uint8_t *array, uint32_t len, Modbus *modbus){
+void ModbusHandle(const uint8_t *array, uint32_t len, ModbusReq *modbus){
   // 解码Modbus数据
   if (!DecodeModbusData(array, len, modbus)) {
     return;
    }
   handleModbusData(modbus);
 }
-void handleModbusData(const Modbus *modbus) {
+void handleModbusData(const ModbusReq *modbus) {
   switch (modbus->func_code) {
   case 0x00:
     handleModbusDataByFuncCode00(modbus);
@@ -96,99 +96,142 @@ void handleModbusData(const Modbus *modbus) {
     break;
   }
 }
-void handleModbusDataByFuncCode00(const Modbus *modbus) {
+void handleModbusDataByFuncCode00(const ModbusReq *modbus) {
   // 读取寄存器数据
   SEGGER_RTT_printf(0, "%s %d\n", __func__, modbus->func_code);
 }
-void handleModbusDataByFuncCode01(const Modbus *modbus) {
+void handleModbusDataByFuncCode01(const ModbusReq *modbus) {
   // 写入寄存器数据
   SEGGER_RTT_printf(0, "%s %d\n", __func__, modbus->func_code);
 }
-void handleModbusDataByFuncCode02(const Modbus *modbus) {
+void handleModbusDataByFuncCode02(const ModbusReq *modbus) {
   // 写入寄存器数据
   SEGGER_RTT_printf(0, "%s %d\n", __func__, modbus->func_code);
 }
 
-  // 头部固定 3 字节: DeVadd + Functioncode + len
-  const uint16_t head_size = 3;
-  // CRC固定 2 字节
-  const uint16_t crc_size = 2;
-  // 数据区可读寄存器数: sizeof(Sonsor_meter) 减去头部与 crc_sum
-  const uint16_t data_regs = (sizeof(Sonsor_meter) - head_size - crc_size) / 2;
+//所有寄存器数量
+const uint16_t all_regs_count = sizeof(Sonsor_meter) / 2;
 
-void handleModbusDataByFuncCode03(const Modbus *modbus) {
-  uint16_t start = modbus->reg_addr;
-  uint16_t count = modbus->reg_number;
-  // 边界校验：限定 reg_addr / reg_number 不越界
-  if (start >= data_regs) {
-    start = 0;
-    count = data_regs;
+  // 读取寄存器数据
+uint16_t getModbusRegister(uint16_t addr) {
+  switch (addr) {
+  case 0:
+    return g_sensor.CO2;
+  case 1:
+    return g_sensor.CH2O;
+  case 2:
+    return g_sensor.TVOC;
+  case 3:
+    return g_sensor.PM25;
+  case 4:
+    return g_sensor.PM100;
+  case 5:
+    return g_sensor.TEMP;
+  case 6:
+    return g_sensor.RH;
+  case 7:
+    return g_sensor.PM10;
+  case 8:
+    return g_sensor.TYPE;
+  case 9:
+    return g_ble_sensor_data.temp[0];
+  case 10:
+    return g_ble_sensor_data.humi[0];
+  case 11:
+    return g_ble_sensor_data.temp[1];
+  case 12:
+    return g_ble_sensor_data.humi[1];
+  case 13:
+    return g_ble_sensor_data.temp[2];
+  case 14:
+    return g_ble_sensor_data.humi[2];
+  case 15:
+    return g_ble_sensor_data.temp[3];
+  case 16:
+    return g_ble_sensor_data.humi[3];
+  case 17:
+    return g_ble_sensor_data.temp[4];
+  case 18:
+    return g_ble_sensor_data.humi[4];
+  case 19:
+    return g_ble_sensor_data.temp[5];
+  case 20:
+    return g_ble_sensor_data.humi[5];
+  case 21:
+    return g_ble_sensor_data.temp[6];
+  case 22:
+    return g_ble_sensor_data.humi[6];
+  case 23:
+    return g_ble_sensor_data.temp[7];
+  case 24:
+    return g_ble_sensor_data.humi[7];
+  case 25:
+    return g_ble_sensor_data.temp[8];
+  case 26:
+    return g_ble_sensor_data.humi[8];
+  case 27:
+    return g_ble_sensor_data.temp[9];
+  case 28:
+    return g_ble_sensor_data.humi[9];
+  case 29:
+    return g_ble_sensor_data.wifi_status;
+  case 30:
+    return abs(g_ble_sensor_data.wifi_rssi);
+  case 31:
+    return g_sonsor_meter.screen_version;
+  case 32:
+    return g_sonsor_meter.system_version;
+  case 33:
+    return g_sonsor_meter.network_version;
+  default:
+    return 0;
   }
-  // 边界校验：限定 reg_number 不超过可读寄存器数
-  if (count == 0 || count > data_regs - start) {
-    count = data_regs - start;
-  }
-  g_sonsor_meter.DeVadd = modbus->address;
-  g_sonsor_meter.Functioncode = modbus->func_code;
-  g_sonsor_meter.len = count * 2;
-  // 准备全部寄存器值(按结构体顺序)
-  uint16_t regs[data_regs];
-  regs[0]  = swap_uint16(g_sensor.CO2);
-  regs[1]  = swap_uint16(g_sensor.CH2O);
-  regs[2]  = swap_uint16(g_sensor.TVOC);
-  regs[3]  = swap_uint16(g_sensor.PM25);
-  regs[4]  = swap_uint16(g_sensor.PM100);
-  regs[5]  = swap_uint16(g_sensor.TEMP);
-  regs[6]  = swap_uint16(g_sensor.RH);
-  regs[7]  = swap_uint16(g_sensor.PM10);
-  regs[8]  = swap_uint16(g_sensor.TYPE);
-  regs[9]  = swap_uint16(g_ble_sensor_data.temp[0]);
-  regs[10] = swap_uint16(g_ble_sensor_data.humi[0]);
-  regs[11] = swap_uint16(g_ble_sensor_data.temp[1]);
-  regs[12] = swap_uint16(g_ble_sensor_data.humi[1]);
-  regs[13] = swap_uint16(g_ble_sensor_data.temp[2]);
-  regs[14] = swap_uint16(g_ble_sensor_data.humi[2]);
-  regs[15] = swap_uint16(g_ble_sensor_data.temp[3]);
-  regs[16] = swap_uint16(g_ble_sensor_data.humi[3]);
-  regs[17] = swap_uint16(g_ble_sensor_data.temp[4]);
-  regs[18] = swap_uint16(g_ble_sensor_data.humi[4]);
-  regs[19] = swap_uint16(g_ble_sensor_data.temp[5]);
-  regs[20] = swap_uint16(g_ble_sensor_data.humi[5]);
-  regs[21] = swap_uint16(g_ble_sensor_data.temp[6]);
-  regs[22] = swap_uint16(g_ble_sensor_data.humi[6]);
-  regs[23] = swap_uint16(g_ble_sensor_data.temp[7]);
-  regs[24] = swap_uint16(g_ble_sensor_data.humi[7]);
-  regs[25] = swap_uint16(g_ble_sensor_data.temp[8]);
-  regs[26] = swap_uint16(g_ble_sensor_data.humi[8]);
-  regs[27] = swap_uint16(g_ble_sensor_data.temp[9]);
-  regs[28] = swap_uint16(g_ble_sensor_data.humi[9]);
-  regs[29] = swap_uint16(g_ble_sensor_data.wifi_status);
-  regs[30] = swap_uint16(abs(g_ble_sensor_data.wifi_rssi));
-  regs[31] = swap_uint16(g_sonsor_meter.screen_version);
-  regs[32] = swap_uint16(g_sonsor_meter.system_version);
-  regs[33] = swap_uint16(g_sonsor_meter.network_version);
+}
 
-  uint8_t tx_buf[3 + data_regs * 2 + 2];
-  tx_buf[0] = modbus->address;
-  tx_buf[1] = modbus->func_code;
-  tx_buf[2] = (uint8_t)(count * 2);
-  memcpy(&tx_buf[3], &regs[start], count * 2);
-  uint16_t crc = swap_uint16(Crc_Cal(tx_buf, 3 + count * 2));
-  tx_buf[3 + count * 2]     = (uint8_t)(crc & 0xFF);
-  tx_buf[3 + count * 2 + 1] = (uint8_t)(crc >> 8);
+
+void handleModbusDataByFuncCode03(const ModbusReq *modbus) {
+  uint16_t startAddr = modbus->reg_addr;// 起始地址
+  uint16_t quantity = modbus->reg_number;// 读取寄存器数量
+
+  if (startAddr > all_regs_count) {
+    // 超出范围
+    return;
+  }else if (startAddr + quantity > all_regs_count) {
+    // 超出范围
+    return;
+  }
+
+  uint8_t response[256];
+  int responseLen = 0;
+
+  // 构建响应
+  response[0] = modbus->address;// 地址
+  response[1] = modbus->func_code;// 功能码
+  response[2] = quantity * 2; // 字节数
+  for (int i = 0; i < quantity; i++) {
+     uint16_t value = getModbusRegister(startAddr + i);
+     response[3 + i * 2] = (value >> 8) & 0xFF;
+     response[4 + i * 2] = value & 0xFF;
+    }
+    responseLen = 3 + quantity * 2;
+    // CRC校验
+    uint16_t crc = Crc_Cal(response, responseLen);
+    response[responseLen] = crc >> 8;
+    response[responseLen + 1] = crc & 0xFF;
+    responseLen += 2;
   // if(!modbus->is_hmi)
-  //   SEGGER_RTT_printf_hex(tx_buf, 3 + count * 2 + 2);
-  sendModbusData(tx_buf, 3 + count * 2 + 2, modbus->is_hmi);
+  //   SEGGER_RTT_printf_hex(response, responseLen);
+  sendModbusData(response, responseLen, modbus->is_hmi);
 }
-void handleModbusDataByFuncCode04(const Modbus *modbus) {
+void handleModbusDataByFuncCode04(const ModbusReq *modbus) {
   // 写入寄存器数据
   SEGGER_RTT_printf(0, "%s %d\n", __func__, modbus->func_code);
 }
-void handleModbusDataByFuncCode05(const Modbus *modbus) {
+void handleModbusDataByFuncCode05(const ModbusReq *modbus) {
   // 写入寄存器数据
   SEGGER_RTT_printf(0, "%s %d\n", __func__, modbus->func_code);
 }
-void handleModbusDataByFuncCode06(const Modbus *modbus) {
+void handleModbusDataByFuncCode06(const ModbusReq *modbus) {
   // 写入寄存器数据
   SEGGER_RTT_printf(0, "%s %d\n", __func__, modbus->func_code);
 }

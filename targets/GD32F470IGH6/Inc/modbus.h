@@ -43,9 +43,6 @@ extern "C" {
 
 typedef struct __attribute__((packed)) // 结构体内存紧凑
 {
-  uint8_t DeVadd;               // 设备地址
-  uint8_t Functioncode;         // 功能码
-  uint8_t len;                  // 字节数
   uint16_t CO2_Sonsor_data;     // CO2传感器数据
   uint16_t CH2O_Sonsor_data;    // CH2O传感器数据
   uint16_t TVOC_Sonsor_data;    // TVOC传感器数据
@@ -80,8 +77,6 @@ typedef struct __attribute__((packed)) // 结构体内存紧凑
   uint16_t screen_version;  // 屏幕版本号
   uint16_t system_version;  // 系统版本号
   uint16_t network_version;  // 网络版本号
-  uint16_t crc_sum;     // CRC校验和
-
 } Sonsor_meter;
 
 extern Sonsor_meter g_sonsor_meter;
@@ -98,7 +93,7 @@ typedef struct __attribute__((packed)) // 结构体内存紧凑
   uint16_t reg_number; // 寄存器数量
   uint16_t crc_sum;    // CRC校验码
   bool is_hmi;       // 是否HMI请求
-} Modbus;
+} ModbusReq;
 
 typedef struct __attribute__((packed)) // 结构体内存紧凑
 {
@@ -110,21 +105,22 @@ typedef struct __attribute__((packed)) // 结构体内存紧凑
 } UartConfig_t;
 
 extern UartConfig_t g_uart_config;
-extern Modbus g_modbus_hmi;
-extern Modbus g_modbus;
+extern ModbusReq g_modbus_hmi;
+extern ModbusReq g_modbus;
 
-void ResetModbus(Modbus *modbus);
-bool DecodeModbusData(const uint8_t *array, uint32_t len, Modbus *modbus);
+void ResetModbus(ModbusReq *modbus);
+bool DecodeModbusData(const uint8_t *array, uint32_t len, ModbusReq *modbus);
 
-void ModbusHandle(const uint8_t *array, uint32_t len, Modbus *modbus);
-void handleModbusData(const Modbus *modbus);
-void handleModbusDataByFuncCode00(const Modbus *modbus);
-void handleModbusDataByFuncCode01(const Modbus *modbus);
-void handleModbusDataByFuncCode02(const Modbus *modbus);
-void handleModbusDataByFuncCode03(const Modbus *modbus);
-void handleModbusDataByFuncCode04(const Modbus *modbus);
-void handleModbusDataByFuncCode05(const Modbus *modbus);
-void handleModbusDataByFuncCode06(const Modbus *modbus);
+void ModbusHandle(const uint8_t *array, uint32_t len, ModbusReq *modbus);
+void handleModbusData(const ModbusReq *modbus);
+void handleModbusDataByFuncCode00(const ModbusReq *modbus);
+void handleModbusDataByFuncCode01(const ModbusReq *modbus);
+void handleModbusDataByFuncCode02(const ModbusReq *modbus);
+uint16_t getModbusRegister(uint16_t addr);
+void handleModbusDataByFuncCode03(const ModbusReq *modbus);
+void handleModbusDataByFuncCode04(const ModbusReq *modbus);
+void handleModbusDataByFuncCode05(const ModbusReq *modbus);
+void handleModbusDataByFuncCode06(const ModbusReq *modbus);
 void sendModbusData(const uint8_t *Array, uint16_t Length, bool is_hmi);
 void rs485_en(bool enable);
 

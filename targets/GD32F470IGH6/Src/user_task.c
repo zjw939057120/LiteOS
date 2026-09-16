@@ -220,7 +220,7 @@ UINT32 RecvUsart4TaskEntry(VOID) {
       buff[recvLen] = '\0';
       ATRequestHandle(buff, recvLen, false);
     } else if (recvLen == 8) {
-      // Modbus 数据
+      // ModbusReq 数据
       ModbusHandle(buff, recvLen, &g_modbus);
     }
     if (index % 60 == 0) {
@@ -275,7 +275,7 @@ UINT32 RecvUsart6TaskEntry(VOID) {
       buff[recvLen] = '\0';
       ATRequestHandle(buff, recvLen, true);
     } else if (recvLen == 8) {
-      // Modbus 数据
+      // ModbusReq 数据
       ModbusHandle(buff, recvLen, &g_modbus_hmi);
     }
     if (index % 60 == 0) {
