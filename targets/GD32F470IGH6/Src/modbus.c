@@ -117,13 +117,14 @@ void handleModbusDataByFuncCode02(const Modbus *modbus) {
   const uint16_t data_regs = (sizeof(Sonsor_meter) - head_size - crc_size) / 2;
 
 void handleModbusDataByFuncCode03(const Modbus *modbus) {
-  // 边界校验：限定 reg_addr / reg_number 不越界
   uint16_t start = modbus->reg_addr;
   uint16_t count = modbus->reg_number;
+  // 边界校验：限定 reg_addr / reg_number 不越界
   if (start >= data_regs) {
     start = 0;
     count = data_regs;
   }
+  // 边界校验：限定 reg_number 不超过可读寄存器数
   if (count == 0 || count > data_regs - start) {
     count = data_regs - start;
   }
@@ -135,11 +136,11 @@ void handleModbusDataByFuncCode03(const Modbus *modbus) {
   regs[0]  = swap_uint16(g_sensor.CO2);
   regs[1]  = swap_uint16(g_sensor.CH2O);
   regs[2]  = swap_uint16(g_sensor.TVOC);
-  regs[3]  = swap_uint32(g_sensor.PM25);
-  regs[4]  = swap_uint32(g_sensor.PM100);
+  regs[3]  = swap_uint16(g_sensor.PM25);
+  regs[4]  = swap_uint16(g_sensor.PM100);
   regs[5]  = swap_uint16(g_sensor.TEMP);
   regs[6]  = swap_uint16(g_sensor.RH);
-  regs[7]  = swap_uint32(g_sensor.PM10);
+  regs[7]  = swap_uint16(g_sensor.PM10);
   regs[8]  = swap_uint16(g_sensor.TYPE);
   regs[9]  = swap_uint16(g_ble_sensor_data.temp[0]);
   regs[10] = swap_uint16(g_ble_sensor_data.humi[0]);
@@ -166,22 +167,18 @@ void handleModbusDataByFuncCode03(const Modbus *modbus) {
   regs[31] = swap_uint16(g_sonsor_meter.screen_version);
   regs[32] = swap_uint16(g_sonsor_meter.system_version);
   regs[33] = swap_uint16(g_sonsor_meter.network_version);
-  // 根据 reg_addr 写入起始位置，连续写入 count 个寄存器
-  uint16_t *data_ptr = (uint16_t *)((uint8_t *)&g_sonsor_meter + head_size);
-  for (uint16_t i = 0; i < count; i++) {
-    data_ptr[i] = regs[start + i];
-  }
-  // 响应帧: DeVadd + Functioncode + len + 数据区 + crc_sum
-  uint8_t *array = (uint8_t *)&g_sonsor_meter;
-  // CRC 只覆盖头部 + 数据区，不包含 crc_sum 自身
-  g_sonsor_meter.crc_sum = swap_uint16(
-      Crc_Cal(array, head_size + g_sonsor_meter.len));
-  // 写入校验和(尾部 2 字节)
-  *(uint16_t *)(array + head_size + g_sonsor_meter.len) = g_sonsor_meter.crc_sum;
-  // 发送Modbus数据包
-  //  if(!modbus->is_hmi)
-  //  SEGGER_RTT_printf_hex(array, head_size + g_sonsor_meter.len + 2);
-  sendModbusData(array, head_size + g_sonsor_meter.len + 2, modbus->is_hmi);
+
+  uint8_t tx_buf[3 + data_regs * 2 + 2];
+  tx_buf[0] = modbus->address;
+  tx_buf[1] = modbus->func_code;
+  tx_buf[2] = (uint8_t)(count * 2);
+  memcpy(&tx_buf[3], &regs[start], count * 2);
+  uint16_t crc = swap_uint16(Crc_Cal(tx_buf, 3 + count * 2));
+  tx_buf[3 + count * 2]     = (uint8_t)(crc & 0xFF);
+  tx_buf[3 + count * 2 + 1] = (uint8_t)(crc >> 8);
+  // if(!modbus->is_hmi)
+  //   SEGGER_RTT_printf_hex(tx_buf, 3 + count * 2 + 2);
+  sendModbusData(tx_buf, 3 + count * 2 + 2, modbus->is_hmi);
 }
 void handleModbusDataByFuncCode04(const Modbus *modbus) {
   // 写入寄存器数据
