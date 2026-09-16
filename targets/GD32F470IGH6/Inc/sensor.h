@@ -41,8 +41,8 @@ extern "C" {
 #endif /* __cplusplus */
 #endif /* __cplusplus */
 
-/* 系统版本 */
-#define FW_VERSION 1
+// 系统版本XYZ
+#define FW_VERSION 100
 
 //传感器类型
 #define CO2_Sensor   0x01
