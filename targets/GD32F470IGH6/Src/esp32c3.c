@@ -240,7 +240,7 @@ bool parseUartConfigCommand(char* cmd, int* baud, int* dataBits, int* stopBits, 
   if (*stopBits < 1 || *stopBits > 3) return false; // 1=1bit,2=1.5bit,3=2bit
   if (*parity < 0 || *parity > 2) return false; // 0=None,1=Odd,2=Even
   if (*addr < 0 || *addr > 255) return false;
-  SEGGER_RTT_printf(0, "%s %d,%d,%d,%d,%d,%d\n", __func__, *baud, *dataBits, *stopBits, *parity, *addr);
+  SEGGER_RTT_printf(0, "%s %d,%d,%d,%d,%d\n", __func__, *baud, *dataBits, *stopBits, *parity, *addr);
   return true;
 }
 
